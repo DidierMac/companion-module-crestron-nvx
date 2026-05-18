@@ -1,7 +1,7 @@
 # Spec — Module Bitfocus Companion : Crestron DM NVX
 
-**Date** : 2026-05-18  
-**Version cible** : 1.0.0  
+**Version doc** : 0.2  
+**Modifié** : 2026-05-18 20:18  
 **Auteur** : Didier Casalta  
 **Statut** : Approuvé — prêt pour implémentation
 
