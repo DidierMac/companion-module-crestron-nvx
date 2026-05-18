@@ -1,7 +1,12 @@
 {
 	"id": "crestron-nvx",
 	"name": "Crestron DM NVX",
+	"shortname": "Crestron NVX",
+	"description": "Control Crestron DM NVX encoders and decoders via REST API",
+	"version": "0.1.0",
+	"license": "MIT",
 	"manufacturer": "Crestron",
+	"keywords": ["companion-module", "crestron", "nvx", "av-over-ip"],
 	"products": ["DM-NVX-350", "DM-NVX-351", "DM-NVX-363", "DM-NVX-E50"],
 	"maintainers": [
 		{
@@ -10,10 +15,11 @@
 		}
 	],
 	"repository": "https://github.com/DidierMac/companion-module-crestron-nvx",
+	"bugs": "https://github.com/DidierMac/companion-module-crestron-nvx/issues",
 	"runtime": {
 		"type": "node22",
 		"api": "nodejs-ipc",
-		"apiVersion": "0.0.0",
+		"apiVersion": "0.2.0",
 		"entrypoint": "../dist/main.js"
 	}
 }
