@@ -8,6 +8,7 @@
 	"manufacturer": "Crestron",
 	"keywords": ["companion-module", "crestron", "nvx", "av-over-ip"],
 	"products": ["DM-NVX-350", "DM-NVX-351", "DM-NVX-363", "DM-NVX-E50"],
+	"legacyIds": [],
 	"maintainers": [
 		{
 			"name": "Didier Casalta",
