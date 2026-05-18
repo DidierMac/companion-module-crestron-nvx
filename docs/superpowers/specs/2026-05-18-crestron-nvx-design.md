@@ -159,7 +159,7 @@ res.headers['set-cookie']  // tableau de strings
 
 ### Corrections obligatoires
 
-| Usage | Endpoint actuel ❌ | Endpoint correct ✓ |
+| Usage | Endpoint actuel (incorrect) | Endpoint correct ✓ |
 |---|---|---|
 | Config encodeur (stream émis) | `/Device/AvSignal` | `/Device/StreamTransmit` |
 | Config décodeur (stream reçu) | `/Device/AvSignal` | `/Device/StreamReceive` |
@@ -474,69 +474,223 @@ getUpgradeScripts() {
 
 ---
 
-## 14. Plan d'implémentation (4 phases)
+## 14. Versioning roadmap
 
-### Phase 1 — Couche auth + endpoints corrects
+### Vue d'ensemble
 
-**Objectif** : que le module puisse se connecter et lire des données sur un vrai appareil.
+| Version | Titre | API NVX | Gate | Branche |
+|---|---|---|---|---|
+| **v0.1** | Authentication & Connection | `/userlogin.html`, `/logout` | — | `feature/v0.1-auth` |
+| **v0.2** | Device Info & Polling | `/Device/DeviceInfo` | — | `feature/v0.2-device-info` |
+| | **▼ GATE HARDWARE ▼** | tous endpoints | §11 | — |
+| **v0.3** | Encoder — Stream Transmit | `/Device/StreamTransmit` | hardware ✓ | `feature/v0.3-encoder` |
+| **v0.4** | Decoder — Stream Receive | `/Device/StreamReceive`, `/Device/DiscoveryConfig` | hardware ✓ | `feature/v0.4-decoder` |
+| **v0.5** | Audio & Video I/O | `/Device/AudioVideoInputOutput` | hardware ✓ | `feature/v0.5-audio-video` |
+| **v0.6** | Device Operations & Mode | `/Device/DeviceOperations` | hardware ✓ | `feature/v0.6-device-ops` |
+| **v1.0** | Production Release | — | Companion review | `feature/v1.0-release` |
+| **v1.1** | WebSocket / XioSubscription | `/Device/XioSubscription` | — | `feature/v1.1-websocket` |
+| **v1.2** | Hardware Monitoring | `/Device/DeviceSpecific` | — | `feature/v1.2-monitoring` |
+| **v1.3** | Network & Control Ports | `/Device/Ethernet`, `/Device/ControlPorts` | — | `feature/v1.3-network-ports` |
+| **v2.0** | Advanced (scope TBD) | TBD | — | — |
 
+---
+
+### Logique de séquence
+
+1. **v0.1 avant tout** — l'API NVX est entièrement derrière l'auth. Aucun endpoint n'est accessible sans session valide. Le code actuel a 3 erreurs critiques (endpoint, flux, cookies).
+2. **v0.2 juste après** — DeviceInfo est l'endpoint le plus simple. Il installe le polling loop dont v0.3–v0.6 dépendent tous. Le retry configurable est aussi ici.
+3. **Gate hardware après v0.2** — premier moment où l'on a une connexion fonctionnelle. On peut s'authentifier et lire, donc capturer les noms de propriétés JSON exacts pour tous les endpoints v0.3–v0.6.
+4. **v0.3 (Encoder) avant v0.4 (Decoder)** — tester un décodeur nécessite un encodeur actif avec une URL connue. Encoder d'abord donne cette source de test.
+5. **v0.5 après le routing** — audio/vidéo est indépendant du mode, mais dans une vraie installation on configure le routing d'abord, puis l'audio.
+6. **v0.6 en dernier parmi les 0.x** — la détection automatique encoder/decoder/both nécessite que v0.3 et v0.4 soient implémentés pour distinguer les 3 cas.
+7. **v1.0 en fin de cycle** — tout le travail "meta" (SDK compliance, packaging, docs) regroupé juste avant la release pour éviter de refaire les vérifications après chaque feature.
+8. **v1.1+ post-release** — WebSocket (décision coexistence non tranchée), monitoring, réseau sont des enrichissements qui ne bloquent pas la soumission officielle.
+
+---
+
+### Pré-release (0.x) — Les fondations
+
+#### v0.1 — Authentication & Connection
+
+**Pourquoi maintenant** : sans auth correcte, rien d'autre ne peut être testé.
+
+**APIs** : `GET /userlogin.html`, `POST /userlogin.html`, `GET /logout`
+
+**Contenu** :
 - Réécriture complète de `api.ts` :
-  - `nodeFetch` avec capture des headers de réponse
-  - Cookie jar (5 cookies + AuthByPasswd roulant)
-  - Authentification 2 étapes (GET + POST `/userlogin.html`)
-  - Gestion 403 → re-login + retry
-  - Timeout HTTP (10s par requête)
-  - Logout dans `destroy()`
-- Correction des endpoints (`StreamTransmit`, `StreamReceive`, `AudioVideoInputOutput`)
-- Correction du `getStatus()` placeholder dans `index.ts`
-- Propriétés JSON avec constantes TODO (noms à valider)
+  - `nodeFetch` retourne les headers de réponse (`Set-Cookie`)
+  - Cookie jar : 5 cookies session + `AuthByPasswd` roulant mis à jour après chaque réponse
+  - Flux 2 étapes : GET `/userlogin.html` (TRACKID) → POST `/userlogin.html`
+  - HTTP 403 → re-login + retry (remplace le 401 actuel)
+  - Timeout 10s par requête, 5s TCP
+  - `GET /logout` dans `destroy()`
+- Correction du placeholder `getStatus()` dans `index.ts`
+- Propriétés JSON : constantes nommées avec `// TODO: validate on hardware`
 
-**Critère de fin** : le module peut se connecter, s'authentifier et lire `DeviceInfo`.
+**Critère de fin** : le module se connecte, s'authentifie et se déconnecte proprement. `connection_status` reflète l'état réel.
+
+---
+
+#### v0.2 — Device Info & Polling Foundation
+
+**Pourquoi maintenant** : prouve que la connexion fonctionne + pose l'infrastructure polling.
+
+**API** : `GET /Device/DeviceInfo`
+
+**Contenu** :
+- Polling loop configurable (500ms – 30s)
+- Stratégie retry configurable : exponentiel (`10s → 20s → 40s → 80s`) ou fixe (intervalle paramétrable)
+- Nouveaux champs config : `retryMode` (dropdown), `retryInterval` (number, visible si fixed)
+- Variables : `device_name`, `firmware_version`, `ip_address`, `connection_status`
+- Feedback : `device_connected`
+
+**Critère de fin** : le nom et le firmware de l'appareil s'affichent dans Companion. La reconnexion se comporte correctement.
 
 ---
 
 ### ▼ GATE HARDWARE ▼
 
-Validation sur appareil réel selon checklist §11.  
-Complétion du fichier `docs/hardware-validation.md` avec toutes les réponses JSON capturées.
+**Déclencheur** : lancer `/hardware-validation` — l'agent `nvx-api-explorer` guide la session.
+
+**Prérequis** : v0.1 + v0.2 validés (connexion fonctionnelle).
+
+**Objectif** : capturer les noms de propriétés JSON exacts de tous les endpoints v0.3–v0.6 et décider du parallélisme `AuthByPasswd`.
+
+**Livrable** : `docs/hardware-validation.md` complet (voir checklist §11).
 
 ---
 
-### Phase 2 — Corrections post-test + SDK Companion complet
+### Fonctionnalités AV (0.3 – 0.6) — post-gate
 
-**Objectif** : corriger les chemins JSON validés sur hardware, compléter les bonnes pratiques SDK.
+#### v0.3 — Encoder (Stream Transmit)
 
-- Remplacer les constantes TODO par les vrais noms de propriétés
-- Décision sur le parallélisme (suite aux tests)
-- Implémentation du mode encoder/decoder/both (détection auto + fallback)
-- Nouvelles actions : `enable_stream`, `disable_stream`, `connect_to_stream`
-- `subscribe`/`unsubscribe` sur tous les feedbacks
-- `checkFeedbacks` sélectif
-- `upgradeScripts` (tableau vide)
-- Stratégie retry configurable (exponentiel / fixe)
+**Pourquoi avant le decoder** : configurer la source avant le récepteur. Un encoder actif est nécessaire pour tester le decoder.
 
-### Phase 3 — Exhaustivité NVX
+**API** : `GET/POST /Device/StreamTransmit`
 
-**Objectif** : couvrir l'ensemble du périmètre défini.
+| Actions | Variables | Feedbacks |
+|---|---|---|
+| `set_stream_name` | `stream_name` | `is_encoder` |
+| `set_multicast_address` | `multicast_address` | `stream_enabled` |
+| `enable_stream` | `encoder_url` | `stream_name_matches` |
+| `disable_stream` | `stream_enabled` | |
+| `set_stream_mode` → Encoder | `stream_mode` | |
 
-- Variables étendues : `encoder_url`, `device_mode`, monitoring hardware, réseau
-- Nouvelles actions et feedbacks liés au mode
-- `connect_to_stream` via `/Device/DiscoveryConfig`
-- Lecture `/Device/Ethernet`, `/Device/DeviceSpecific`, `/Device/ControlPorts`
-- Mise à jour des presets pour les nouveaux cas d'usage
+---
 
-### Phase 4 — Packaging open source
+#### v0.4 — Decoder (Stream Receive)
 
-**Objectif** : module prêt pour soumission Bitfocus.
+**Pourquoi après encoder** : le routing décodeur → encodeur nécessite une URL source (produite par v0.3).
 
-- `manifest.json` format v4
-- `package.json` mise à jour dépendances
-- `tsconfig.json` vérification strict
-- `eslint.config.mjs` avec helper officiel
-- `README.md`, `companion/HELP.md`, `LICENSE`, `CHANGELOG.md`, `.gitignore`
-- Build propre (`npm run build` sans erreurs)
-- Lint propre (`npm run lint` sans warnings)
-- Soumission via `companion-module-requests`
+**APIs** : `GET/POST /Device/StreamReceive`, `GET /Device/DiscoveryConfig`
+
+| Actions | Variables | Feedbacks |
+|---|---|---|
+| `set_stream_url` (URL directe) | `stream_url` | `is_decoder` |
+| `connect_to_stream` (discovery par nom) | | `stream_url_matches` |
+| `set_stream_mode` → Decoder | | |
+
+---
+
+#### v0.5 — Audio & Video I/O
+
+**Pourquoi ici** : indépendant du mode, mais logiquement après que le routing est en place (on configure d'abord le signal, puis l'audio).
+
+**API** : `GET/POST /Device/AudioVideoInputOutput`
+
+| Actions | Variables | Feedbacks |
+|---|---|---|
+| `mute_audio` / `unmute_audio` | `audio_muted` | `audio_muted` |
+| `toggle_audio_mute` | `audio_volume` | `audio_volume_above` |
+| `set_audio_volume` (0–100) | `hdmi_input_signal` | `hdmi_input_signal` |
+| `adjust_audio_volume` (delta) | `hdmi_output_signal` | `hdmi_output_signal` |
+| `set_video_input` | `video_source` | |
+| | `video_source_name` | |
+
+---
+
+#### v0.6 — Device Operations & Mode Detection
+
+**Pourquoi en dernier parmi 0.x** : la détection encoder/decoder/both nécessite d'avoir v0.3 + v0.4 implémentés (il faut pouvoir interroger les deux endpoints pour distinguer les modes).
+
+**API** : `POST /Device/DeviceOperations`
+
+**Contenu** :
+- Action `reboot_device`
+- Détection automatique du mode au démarrage :
+  - `StreamTransmit` valide + `StreamReceive` valide → **Both**
+  - Seulement `StreamTransmit` → **Encoder**
+  - Seulement `StreamReceive` → **Decoder**
+- Fallback : champ `deviceMode` dans la config (Auto / Encoder / Decoder / Both)
+- Variable `device_mode`, feedback `device_mode_both`
+- Mise à jour de tous les presets
+
+---
+
+### v1.0 — Production Release
+
+**Objectif** : soumission officielle Bitfocus. Module stable, conforme SDK, documenté.
+
+**Companion SDK compliance** :
+- `getUpgradeScripts()` déclaré (tableau vide, prêt pour futures migrations)
+- `subscribe` / `unsubscribe` sur tous les feedbacks
+- `checkFeedbacks()` appelé avec IDs spécifiques uniquement
+- Zéro `console.log()` — uniquement `this.log()`
+
+**Packaging** :
+- `manifest.json` format v4 complet (`manufacturer`, `products`, `maintainers`, `runtime` objet)
+- `package.json` : base `^1.14.1`, tools `^2.7.2`, ESLint 9, Prettier 3, Node 22
+- `eslint.config.mjs` avec `generateEslintConfig()`
+- `README.md`, `companion/HELP.md`, `LICENSE`, `CHANGELOG.md`
+- Build vert, lint vert
+
+**Soumission** :
+- Tag `v1.0.0` sur `main`
+- PR sur [bitfocus/companion-module-requests](https://github.com/bitfocus/companion-module-requests)
+
+---
+
+### Post-release (1.x) — Enrichissements
+
+#### v1.1 — WebSocket / XioSubscription
+
+**Objectif** : push events temps réel, remplacement ou complément du polling.
+
+**API** : `POST /Device/XioSubscription` + connexion WebSocket
+
+**Point ouvert** (§15) : coexistence avec polling — choix utilisateur ou fallback automatique ?
+
+**Architecture préparée dès v1.0** : interface `IConnectionStrategy` dans `api.ts`, seule l'implémentation polling fournie en v1.0.
+
+---
+
+#### v1.2 — Hardware Monitoring
+
+**Objectif** : exposer les métriques de santé de l'appareil comme variables Companion.
+
+**API** : `GET /Device/DeviceSpecific`
+
+**Variables** : `mac_address`, `device_temperature`, `device_uptime`
+
+---
+
+#### v1.3 — Network & Control Ports
+
+**Objectif** : visibilité config réseau + état ports série/IR. **Lecture seule** — pas d'actions d'écriture (risque en production).
+
+**APIs** : `GET /Device/Ethernet`, `GET /Device/ControlPorts`
+
+**Variables** : `network_ip`, `network_dhcp`
+
+---
+
+### v2.0 — Advanced (scope TBD)
+
+Nécessite une analyse séparée. Candidats possibles :
+- Intégration XiO Cloud (gestion centralisée multi-appareils)
+- Matrice de routing avancée (coordination multi-encodeurs/décodeurs)
+- USB routing pour NVX-352 (2 HDMI + USB)
+- Configuration VLAN / QoS
 
 ---
 
