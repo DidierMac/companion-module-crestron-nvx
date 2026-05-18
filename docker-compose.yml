@@ -1,3 +1,5 @@
+name: companion-nvx
+
 services:
   companion:
     image: ghcr.io/bitfocus/companion/companion:latest
