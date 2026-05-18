@@ -11,7 +11,7 @@ services:
       - companion-data:/companion
       # Module NVX monté en lecture seule
       # Prérequis : npm run build (crée dist/) avant docker compose up
-      - .:/app/module-local-dev:ro
+      - .:/app/module-local-dev/companion-module-crestron-nvx:ro
     restart: unless-stopped
 
 volumes:
