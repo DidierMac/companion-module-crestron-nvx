@@ -1,0 +1,23 @@
+{
+	"name": "companion-module-crestron-nvx",
+	"version": "1.0.0",
+	"description": "Bitfocus Companion module for Crestron DM NVX AV-over-IP systems",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"build:watch": "tsc -p tsconfig.json --watch",
+		"lint": "eslint src/**/*.ts"
+	},
+	"keywords": ["companion", "crestron", "nvx"],
+	"license": "MIT",
+	"dependencies": {
+		"@companion-module/base": "^1.8.0"
+	},
+	"devDependencies": {
+		"@tsconfig/node18": "^18.2.2",
+		"typescript": "^5.4.5"
+	},
+	"engines": {
+		"node": ">=18"
+	}
+}
