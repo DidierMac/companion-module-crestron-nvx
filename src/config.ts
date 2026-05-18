@@ -1,6 +1,8 @@
-import type { SomeCompanionConfigField } from '@companion-module/base'
+import type { JsonValue, SomeCompanionConfigField } from '@companion-module/base'
 
+// Index signature satisfies the JsonObject constraint required by the SDK v2 generics
 export interface ModuleConfig {
+	[key: string]: JsonValue
 	host: string
 	port: number
 	username: string
@@ -25,9 +27,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			id: 'info',
 			width: 12,
 			label: 'Information',
-			value:
-				'This module controls Crestron DM NVX AV-over-IP encoders and decoders via the REST API. ' +
-				'Enter the IP address or hostname of the NVX device below.',
+			value: 'Enter the IP address or hostname of the Crestron DM NVX device.',
 		},
 		{
 			type: 'textinput',
@@ -35,7 +35,6 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			label: 'Device IP / Hostname',
 			width: 8,
 			default: '',
-			required: true,
 		},
 		{
 			type: 'number',
@@ -54,7 +53,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			default: 'admin',
 		},
 		{
-			type: 'textinput',
+			type: 'secret-text',
 			id: 'password',
 			label: 'Password',
 			width: 6,

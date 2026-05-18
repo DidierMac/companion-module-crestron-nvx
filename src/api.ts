@@ -1,349 +1,205 @@
-import https from 'https'
+import https from 'node:https'
+import type { IncomingMessage } from 'node:http'
 import type { ModuleConfig } from './config.js'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface NvxDeviceStatus {
-	// Video routing
-	videoSource: string
-	videoSourceName: string
-	// Stream
-	streamMode: 'encoder' | 'decoder' | 'unknown'
-	streamUrl: string
-	streamName: string
-	multicastAddress: string
-	// Audio
-	audioMuted: boolean
-	audioVolume: number
-	// Signal
-	hdmiInputSignalPresent: boolean
-	hdmiOutputSignalPresent: boolean
-	// Device info
-	deviceName: string
-	firmwareVersion: string
-	ipAddress: string
+export interface DeviceInfo {
+	name: string
+	firmware: string
+	model: string
 }
-
-export type NvxStreamMode = 'Encoder' | 'Decoder'
-
-// ─── Default state ────────────────────────────────────────────────────────────
-
-export const defaultStatus: NvxDeviceStatus = {
-	videoSource: '',
-	videoSourceName: '',
-	streamMode: 'unknown',
-	streamUrl: '',
-	streamName: '',
-	multicastAddress: '',
-	audioMuted: false,
-	audioVolume: 100,
-	hdmiInputSignalPresent: false,
-	hdmiOutputSignalPresent: false,
-	deviceName: '',
-	firmwareVersion: '',
-	ipAddress: '',
-}
-
-// ─── API Client ───────────────────────────────────────────────────────────────
 
 export class NvxApiClient {
-	private config: ModuleConfig
-	private sessionToken: string | null = null
+	private cookies: Map<string, string> = new Map()
+	private loginMutex: Promise<void> | null = null
 	private agent: https.Agent
 
-	constructor(config: ModuleConfig) {
-		this.config = config
-		this.agent = new https.Agent({
-			rejectUnauthorized: !config.ignoreSelfSignedCert,
-		})
+	constructor(private config: ModuleConfig) {
+		this.agent = this.buildAgent()
 	}
 
 	updateConfig(config: ModuleConfig): void {
 		this.config = config
-		this.agent = new https.Agent({
-			rejectUnauthorized: !config.ignoreSelfSignedCert,
-		})
-		this.sessionToken = null
+		this.agent = this.buildAgent()
 	}
 
-	private get baseUrl(): string {
-		return `https://${this.config.host}:${this.config.port}`
-	}
-
-	// ── HTTP helpers ──────────────────────────────────────────────────────────
-
-	private async request<T>(
-		method: string,
-		path: string,
-		body?: object,
-		retryOnAuth = true
-	): Promise<T> {
-		const url = `${this.baseUrl}${path}`
-		const headers: Record<string, string> = {
-			'Content-Type': 'application/json',
-			Accept: 'application/json',
-		}
-
-		if (this.sessionToken) {
-			headers['Cookie'] = `sessionid=${this.sessionToken}`
-		}
-
-		const options: RequestInit = {
-			method,
-			headers,
-			body: body ? JSON.stringify(body) : undefined,
-			// @ts-ignore - Node.js fetch accepts agent via dispatcher or custom fetch
-		}
-
-		// Use native Node.js https for self-signed cert support
-		const response = await this.nodeFetch(method, url, headers, body)
-
-		if (response.status === 401 && retryOnAuth) {
-			await this.login()
-			return this.request<T>(method, path, body, false)
-		}
-
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status} on ${method} ${path}`)
-		}
-
-		const text = response.body
-		if (!text || text.trim() === '') return {} as T
-		return JSON.parse(text) as T
-	}
-
-	private nodeFetch(
-		method: string,
-		url: string,
-		headers: Record<string, string>,
-		body?: object
-	): Promise<{ status: number; ok: boolean; body: string }> {
-		return new Promise((resolve, reject) => {
-			const parsed = new URL(url)
-			const bodyStr = body ? JSON.stringify(body) : ''
-
-			if (bodyStr) {
-				headers['Content-Length'] = Buffer.byteLength(bodyStr).toString()
-			}
-
-			const req = https.request(
-				{
-					hostname: parsed.hostname,
-					port: parseInt(parsed.port || '443'),
-					path: parsed.pathname + parsed.search,
-					method,
-					headers,
-					agent: this.agent,
-				},
-				(res) => {
-					let data = ''
-					res.on('data', (chunk) => (data += chunk))
-					res.on('end', () => {
-						resolve({
-							status: res.statusCode ?? 0,
-							ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
-							body: data,
-						})
-					})
-				}
-			)
-
-			req.on('error', reject)
-			if (bodyStr) req.write(bodyStr)
-			req.end()
+	private buildAgent(): https.Agent {
+		return new https.Agent({
+			rejectUnauthorized: !this.config.ignoreSelfSignedCert,
 		})
 	}
 
 	// ── Authentication ────────────────────────────────────────────────────────
 
 	async login(): Promise<void> {
-		this.sessionToken = null
-		const response = await this.nodeFetch(
-			'POST',
-			`${this.baseUrl}/userlogin`,
-			{ 'Content-Type': 'application/json', Accept: 'application/json' },
-			{ login: this.config.username, passwd: this.config.password }
-		)
+		// Step 1: GET /userlogin.html to retrieve TRACKID cookie
+		const step1 = await this.rawRequest('GET', '/userlogin.html')
+		this.extractCookies(step1.headers['set-cookie'] ?? [])
+		await this.drainBody(step1)
 
-		if (!response.ok) {
-			throw new Error(`Login failed: HTTP ${response.status}`)
+		const trackid = this.cookies.get('TRACKID')
+		if (!trackid) throw new Error('NVX login: TRACKID absent from step 1 response')
+
+		// Step 2: POST form URL-encoded — success = HTTP 302
+		const body = `login=${encodeURIComponent(this.config.username)}&passwd=${encodeURIComponent(this.config.password)}`
+		const step2 = await this.rawRequest('POST', '/userlogin.html', body, {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Length': String(Buffer.byteLength(body)),
+			Origin: `https://${this.config.host}`,
+			Referer: `https://${this.config.host}/userlogin.html`,
+		})
+		this.extractCookies(step2.headers['set-cookie'] ?? [])
+		await this.drainBody(step2)
+
+		if (step2.statusCode !== 302) {
+			throw new Error(`NVX login failed: HTTP ${step2.statusCode} (expected 302)`)
 		}
+	}
 
-		// Session token may be set via Set-Cookie header — but nodeFetch doesn't capture it directly
-		// The NVX API typically returns the token in the response body or sets a cookie
-		// We parse it from the JSON body
+	async logout(): Promise<void> {
 		try {
-			const json = JSON.parse(response.body)
-			if (json?.Status?.Code === 200 || json?.Status?.Code === undefined) {
-				// Successful login; some firmwares set a cookie, others use Bearer
-				// Store token from response if present
-				if (json?.SessionToken) {
-					this.sessionToken = json.SessionToken
+			const res = await this.rawRequest('GET', '/logout')
+			await this.drainBody(res)
+		} finally {
+			this.clearCookies()
+		}
+	}
+
+	clearCookies(): void {
+		this.cookies.clear()
+	}
+
+	// ── Public API helpers ────────────────────────────────────────────────────
+
+	async get<T>(path: string): Promise<T> {
+		return this.request<T>('GET', path)
+	}
+
+	async post<T>(path: string, body: unknown): Promise<T> {
+		return this.request<T>('POST', path, JSON.stringify(body))
+	}
+
+	// ── Device info (v0.1 heartbeat) ─────────────────────────────────────────
+
+	async getDeviceInfo(): Promise<DeviceInfo> {
+		const data = await this.get<{
+			Device: { DeviceInfo: { Name: string; DeviceVersion: string; Model: string } }
+		}>('/Device/DeviceInfo')
+		return {
+			name: data.Device.DeviceInfo.Name,
+			firmware: data.Device.DeviceInfo.DeviceVersion,
+			model: data.Device.DeviceInfo.Model,
+		}
+	}
+
+	// ── Private: request with 403→re-login retry ──────────────────────────────
+
+	private async request<T>(method: string, path: string, body?: string, retry = true): Promise<T> {
+		const res = await this.rawRequest(method, path, body)
+
+		// Always update cookies — AuthByPasswd rolls after every response
+		this.extractCookies(res.headers['set-cookie'] ?? [])
+
+		if (res.statusCode === 403) {
+			await this.drainBody(res)
+			if (retry) {
+				if (!this.loginMutex) {
+					this.loginMutex = this.login().finally(() => {
+						this.loginMutex = null
+					})
 				}
+				await this.loginMutex
+				return this.request<T>(method, path, body, false)
 			}
-		} catch {
-			// Body not JSON — login still may have succeeded via cookie
+			throw new Error(`NVX HTTP 403 on ${path} after re-login`)
+		}
+
+		if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+			await this.drainBody(res)
+			throw new Error(`NVX HTTP ${res.statusCode} on ${method} ${path}`)
+		}
+
+		const raw = await this.readBody(res)
+		return JSON.parse(raw) as T
+	}
+
+	// ── Private: raw HTTPS request ────────────────────────────────────────────
+
+	private rawRequest(
+		method: string,
+		path: string,
+		body?: string,
+		extraHeaders?: Record<string, string>,
+	): Promise<IncomingMessage> {
+		return new Promise((resolve, reject) => {
+			const port = this.config.port ?? 443
+			const req = https.request(
+				{
+					hostname: this.config.host,
+					port,
+					path,
+					method,
+					agent: this.agent,
+					timeout: 10000,
+					headers: {
+						Cookie: this.buildCookieHeader(),
+						Accept: 'application/json',
+						...(body && !extraHeaders?.['Content-Type']
+							? { 'Content-Type': 'application/json', 'Content-Length': String(Buffer.byteLength(body)) }
+							: {}),
+						...extraHeaders,
+					},
+				},
+				resolve,
+			)
+			req.on('error', reject)
+			req.on('timeout', () => {
+				req.destroy()
+				reject(new Error(`NVX timeout: ${method} ${path}`))
+			})
+			if (body) req.write(body)
+			req.end()
+		})
+	}
+
+	// ── Private: cookie management ────────────────────────────────────────────
+
+	// TODO (apprentissage) : implémenter extractCookies()
+	// Chaque entrée de rawCookies a la forme "name=value; Path=/; HttpOnly"
+	// → extraire name et value (tout ce qui est avant le premier ';')
+	// → mettre à jour this.cookies avec cookies.set(name, value)
+	private extractCookies(rawCookies: string[]): void {
+		for (const raw of rawCookies) {
+			const [pair] = raw.split(';')
+			const eqIdx = pair.indexOf('=')
+			if (eqIdx === -1) continue
+			const name = pair.substring(0, eqIdx).trim()
+			const value = pair.substring(eqIdx + 1).trim()
+			if (name) this.cookies.set(name, value)
 		}
 	}
 
-	// ── Device status ─────────────────────────────────────────────────────────
-
-	async getDeviceStatus(): Promise<NvxDeviceStatus> {
-		const status = { ...defaultStatus }
-
-		try {
-			// Device info
-			const deviceInfo = await this.request<any>('GET', '/Device/DeviceInfo')
-			status.deviceName = deviceInfo?.Device?.DeviceInfo?.Description ?? ''
-			status.firmwareVersion = deviceInfo?.Device?.DeviceInfo?.VersionInfo?.RuntimeEnvironment ?? ''
-			status.ipAddress = this.config.host
-
-			// AV routing / stream config
-			const avSignal = await this.request<any>('GET', '/Device/AvSignal')
-			const avs = avSignal?.Device?.AvSignal
-
-			if (avs) {
-				// Stream mode (encoder vs decoder)
-				const mode = avs?.StreamMode?.toUpperCase?.()
-				status.streamMode = mode === 'ENCODER' ? 'encoder' : mode === 'DECODER' ? 'decoder' : 'unknown'
-
-				// HDMI input signal
-				status.hdmiInputSignalPresent = !!avs?.HdmiIn?.HdmiInputSignalPresent
-
-				// HDMI output signal
-				status.hdmiOutputSignalPresent = !!avs?.HdmiOut?.HdmiOutputSignalPresent
-
-				// Stream URL / multicast
-				status.streamUrl = avs?.StreamUrl ?? ''
-				status.streamName = avs?.StreamName ?? ''
-				status.multicastAddress = avs?.MulticastAddress ?? ''
-			}
-
-			// Video source (for decoders)
-			const videoSwitch = await this.request<any>('GET', '/Device/VideoSwitch')
-			const vs = videoSwitch?.Device?.VideoSwitch
-			if (vs) {
-				status.videoSource = vs?.ActiveInput?.toString() ?? ''
-				status.videoSourceName = vs?.ActiveInputName ?? ''
-			}
-
-			// Audio
-			const audio = await this.request<any>('GET', '/Device/AudioControl')
-			const ac = audio?.Device?.AudioControl
-			if (ac) {
-				status.audioMuted = !!ac?.AudioMuted
-				status.audioVolume = ac?.AudioVolume ?? 100
-			}
-		} catch (err) {
-			throw err
-		}
-
-		return status
+	private buildCookieHeader(): string {
+		return Array.from(this.cookies.entries())
+			.map(([k, v]) => `${k}=${v}`)
+			.join('; ')
 	}
 
-	// ── Video routing ─────────────────────────────────────────────────────────
+	// ── Private: body helpers ─────────────────────────────────────────────────
 
-	/**
-	 * Set the video source for a decoder (route a specific encoder stream).
-	 * @param streamUrl - RTSP or multicast URL of the source encoder
-	 */
-	async setVideoSource(streamUrl: string): Promise<void> {
-		await this.request('POST', '/Device/AvSignal', {
-			Device: {
-				AvSignal: {
-					StreamUrl: streamUrl,
-				},
-			},
+	private readBody(res: IncomingMessage): Promise<string> {
+		return new Promise((resolve, reject) => {
+			const chunks: Buffer[] = []
+			res.on('data', (chunk: Buffer) => chunks.push(chunk))
+			res.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
+			res.on('error', reject)
 		})
 	}
 
-	/**
-	 * Set stream mode: Encoder or Decoder.
-	 */
-	async setStreamMode(mode: NvxStreamMode): Promise<void> {
-		await this.request('POST', '/Device/AvSignal', {
-			Device: {
-				AvSignal: {
-					StreamMode: mode,
-				},
-			},
-		})
-	}
-
-	/**
-	 * Set the stream name (for encoders).
-	 */
-	async setStreamName(name: string): Promise<void> {
-		await this.request('POST', '/Device/AvSignal', {
-			Device: {
-				AvSignal: {
-					StreamName: name,
-				},
-			},
-		})
-	}
-
-	/**
-	 * Set the multicast address (for encoders).
-	 */
-	async setMulticastAddress(address: string): Promise<void> {
-		await this.request('POST', '/Device/AvSignal', {
-			Device: {
-				AvSignal: {
-					MulticastAddress: address,
-				},
-			},
-		})
-	}
-
-	// ── Audio control ─────────────────────────────────────────────────────────
-
-	async setAudioMute(muted: boolean): Promise<void> {
-		await this.request('POST', '/Device/AudioControl', {
-			Device: {
-				AudioControl: {
-					AudioMuted: muted,
-				},
-			},
-		})
-	}
-
-	async setAudioVolume(volume: number): Promise<void> {
-		const clamped = Math.max(0, Math.min(100, volume))
-		await this.request('POST', '/Device/AudioControl', {
-			Device: {
-				AudioControl: {
-					AudioVolume: clamped,
-				},
-			},
-		})
-	}
-
-	async toggleAudioMute(currentMuted: boolean): Promise<void> {
-		await this.setAudioMute(!currentMuted)
-	}
-
-	// ── Video switch (HDMI input selection for devices with multiple inputs) ──
-
-	async setVideoInput(input: number): Promise<void> {
-		await this.request('POST', '/Device/VideoSwitch', {
-			Device: {
-				VideoSwitch: {
-					ActiveInput: input,
-				},
-			},
-		})
-	}
-
-	// ── Reboot ────────────────────────────────────────────────────────────────
-
-	async rebootDevice(): Promise<void> {
-		await this.request('POST', '/Device/DeviceOperations', {
-			Device: {
-				DeviceOperations: {
-					Reboot: true,
-				},
-			},
+	private drainBody(res: IncomingMessage): Promise<void> {
+		return new Promise((resolve) => {
+			res.resume()
+			res.on('end', resolve)
+			res.on('error', resolve)
 		})
 	}
 }

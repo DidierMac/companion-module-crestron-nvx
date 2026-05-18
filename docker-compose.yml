@@ -1,0 +1,16 @@
+services:
+  companion:
+    image: ghcr.io/bitfocus/companion/companion:latest
+    ports:
+      - "8000:8000"     # Web UI  →  http://localhost:8000
+      - "16622:16622"   # Satellite API (Stream Deck, etc.)
+    volumes:
+      # Config persistante (instances, boutons, layout)
+      - companion-data:/companion
+      # Module NVX monté en lecture seule
+      # Prérequis : npm run build (crée dist/) avant docker compose up
+      - .:/app/module-local-dev:ro
+    restart: unless-stopped
+
+volumes:
+  companion-data:
