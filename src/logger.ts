@@ -7,7 +7,7 @@ interface LogConfig {
 }
 
 export class ModuleLogger {
-  private readonly config: LogConfig
+  private config: LogConfig
 
   constructor(
     private readonly logFn: LogFn,
@@ -17,6 +17,11 @@ export class ModuleLogger {
     this.config = typeof config === 'boolean' ? { verbose: config } : config
   }
 
+  /**
+   * Update the verbose flag. Because child loggers share the same config
+   * object, this call propagates to all loggers created via child().
+   * Only call this on the root logger (from main.ts configUpdated).
+   */
   setVerbose(verbose: boolean): void {
     this.config.verbose = verbose
   }
@@ -39,6 +44,11 @@ export class ModuleLogger {
     this.logFn('error', this.format(message))
   }
 
+  /**
+   * Create a child logger with the given component prefix (e.g. '[AUTH]').
+   * The child shares the same config object — setVerbose() on the root
+   * logger propagates automatically to all children.
+   */
   child(childPrefix: string): ModuleLogger {
     return new ModuleLogger(this.logFn, childPrefix, this.config)
   }
