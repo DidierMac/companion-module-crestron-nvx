@@ -16,8 +16,8 @@ export class NvxApiClient {
 
 	constructor(
 		private config: ModuleConfig,
-		private readonly authLogger?: ModuleLogger,
-		private readonly httpLogger?: ModuleLogger,
+		private readonly authLog: ModuleLogger,
+		private readonly httpLog: ModuleLogger,
 	) {
 		this.agent = this.buildAgent()
 	}
@@ -36,15 +36,15 @@ export class NvxApiClient {
 	// ── Authentication ────────────────────────────────────────────────────────
 
 	async login(): Promise<void> {
-		// Step 1: GET /userlogin.html to retrieve TRACKID cookie
+		this.authLog.debug('Login step 1 — GET /userlogin.html')
 		const step1 = await this.rawRequest('GET', '/userlogin.html')
 		this.extractCookies(step1.headers['set-cookie'] ?? [])
 		await this.drainBody(step1)
 
 		const trackid = this.cookies.get('TRACKID')
 		if (!trackid) throw new Error('NVX login: TRACKID absent from step 1 response')
+		this.authLog.debug('TRACKID obtained → step 2 POST login')
 
-		// Step 2: POST form URL-encoded — success = HTTP 302
 		const body = `login=${encodeURIComponent(this.config.username)}&passwd=${encodeURIComponent(this.config.password)}`
 		const step2 = await this.rawRequest('POST', '/userlogin.html', body, {
 			'Content-Type': 'application/x-www-form-urlencoded',
@@ -58,9 +58,11 @@ export class NvxApiClient {
 		if (step2.statusCode !== 302) {
 			throw new Error(`NVX login failed: HTTP ${step2.statusCode} (expected 302)`)
 		}
+		this.authLog.debug(`Login OK — ${this.cookies.size} cookies received`)
 	}
 
 	async logout(): Promise<void> {
+		this.authLog.debug('Logout triggered')
 		try {
 			const res = await this.rawRequest('GET', '/logout')
 			await this.drainBody(res)
@@ -99,13 +101,14 @@ export class NvxApiClient {
 	// ── Private: request with 403→re-login retry ──────────────────────────────
 
 	private async request<T>(method: string, path: string, body?: string, retry = true): Promise<T> {
+		const start = Date.now()
 		const res = await this.rawRequest(method, path, body)
 
-		// Always update cookies — AuthByPasswd rolls after every response
 		this.extractCookies(res.headers['set-cookie'] ?? [])
 
 		if (res.statusCode === 403) {
 			await this.drainBody(res)
+			this.httpLog.warn(`HTTP 403 on ${method} ${path} → re-login triggered`)
 			if (retry) {
 				if (!this.loginMutex) {
 					this.loginMutex = this.login().finally(() => {
@@ -124,6 +127,8 @@ export class NvxApiClient {
 		}
 
 		const raw = await this.readBody(res)
+		const elapsed = Date.now() - start
+		this.httpLog.debug(`${method} ${path} ← HTTP ${res.statusCode} (${elapsed}ms)`)
 		return JSON.parse(raw) as T
 	}
 
@@ -135,6 +140,7 @@ export class NvxApiClient {
 		body?: string,
 		extraHeaders?: Record<string, string>,
 	): Promise<IncomingMessage> {
+		this.httpLog.debug(`${method} ${path} → sent`)
 		return new Promise((resolve, reject) => {
 			const port = this.config.port ?? 443
 			const req = https.request(
@@ -156,9 +162,13 @@ export class NvxApiClient {
 				},
 				resolve,
 			)
-			req.on('error', reject)
+			req.on('error', (err) => {
+				this.httpLog.error(`Network error: ${method} ${path} — ${err.message}`)
+				reject(err)
+			})
 			req.on('timeout', () => {
 				req.destroy()
+				this.httpLog.error(`Timeout: ${method} ${path}`)
 				reject(new Error(`NVX timeout: ${method} ${path}`))
 			})
 			if (body) req.write(body)
@@ -168,10 +178,6 @@ export class NvxApiClient {
 
 	// ── Private: cookie management ────────────────────────────────────────────
 
-	// TODO (apprentissage) : implémenter extractCookies()
-	// Chaque entrée de rawCookies a la forme "name=value; Path=/; HttpOnly"
-	// → extraire name et value (tout ce qui est avant le premier ';')
-	// → mettre à jour this.cookies avec cookies.set(name, value)
 	private extractCookies(rawCookies: string[]): void {
 		for (const raw of rawCookies) {
 			const [pair] = raw.split(';')
