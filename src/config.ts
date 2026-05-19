@@ -9,6 +9,7 @@ export interface ModuleConfig {
 	password: string
 	pollInterval: number
 	ignoreSelfSignedCert: boolean
+	verbose: boolean
 }
 
 export const defaultConfig: ModuleConfig = {
@@ -18,6 +19,7 @@ export const defaultConfig: ModuleConfig = {
 	password: '',
 	pollInterval: 2000,
 	ignoreSelfSignedCert: true,
+	verbose: false,
 }
 
 export function getConfigFields(): SomeCompanionConfigField[] {
@@ -74,6 +76,14 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			label: 'Ignore Self-Signed Certificate',
 			width: 6,
 			default: true,
+		},
+		{
+			type: 'checkbox',
+			id: 'verbose',
+			label: 'Enable verbose logging',
+			width: 12,
+			default: false,
+			tooltip: 'Logs all HTTP requests and authentication steps. Useful for troubleshooting connection issues. See docs/debugging.md for log file locations.',
 		},
 	]
 }
