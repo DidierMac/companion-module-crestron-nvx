@@ -1,6 +1,7 @@
 import https from 'node:https'
 import type { IncomingMessage } from 'node:http'
 import type { ModuleConfig } from './config.js'
+import type { ModuleLogger } from './logger.js'
 
 export interface DeviceInfo {
 	name: string
@@ -13,7 +14,11 @@ export class NvxApiClient {
 	private loginMutex: Promise<void> | null = null
 	private agent: https.Agent
 
-	constructor(private config: ModuleConfig) {
+	constructor(
+		private config: ModuleConfig,
+		private readonly authLogger?: ModuleLogger,
+		private readonly httpLogger?: ModuleLogger,
+	) {
 		this.agent = this.buildAgent()
 	}
 

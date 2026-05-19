@@ -3,6 +3,7 @@ import type { JsonObject } from '@companion-module/base'
 
 import { getConfigFields, type ModuleConfig } from './config.js'
 import { NvxApiClient } from './api.js'
+import { ModuleLogger } from './logger.js'
 import { setActionDefinitions } from './actions.js'
 import { setFeedbackDefinitions } from './feedbacks.js'
 import { variableDefinitions } from './variables.js'
@@ -12,12 +13,26 @@ class CrestronNvxInstance extends InstanceBase {
 	private currentConfig!: ModuleConfig
 	private connected = false
 	private pollTimer: ReturnType<typeof setInterval> | null = null
+	private logger!: ModuleLogger
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────────
 
 	async init(config: JsonObject, _isFirstInit: boolean, _secrets?: JsonObject | undefined): Promise<void> {
 		this.currentConfig = config as ModuleConfig
-		this.api = new NvxApiClient(this.currentConfig)
+		// this.log (no 'ger') is the inherited InstanceBase SDK method — captured here before logger is assigned
+		this.logger = new ModuleLogger(this.log.bind(this), '', this.currentConfig.verbose ?? false)
+
+		const initLog = this.logger.child('[INIT]')
+		initLog.debug(
+			`Config: host=${this.currentConfig.host} port=${this.currentConfig.port} ` +
+			`poll=${this.currentConfig.pollInterval}ms verbose=${this.currentConfig.verbose ?? false}`,
+		)
+
+		this.api = new NvxApiClient(
+			this.currentConfig,
+			this.logger.child('[AUTH]'),
+			this.logger.child('[HTTP]'),
+		)
 
 		setActionDefinitions(this)
 		setFeedbackDefinitions(this, () => this.connected)
@@ -33,6 +48,7 @@ class CrestronNvxInstance extends InstanceBase {
 	}
 
 	async destroy(): Promise<void> {
+		this.logger?.child('[CONN]').debug('destroy() called — stopping polling and logging out')
 		this.stopPolling()
 		await this.api.logout().catch(() => {})
 		this.connected = false
@@ -41,6 +57,8 @@ class CrestronNvxInstance extends InstanceBase {
 
 	async configUpdated(config: JsonObject, _secrets?: JsonObject | undefined): Promise<void> {
 		this.currentConfig = config as ModuleConfig
+		this.logger.setVerbose(this.currentConfig.verbose ?? false)
+		this.logger.child('[CONN]').debug('configUpdated() → reconnect')
 		this.stopPolling()
 		this.api.clearCookies()
 		this.api.updateConfig(this.currentConfig)
@@ -54,11 +72,14 @@ class CrestronNvxInstance extends InstanceBase {
 	// ── Connection ─────────────────────────────────────────────────────────────
 
 	private async connect(): Promise<void> {
+		const connLog = this.logger.child('[CONN]')
+
 		if (!this.currentConfig.host) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
 			return
 		}
 
+		connLog.debug('connect() triggered')
 		this.updateStatus(InstanceStatus.Connecting)
 		this.setVariableValues({ connection_status: 'Connecting...' })
 
@@ -66,7 +87,7 @@ class CrestronNvxInstance extends InstanceBase {
 			await this.api.login()
 			this.connected = true
 			this.updateStatus(InstanceStatus.Ok)
-			this.log('info', `Connected to NVX at ${this.currentConfig.host}`)
+			connLog.info(`Connected to NVX at ${this.currentConfig.host}`)
 
 			await this.poll()
 			this.startPolling()
@@ -75,7 +96,8 @@ class CrestronNvxInstance extends InstanceBase {
 			this.connected = false
 			this.updateStatus(InstanceStatus.ConnectionFailure, msg)
 			this.setVariableValues({ connection_status: `Error: ${msg}` })
-			this.log('error', `Connection failed (${this.currentConfig.host}): ${msg}`)
+			connLog.error(`Connection failed (${this.currentConfig.host}): ${msg}`)
+			connLog.debug('Reconnect scheduled in 10s')
 			setTimeout(() => void this.connect(), 10000)
 		}
 	}
@@ -85,6 +107,7 @@ class CrestronNvxInstance extends InstanceBase {
 	private startPolling(): void {
 		this.stopPolling()
 		const interval = Math.max(500, this.currentConfig.pollInterval ?? 2000)
+		this.logger.child('[POLL]').debug(`Polling started — interval ${interval}ms`)
 		this.pollTimer = setInterval(() => void this.poll(), interval)
 	}
 
@@ -92,6 +115,7 @@ class CrestronNvxInstance extends InstanceBase {
 		if (this.pollTimer !== null) {
 			clearInterval(this.pollTimer)
 			this.pollTimer = null
+			this.logger?.child('[POLL]').debug('Polling stopped')
 		}
 	}
 
@@ -104,6 +128,7 @@ class CrestronNvxInstance extends InstanceBase {
 				ip_address: this.currentConfig.host,
 				connection_status: 'Connected',
 			})
+			this.logger.child('[POLL]').debug(`DeviceInfo OK — ${info.name} fw ${info.firmware}`)
 			if (!this.connected) {
 				this.connected = true
 				this.updateStatus(InstanceStatus.Ok)
@@ -111,7 +136,7 @@ class CrestronNvxInstance extends InstanceBase {
 			this.checkFeedbacks('connected')
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err)
-			this.log('warn', `Poll error: ${msg}`)
+			this.logger.child('[CONN]').warn(`Poll error: ${msg} — reconnect in 10s`)
 			this.connected = false
 			this.updateStatus(InstanceStatus.ConnectionFailure, msg)
 			this.setVariableValues({ connection_status: `Error: ${msg}` })
