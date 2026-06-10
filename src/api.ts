@@ -64,6 +64,11 @@ export class NvxApiClient {
 		this.extractCookies(step2.headers['set-cookie'] ?? [])
 		await this.drainBody(step2)
 
+		if (step2.statusCode === 401 || step2.statusCode === 403) {
+			throw new NvxAuthError(
+				`NVX auth refused: HTTP ${step2.statusCode} — bad credentials or account locked`,
+			)
+		}
 		if (step2.statusCode !== 302) {
 			throw new Error(`NVX login failed: HTTP ${step2.statusCode} (expected 302)`)
 		}
@@ -127,7 +132,7 @@ export class NvxApiClient {
 				await this.loginMutex
 				return this.request<T>(method, path, body, false)
 			}
-			throw new Error(`NVX HTTP 403 on ${path} after re-login`)
+			throw new NvxAuthError(`NVX HTTP 403 on ${path} after re-login`)
 		}
 
 		if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {

@@ -2,7 +2,7 @@ import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@co
 import type { JsonObject } from '@companion-module/base'
 
 import { getConfigFields, type ModuleConfig, type ModuleSecrets } from './config.js'
-import { NvxApiClient } from './api.js'
+import { NvxApiClient, NvxAuthError } from './api.js'
 import { ModuleLogger } from './logger.js'
 import { setActionDefinitions } from './actions.js'
 import { setFeedbackDefinitions } from './feedbacks.js'
@@ -103,11 +103,17 @@ class CrestronNvxInstance extends InstanceBase {
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err)
 			this.connected = false
-			this.updateStatus(InstanceStatus.ConnectionFailure, msg)
-			this.setVariableValues({ connection_status: `Error: ${msg}` })
-			connLog.error(`Connection failed (${this.currentConfig.host}): ${msg}`)
-			connLog.debug('Reconnect scheduled in 10s')
-			setTimeout(() => void this.connect(), 10000)
+			if (err instanceof NvxAuthError) {
+				this.updateStatus(InstanceStatus.AuthenticationFailure, msg)
+				this.setVariableValues({ connection_status: `Auth failed: ${msg}` })
+				connLog.error(`Auth refused — stopping reconnect until config changes: ${msg}`)
+			} else {
+				this.updateStatus(InstanceStatus.ConnectionFailure, msg)
+				this.setVariableValues({ connection_status: `Error: ${msg}` })
+				connLog.error(`Connection failed (${this.currentConfig.host}): ${msg}`)
+				connLog.debug('Reconnect scheduled in 10s')
+				setTimeout(() => void this.connect(), 10000)
+			}
 		}
 	}
 
@@ -145,13 +151,19 @@ class CrestronNvxInstance extends InstanceBase {
 			this.checkFeedbacks('connected')
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err)
-			this.logger.child('[CONN]').warn(`Poll error: ${msg} — reconnect in 10s`)
 			this.connected = false
-			this.updateStatus(InstanceStatus.ConnectionFailure, msg)
-			this.setVariableValues({ connection_status: `Error: ${msg}` })
 			this.checkFeedbacks('connected')
 			this.stopPolling()
-			setTimeout(() => void this.connect(), 10000)
+			if (err instanceof NvxAuthError) {
+				this.updateStatus(InstanceStatus.AuthenticationFailure, msg)
+				this.setVariableValues({ connection_status: `Auth failed: ${msg}` })
+				this.logger.child('[CONN]').error(`Auth refused during poll — stopping reconnect: ${msg}`)
+			} else {
+				this.updateStatus(InstanceStatus.ConnectionFailure, msg)
+				this.setVariableValues({ connection_status: `Error: ${msg}` })
+				this.logger.child('[CONN]').warn(`Poll error: ${msg} — reconnect in 10s`)
+				setTimeout(() => void this.connect(), 10000)
+			}
 		}
 	}
 }

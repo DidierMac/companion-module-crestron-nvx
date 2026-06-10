@@ -42,3 +42,25 @@ test('login() sends the password from secrets, not config', async () => {
   assert.ok(post, 'a POST request was made')
   assert.equal(post?.body, 'login=admin&passwd=s3cr3t')
 })
+
+test('login() throws NvxAuthError on HTTP 403', async () => {
+  const client = makeClient({ password: 'wrong' })
+  stubTransport(client, 403)
+  await assert.rejects(() => client.login(), NvxAuthError)
+})
+
+test('login() throws NvxAuthError on HTTP 401', async () => {
+  const client = makeClient({ password: 'wrong' })
+  stubTransport(client, 401)
+  await assert.rejects(() => client.login(), NvxAuthError)
+})
+
+test('login() throws a generic Error (not NvxAuthError) on HTTP 500', async () => {
+  const client = makeClient({ password: 'x' })
+  stubTransport(client, 500)
+  await assert.rejects(() => client.login(), (err: unknown) => {
+    assert.ok(err instanceof Error)
+    assert.ok(!(err instanceof NvxAuthError), 'transient errors must not be NvxAuthError')
+    return true
+  })
+})
