@@ -14,6 +14,8 @@ class CrestronNvxInstance extends InstanceBase {
 	private currentSecrets!: ModuleSecrets
 	private connected = false
 	private pollTimer: ReturnType<typeof setInterval> | null = null
+	private reconnectTimer: ReturnType<typeof setTimeout> | null = null
+	private destroyed = false
 	private logger!: ModuleLogger
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -53,7 +55,9 @@ class CrestronNvxInstance extends InstanceBase {
 	}
 
 	async destroy(): Promise<void> {
-		this.logger?.child('[CONN]').debug('destroy() called — stopping polling and logging out')
+		this.logger?.child('[CONN]').debug('destroy() called — stopping timers and logging out')
+		this.destroyed = true
+		this.clearReconnect()
 		this.stopPolling()
 		await this.api.logout().catch(() => {})
 		this.connected = false
@@ -79,6 +83,9 @@ class CrestronNvxInstance extends InstanceBase {
 
 	private async connect(): Promise<void> {
 		const connLog = this.logger.child('[CONN]')
+
+		this.clearReconnect() // une seule chaîne de reconnexion à la fois
+		if (this.destroyed) return
 
 		const missing = missingCredential(this.currentConfig, this.currentSecrets)
 		if (missing) {
@@ -111,7 +118,7 @@ class CrestronNvxInstance extends InstanceBase {
 				this.setVariableValues({ connection_status: `Error: ${msg}` })
 				connLog.error(`Connection failed (${this.currentConfig.host}): ${msg}`)
 				connLog.debug('Reconnect scheduled in 10s')
-				setTimeout(() => void this.connect(), 10000)
+				this.scheduleReconnect()
 			}
 		}
 	}
@@ -130,6 +137,22 @@ class CrestronNvxInstance extends InstanceBase {
 			clearInterval(this.pollTimer)
 			this.pollTimer = null
 			this.logger?.child('[POLL]').debug('Polling stopped')
+		}
+	}
+
+	private scheduleReconnect(): void {
+		if (this.destroyed) return
+		this.clearReconnect()
+		this.reconnectTimer = setTimeout(() => {
+			this.reconnectTimer = null
+			void this.connect()
+		}, 10000)
+	}
+
+	private clearReconnect(): void {
+		if (this.reconnectTimer !== null) {
+			clearTimeout(this.reconnectTimer)
+			this.reconnectTimer = null
 		}
 	}
 
@@ -161,7 +184,7 @@ class CrestronNvxInstance extends InstanceBase {
 				this.updateStatus(InstanceStatus.ConnectionFailure, msg)
 				this.setVariableValues({ connection_status: `Error: ${msg}` })
 				this.logger.child('[CONN]').warn(`Poll error: ${msg} — reconnect in 10s`)
-				setTimeout(() => void this.connect(), 10000)
+				this.scheduleReconnect()
 			}
 		}
 	}
