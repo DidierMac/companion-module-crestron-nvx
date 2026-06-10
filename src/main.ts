@@ -1,7 +1,7 @@
 import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@companion-module/base'
 import type { JsonObject } from '@companion-module/base'
 
-import { getConfigFields, type ModuleConfig, type ModuleSecrets } from './config.js'
+import { getConfigFields, missingCredential, type ModuleConfig, type ModuleSecrets } from './config.js'
 import { NvxApiClient, NvxAuthError } from './api.js'
 import { ModuleLogger } from './logger.js'
 import { setActionDefinitions } from './actions.js'
@@ -78,13 +78,10 @@ class CrestronNvxInstance extends InstanceBase {
 	private async connect(): Promise<void> {
 		const connLog = this.logger.child('[CONN]')
 
-		if (!this.currentConfig.host) {
-			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
-			return
-		}
-		if (!this.currentSecrets.password) {
-			this.updateStatus(InstanceStatus.BadConfig, 'No password configured')
-			connLog.error('No password configured — not attempting login')
+		const missing = missingCredential(this.currentConfig, this.currentSecrets)
+		if (missing) {
+			this.updateStatus(InstanceStatus.BadConfig, missing)
+			connLog.error(`${missing} — not attempting login`)
 			return
 		}
 

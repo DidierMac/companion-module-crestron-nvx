@@ -27,6 +27,16 @@ export const defaultConfig: ModuleConfig = {
 	verbose: false,
 }
 
+/**
+ * Returns a BadConfig message if a required credential is missing, else null.
+ * Pure (no I/O) so the connect() guard is unit-testable without InstanceBase.
+ */
+export function missingCredential(config: ModuleConfig, secrets: ModuleSecrets): string | null {
+	if (!config.host) return 'No host configured'
+	if (!secrets.password) return 'No password configured'
+	return null
+}
+
 export function getConfigFields(): SomeCompanionConfigField[] {
 	return [
 		{
