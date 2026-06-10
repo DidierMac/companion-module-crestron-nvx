@@ -47,7 +47,9 @@ class CrestronNvxInstance extends InstanceBase {
 			ip_address: config.host,
 		})
 
-		await this.connect()
+		// Fire-and-forget : ne PAS bloquer init() sur le réseau, sinon Companion
+		// force-restart le process (timeout d'init). connect() gère ses propres erreurs.
+		void this.connect()
 	}
 
 	async destroy(): Promise<void> {
@@ -66,7 +68,7 @@ class CrestronNvxInstance extends InstanceBase {
 		this.stopPolling()
 		this.api.clearCookies()
 		this.api.updateConfig(this.currentConfig, this.currentSecrets)
-		await this.connect()
+		void this.connect()
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {
