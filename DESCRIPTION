@@ -1,2 +1,2 @@
-Module Bitfocus Companion pour contrôler les appareils Crestron DM NVX (encodeurs/décodeurs AV-over-IP) via leur API REST.
-Permet le routing vidéo, le contrôle audio et l'état des appareils depuis une surface de contrôle Elgato Stream Deck.
+Module Bitfocus Companion en TypeScript pour contrôler les appareils Crestron DM NVX (encodeurs/décodeurs AV-over-IP) via leur API REST.
+Fournit des actions (routing, audio, stream), feedbacks et variables exploitables depuis un Stream Deck ou toute surface de contrôle.

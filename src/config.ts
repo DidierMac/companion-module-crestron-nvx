@@ -1,21 +1,40 @@
-import type { SomeCompanionConfigField } from '@companion-module/base'
+import type { JsonValue, SomeCompanionConfigField } from '@companion-module/base'
 
+// Index signature satisfies the JsonObject constraint required by the SDK v2 generics
 export interface ModuleConfig {
+	[key: string]: JsonValue
 	host: string
 	port: number
 	username: string
-	password: string
 	pollInterval: number
 	ignoreSelfSignedCert: boolean
+	verbose: boolean
+}
+
+// `secret-text` fields are delivered by the SDK in the separate `secrets` channel,
+// NOT in `config`. See docs/superpowers/specs/2026-06-10-auth-secrets-and-failure-handling.
+export interface ModuleSecrets {
+	[key: string]: JsonValue
+	password: string
 }
 
 export const defaultConfig: ModuleConfig = {
 	host: '',
 	port: 443,
 	username: 'admin',
-	password: '',
 	pollInterval: 2000,
 	ignoreSelfSignedCert: true,
+	verbose: false,
+}
+
+/**
+ * Returns a BadConfig message if a required credential is missing, else null.
+ * Pure (no I/O) so the connect() guard is unit-testable without InstanceBase.
+ */
+export function missingCredential(config: ModuleConfig, secrets: ModuleSecrets): string | null {
+	if (!config.host) return 'No host configured'
+	if (!secrets.password) return 'No password configured'
+	return null
 }
 
 export function getConfigFields(): SomeCompanionConfigField[] {
@@ -25,9 +44,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			id: 'info',
 			width: 12,
 			label: 'Information',
-			value:
-				'This module controls Crestron DM NVX AV-over-IP encoders and decoders via the REST API. ' +
-				'Enter the IP address or hostname of the NVX device below.',
+			value: 'Enter the IP address or hostname of the Crestron DM NVX device.',
 		},
 		{
 			type: 'textinput',
@@ -35,7 +52,6 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			label: 'Device IP / Hostname',
 			width: 8,
 			default: '',
-			required: true,
 		},
 		{
 			type: 'number',
@@ -54,7 +70,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			default: 'admin',
 		},
 		{
-			type: 'textinput',
+			type: 'secret-text',
 			id: 'password',
 			label: 'Password',
 			width: 6,
@@ -75,6 +91,14 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			label: 'Ignore Self-Signed Certificate',
 			width: 6,
 			default: true,
+		},
+		{
+			type: 'checkbox',
+			id: 'verbose',
+			label: 'Enable verbose logging',
+			width: 12,
+			default: false,
+			tooltip: 'Logs all HTTP requests and authentication steps. Useful for troubleshooting connection issues. See docs/debugging.md for log file locations.',
 		},
 	]
 }

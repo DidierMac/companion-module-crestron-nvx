@@ -1,19 +1,26 @@
 {
 	"id": "crestron-nvx",
-	"name": "Crestron NVX",
+	"name": "Crestron DM NVX",
 	"shortname": "Crestron NVX",
-	"description": "Control Crestron DM NVX AV-over-IP encoders and decoders. Supports video routing, audio control, stream management and device status feedback.",
-	"version": "1.0.0",
+	"description": "Control Crestron DM NVX encoders and decoders via REST API",
+	"version": "0.1.0",
 	"license": "MIT",
-	"author": "Didier Casalta",
-	"keywords": ["crestron", "nvx", "av-over-ip", "video routing", "switcher"],
-	"category": "video",
-	"products": ["DM-NVX-350", "DM-NVX-351", "DM-NVX-352", "DM-NVX-363", "DM-NVX-D30"],
-	"website": "",
-	"repository": "",
-	"bugs": "",
-	"main": "dist/index.js",
-	"entrypoint": "dist/index.js",
-	"runtime": "nodejs18",
-	"api_version": "1"
+	"manufacturer": "Crestron",
+	"keywords": ["companion-module", "crestron", "nvx", "av-over-ip"],
+	"products": ["DM-NVX-350", "DM-NVX-351", "DM-NVX-363", "DM-NVX-E50"],
+	"legacyIds": [],
+	"maintainers": [
+		{
+			"name": "Didier Casalta",
+			"email": "didier.casalta@gmail.com"
+		}
+	],
+	"repository": "https://github.com/DidierMac/companion-module-crestron-nvx",
+	"bugs": "https://github.com/DidierMac/companion-module-crestron-nvx/issues",
+	"runtime": {
+		"type": "node22",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.2.0",
+		"entrypoint": "../dist/main.js"
+	}
 }
