@@ -64,3 +64,9 @@ test('login() throws a generic Error (not NvxAuthError) on HTTP 500', async () =
     return true
   })
 })
+
+test('login() accepts HTTP 200 as success (NVX firmware returns 200, not 302)', async () => {
+  const client = makeClient({ password: 'good' })
+  stubTransport(client, 200)
+  await client.login() // must not throw
+})

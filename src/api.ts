@@ -69,8 +69,11 @@ export class NvxApiClient {
 				`NVX auth refused: HTTP ${step2.statusCode} — bad credentials or account locked`,
 			)
 		}
-		if (step2.statusCode !== 302) {
-			throw new Error(`NVX login failed: HTTP ${step2.statusCode} (expected 302)`)
+		// NVX renvoie 200 sur succès (certains firmwares font un 302). 401/403 traités au-dessus.
+		// Tout autre 2xx/3xx = login accepté ; le heartbeat (getDeviceInfo) valide la session juste après.
+		const code = step2.statusCode ?? 0
+		if (code < 200 || code >= 400) {
+			throw new Error(`NVX login failed: HTTP ${step2.statusCode} (expected 2xx/3xx)`)
 		}
 		this.authLog.debug(`Login OK — ${this.cookies.size} cookies received`)
 	}
