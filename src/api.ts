@@ -1,7 +1,14 @@
 import https from 'node:https'
 import type { IncomingMessage } from 'node:http'
-import type { ModuleConfig } from './config.js'
+import type { ModuleConfig, ModuleSecrets } from './config.js'
 import type { ModuleLogger } from './logger.js'
+
+/**
+ * Thrown when the device refuses the credentials (HTTP 401/403).
+ * Signals main.ts to stop reconnecting until config/secrets change
+ * (NVX locks the account after repeated failed logins).
+ */
+export class NvxAuthError extends Error {}
 
 export interface DeviceInfo {
 	name: string
@@ -16,14 +23,16 @@ export class NvxApiClient {
 
 	constructor(
 		private config: ModuleConfig,
+		private secrets: ModuleSecrets,
 		private readonly authLog: ModuleLogger,
 		private readonly httpLog: ModuleLogger,
 	) {
 		this.agent = this.buildAgent()
 	}
 
-	updateConfig(config: ModuleConfig): void {
+	updateConfig(config: ModuleConfig, secrets: ModuleSecrets): void {
 		this.config = config
+		this.secrets = secrets
 		this.agent = this.buildAgent()
 	}
 
@@ -45,7 +54,7 @@ export class NvxApiClient {
 		if (!trackid) throw new Error('NVX login: TRACKID absent from step 1 response')
 		this.authLog.debug('TRACKID obtained → step 2 POST login')
 
-		const body = `login=${encodeURIComponent(this.config.username)}&passwd=${encodeURIComponent(this.config.password)}`
+		const body = `login=${encodeURIComponent(this.config.username)}&passwd=${encodeURIComponent(this.secrets.password)}`
 		const step2 = await this.rawRequest('POST', '/userlogin.html', body, {
 			'Content-Type': 'application/x-www-form-urlencoded',
 			'Content-Length': String(Buffer.byteLength(body)),

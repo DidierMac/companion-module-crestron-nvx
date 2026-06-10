@@ -1,7 +1,7 @@
 import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@companion-module/base'
 import type { JsonObject } from '@companion-module/base'
 
-import { getConfigFields, type ModuleConfig } from './config.js'
+import { getConfigFields, type ModuleConfig, type ModuleSecrets } from './config.js'
 import { NvxApiClient } from './api.js'
 import { ModuleLogger } from './logger.js'
 import { setActionDefinitions } from './actions.js'
@@ -11,14 +11,16 @@ import { variableDefinitions } from './variables.js'
 class CrestronNvxInstance extends InstanceBase {
 	private api!: NvxApiClient
 	private currentConfig!: ModuleConfig
+	private currentSecrets!: ModuleSecrets
 	private connected = false
 	private pollTimer: ReturnType<typeof setInterval> | null = null
 	private logger!: ModuleLogger
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────────
 
-	async init(config: JsonObject, _isFirstInit: boolean, _secrets?: JsonObject | undefined): Promise<void> {
+	async init(config: JsonObject, _isFirstInit: boolean, secrets?: JsonObject | undefined): Promise<void> {
 		this.currentConfig = config as ModuleConfig
+		this.currentSecrets = (secrets ?? {}) as ModuleSecrets
 		// this.log (no 'ger') is the inherited InstanceBase SDK method — captured here before logger is assigned
 		this.logger = new ModuleLogger(this.log.bind(this), '', this.currentConfig.verbose ?? false)
 
@@ -30,6 +32,7 @@ class CrestronNvxInstance extends InstanceBase {
 
 		this.api = new NvxApiClient(
 			this.currentConfig,
+			this.currentSecrets,
 			this.logger.child('[AUTH]'),
 			this.logger.child('[HTTP]'),
 		)
@@ -55,13 +58,14 @@ class CrestronNvxInstance extends InstanceBase {
 		this.updateStatus(InstanceStatus.Disconnected)
 	}
 
-	async configUpdated(config: JsonObject, _secrets?: JsonObject | undefined): Promise<void> {
+	async configUpdated(config: JsonObject, secrets?: JsonObject | undefined): Promise<void> {
 		this.currentConfig = config as ModuleConfig
+		this.currentSecrets = (secrets ?? {}) as ModuleSecrets
 		this.logger.setVerbose(this.currentConfig.verbose ?? false)
 		this.logger.child('[CONN]').debug('configUpdated() → reconnect')
 		this.stopPolling()
 		this.api.clearCookies()
-		this.api.updateConfig(this.currentConfig)
+		this.api.updateConfig(this.currentConfig, this.currentSecrets)
 		await this.connect()
 	}
 
@@ -76,6 +80,11 @@ class CrestronNvxInstance extends InstanceBase {
 
 		if (!this.currentConfig.host) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
+			return
+		}
+		if (!this.currentSecrets.password) {
+			this.updateStatus(InstanceStatus.BadConfig, 'No password configured')
+			connLog.error('No password configured — not attempting login')
 			return
 		}
 

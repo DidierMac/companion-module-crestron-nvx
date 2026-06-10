@@ -6,17 +6,22 @@ export interface ModuleConfig {
 	host: string
 	port: number
 	username: string
-	password: string
 	pollInterval: number
 	ignoreSelfSignedCert: boolean
 	verbose: boolean
+}
+
+// `secret-text` fields are delivered by the SDK in the separate `secrets` channel,
+// NOT in `config`. See docs/superpowers/specs/2026-06-10-auth-secrets-and-failure-handling.
+export interface ModuleSecrets {
+	[key: string]: JsonValue
+	password: string
 }
 
 export const defaultConfig: ModuleConfig = {
 	host: '',
 	port: 443,
 	username: 'admin',
-	password: '',
 	pollInterval: 2000,
 	ignoreSelfSignedCert: true,
 	verbose: false,
