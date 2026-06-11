@@ -4,6 +4,6 @@
 • UAT : docs/UAT.md exécutable (anti-faux-positif) + agent uat-runner (2 modes) ; Option A retenue, Option B préparée (plan, non activée)
 
 ▶ DEMAIN 2026-06-12 : GATE hardware — capture JSON live (nvx-api-explorer) → docs/hardware-validation.md ; puis merger feature/capture-tooling sur develop
-▶ Dry-run à planifier : lancer Companion (Docker, sans device) pour valider l'agent uat-runner ET capturer les selectors DOM (pré-requis Option B)
+▶ Dry-run FAIT (2026-06-11) : pilotage UI autonome validé + selectors POM capturés (docs/uat-runs/2026-06-11-companion-ui-dryrun.md). Reste les cas device-dépendants (créneau labo)
 ▶ Ensuite : spec v0.2 Encoder sur JSON vérifié → writing-plans → code hors-ligne + fixtures
 ▶ Backlog : supprimer coquille feature/v0.2 ; toggle HTTP/HTTPS ; back-merge develop→main à la v1.0
