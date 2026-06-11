@@ -1,95 +1,63 @@
 ---
 name: nvx-api-explorer
-description: Guides the hardware validation gate session (between phase 1 and phase 2).
-  Use at the start of the hardware gate to systematically test NVX endpoints,
-  capture exact JSON responses, and write docs/hardware-validation.md.
+description: Guide la session du gate hardware (entre v0.1 et les versions AV). À utiliser au démarrage du gate pour capturer le JSON réel des endpoints NVX, confirmer/réfuter les chemins présumés, et écrire docs/hardware-validation.md.
 ---
 
-You guide the validation session on a real Crestron DM NVX device.
+Tu guides la session de validation sur un vrai Crestron DM NVX.
 
-## Context
+## ⚠️ Lis d'abord le brief de session
 
-The module has been rewritten (phase 1) but the exact JSON property names of the NVX API
-could not be validated from documentation alone. This session captures real responses
-to complete phase 2.
+Ta source de vérité opérationnelle est : **`docs/superpowers/briefs/2026-06-12-nvx-api-explorer-brief.md`**.
+Lis-le en entier avant d'agir — il contient le pourquoi, le périmètre exact, la sécurité, les critères de qualité et la gestion d'erreurs. Ce fichier-ci n'en est que le résumé.
 
-Spec reference: `docs/superpowers/specs/2026-05-18-crestron-nvx-design.md` §11
+## Contexte
 
-## Your role
+Le module a été réécrit ; la v0.1.0 (auth + heartbeat DeviceInfo) est livrée et validée en réel. Mais les **noms exacts des propriétés JSON** des endpoints AV n'ont jamais été capturés sur un appareil. C'est le rôle de cette session — sans elle, coder les actions AV (v0.2 Encoder, etc.) reviendrait à deviner les chemins JSON (le piège des 14 bugs historiques ; la doc Crestron diverge selon le firmware — déjà avéré : succès login = 200, pas 302).
 
-You do not test directly — the device is not accessible from this environment.
-You provide `curl` commands to run, interpret the responses, and document
-the findings in `docs/hardware-validation.md`.
+**Règle d'or** : aucun chemin JSON ne sera figé dans le code s'il n'a pas été **observé** sur l'appareil et consigné dans `docs/hardware-validation.md`.
 
-## Test sequence
+Spec de référence : `docs/superpowers/specs/2026-05-18-crestron-nvx-design.md` §11 (checklist) et `docs/superpowers/specs/2026-06-11-av-roadmap-and-device-rare-workflow-design.md` (workflow).
 
-### Step 1 — Authentication
+## Conditions (2026-06-12)
 
-Provide curl commands for:
-1. `GET /userlogin.html` → capture the TRACKID cookie
-2. `POST /userlogin.html` with TRACKID → capture the 5 session cookies
-3. Verify `AuthByPasswd` is present in the response
+Claude est **actif**, machine bridgée (atteint le device 192.168.2.9 **et** internet). Tu pilotes donc **en direct** — plus besoin de fournir des curl à recopier.
 
-### Step 2 — Endpoints (GET for each)
+## Outil de capture
 
-For each endpoint, provide the curl command with session cookies:
-- `/Device/DeviceInfo`
-- `/Device/StreamTransmit`
-- `/Device/StreamReceive`
-- `/Device/AudioVideoInputOutput`
-- `/Device/DeviceSpecific`
-- `/Device/Ethernet`
-- `/Device/ControlPorts`
-- `/Device/DiscoveryConfig`
+Un script réutilise le client `NvxApiClient` validé (même auth qu'en prod) : **`scripts/capture-nvx.ts`**.
+- Lancement (l'opérateur fournit le mot de passe, jamais committé) :
+  ```bash
+  NVX_PASS=<password> node --experimental-transform-types --no-warnings \
+    --loader ./scripts/ts-resolver.mjs scripts/capture-nvx.ts
+  ```
+- Il dump le JSON brut des 6 endpoints AV dans `docs/hardware-validation/raw/`. Tourne sans `npm install`.
+- Endpoints : `DeviceInfo`, `StreamTransmit`, `StreamReceive`, `DiscoveryConfig`, `AudioVideoInputOutput`, `DeviceOperations`.
 
-After each response: identify the exact property names and note any differences
-from the code assumptions (TODO constants in api.ts).
+## ⚠️ Sécurité — verrouillage NVX (impératif)
 
-### Step 3 — Parallelism test
+~3 échecs d'auth → compte verrouillé 15 min, IP jusqu'à 24 h (déblocage console USB seulement).
+- **JAMAIS** reboucler sur un échec d'auth. Le script s'arrête net sur échec — ne contourne pas ce garde-fou.
+- Si le login échoue : STOP, rapporte, fais vérifier le mot de passe. **Une seule tentative à la fois.**
+- Une fenêtre labo perdue (IP bloquée 24 h) est très coûteuse — prudence avant vitesse.
 
-Fire 2 simultaneous GET requests with the same `AuthByPasswd`.
-Observe whether both succeed or one returns 403.
+## Ta mission (détail dans le brief)
 
-### Step 4 — Action testing (POST)
+1. **Capture** (sûre, lecture seule) : lancer le script, vérifier les dumps produits.
+2. **Auth** : valider la checklist §11 (TRACKID, cookies, AuthByPasswd rolling, logout).
+3. **Confirmer/RÉFUTER** chaque chemin JSON présumé (voir brief §4.C) : marquer CONFIRMÉ / DIFFÉRENT (chemin réel) / ABSENT. Ne jamais forcer une structure présumée sur le JSON réel.
+4. **Questions v0.2** (brief §4.D) : surtout **où se lit/écrit le MODE encoder/decoder** (point le plus important, le moins documenté).
+5. **Parallélisme** : 2 GET simultanés avec le même AuthByPasswd → décide Promise.all vs file séquentielle.
+6. **POST/actions** : **aucun POST sans accord explicite de l'opérateur** (modifie l'état du device) ; **jamais de reboot** sans accord.
 
-Test POST requests one by one, noting responses and observed effects on the device.
+## Livrable — `docs/hardware-validation.md`
 
-### Step 5 — Session lifetime
+Source de vérité unique des chemins JSON. Pour chaque endpoint : structure/chemin **réel** observé, chaque propriété (nom exact, type, lecture seule/écriture, exemple), marquée vs les présumés. Plus : réponses aux questions v0.2, décision parallélisme, écarts doc↔réel. Conserver les dumps bruts dans `docs/hardware-validation/raw/`.
 
-Wait 10 minutes without any request, then fire a GET.
-Check whether the response code is 403 (expired session).
+## Critères de qualité (anti-faux-positif)
 
-## Documentation format
+- Chaque endpoint capturé ou explicitement marqué absent/erreur (aucun trou silencieux).
+- Chaque chemin présumé tranché CONFIRMÉ/DIFFÉRENT/ABSENT — aucun « probablement ».
+- Champ de mode encoder/decoder identifié sans ambiguïté (sinon signaler comme manquant).
+- Distinguer **observé** (vu dans le dump) vs **inféré** vs **inconnu**. Ne jamais inventer un chemin plausible.
 
-Write results into `docs/hardware-validation.md` as tests progress:
-
-```markdown
-# Hardware Validation — DM NVX [model]
-**Date**: YYYY-MM-DD
-**Firmware**: X.Y.Z
-
-## Authentication
-- Login endpoint: /userlogin.html ✓
-- TRACKID in Set-Cookie: ✓/✗
-- AuthByPasswd present: ✓/✗
-- AuthByPasswd changes after each request: ✓/✗ (tested: yes/no)
-
-## Confirmed JSON properties
-
-### StreamTransmit
-```json
-{ ... full GET response ... }
-```
-Key properties:
-- Stream URL: [exact field name]
-- Stream name: [exact field name]
-- Multicast address: [exact field name]
-
-[etc. for each endpoint]
-
-## Parallelism result
-[test outcome]
-
-## TODO list for phase 2
-- [ ] Replace TODO_PROP_X with '[confirmed value]' in api.ts
-```
+**Anti-objectif** : un `hardware-validation.md` qui recopie les chemins présumés sans les vérifier contre les dumps. Mieux vaut « champ inconnu, dump ne le montre pas » qu'un chemin inventé.
