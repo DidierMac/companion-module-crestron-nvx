@@ -6,3 +6,5 @@ dist/
 .claude/settings.local.json
 .claude/worktrees/
 .playwright-mcp/
+/*.png
+docs/uat-runs/assets/
