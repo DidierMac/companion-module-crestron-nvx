@@ -1,7 +1,9 @@
-• Session 5 (2026-06-10) : v0.1.0 LIVRÉE — merge feature/log → develop, tag v0.1.0, push + release GitHub
-• UAT réussi sur appareil réel DM-NVX-360 (fw 7.1.5259) : auth + heartbeat + variables + logging OK
-• 5 bugs auth corrigés : secrets-channel (A), 401/403 arrêt franc (B), init non bloquant (C), timers (D), succès HTTP 200 (E)
+• Session 6 (2026-06-11) : re-planification roadmap AV validée + committée (spec 2026-06-11, sur develop)
+• Roadmap révisée : GATE capture → v0.2 Encoder → v0.3 Decoder → v0.4 Audio/Vidéo → v0.5 Device-Ops → v1.0 (4 versions distinctes, tranches verticales)
+• Workflow device-rare : capture groupée → fixtures de test → code hors-ligne → UAT événementiel (cascade au créneau labo). Branches stack linéaire.
+• Fondations v0.2 (architecte) : POST/cookies/câblage init = prêts ; seule brique = généraliser poll() → 1er commit de feature/v0.2-encoder. Entrée réelle = src/main.ts.
 
-▶ Prochaine étape : v0.2 — actions (routing/audio/stream) + feedbacks + variables complètes (design spec 2026-05-18 §14)
-▶ Backlog : toggle HTTP/HTTPS ; nettoyage worktree/branche feature/log ; back-merge develop→main si voulu
-▶ Note : docker compose depuis .claude/worktrees/log (docker-compose.yml absent sur develop) ; appareil sur 192.168.2.9
+▶ Prochaine étape : GATE hardware le 2026-06-12 — capture JSON live (nvx-api-explorer) → docs/hardware-validation.md
+▶ En cours : feature/capture-tooling — script de capture .ts réutilisant NvxApiClient (creds via process.env)
+▶ Ensuite : spec d'implémentation v0.2 Encoder sur JSON vérifié → writing-plans → code hors-ligne + fixtures
+▶ Backlog : supprimer coquille feature/v0.2 ; toggle HTTP/HTTPS ; back-merge develop→main à la v1.0
