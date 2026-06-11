@@ -157,3 +157,4 @@ Phase C — Disruptif & teardown : drop device → injoignable → destroy   (en
 | Date | Version(s) | Résultat | Notes |
 |---|---|---|---|
 | 2026-06-10 | v0.1.0 | PASS | Auth + heartbeat + variables + logging validés (DM-NVX-360, fw 7.1.5259) — avant formalisation de ce plan |
+| 2026-06-11 | v0.1 (partiel, sans device) | GO PARTIEL | Run autonome Playwright. A1/C2/B5 = PASS (3/3) ; A2,A3,B1–B4,C1,C3 = `[-]` (device DM-NVX-360 injoignable). 0 FAIL, 0 régression. Instance jetable (192.0.2.1) supprimée, `Crestron_NVX` jamais activée (lockout intact). Détail : `docs/uat-runs/2026-06-11-v0.1-partial.md`. Reste à valider en créneau labo. |
