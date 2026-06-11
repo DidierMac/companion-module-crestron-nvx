@@ -18,6 +18,7 @@ Un test « vert » n'est PAS une preuve. Les pièges récurrents sur ce module :
 2. **Variable mise en cache** — `device_name`/`firmware_version` conservent leur dernière valeur même après déconnexion. Une variable peuplée ne prouve **pas** une connexion vive. → Croiser avec `connection_status` + couleur du statut, et vérifier la **valeur réelle** (pas juste « non vide »).
 3. **Preuve par la transition, pas par l'état final** — pour les déconnexions/reconnexions, c'est le passage rouge→vert (ou vert→rouge) qui prouve, pas « c'est vert à la fin » (qui peut signifier que rien ne s'est passé).
 4. **Observation dans la durée** — « pas de boucle de reconnexion » exige d'**attendre** et de regarder les logs (un retry peut n'apparaître qu'après 10–40 s). L'absence d'activité pendant 2 s ne prouve rien.
+5. **Preuve positive d'absence** (bonne pratique E2E) — asserter « il ne s'est rien passé » est faillible (le test peut passer parce qu'il n'a *rien vu*, pas parce qu'il n'y avait *rien*). Quand c'est possible, préférer un **proxy positif** qui prouve que l'absence va persister : ex. un log explicite `[CONN] reconnexion annulée / destroyed` après `destroy()`, plutôt que « aucun log de reconnexion ». ⚠️ Vérifier ce que `destroy()`/`clearReconnect()` émet réellement comme log (hypothèse à confirmer dans le code) — si un marqueur positif existe, l'utiliser en priorité dans AUTH-WRONG et CONN-DESTROY.
 
 ## ⚠️ Budget lockout (anti-brute-force NVX)
 
