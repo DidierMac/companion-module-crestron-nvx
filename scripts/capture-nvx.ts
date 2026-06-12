@@ -47,6 +47,8 @@ const NVX_PORT = parseInt(process.env['NVX_PORT'] ?? '443', 10)
 const NVX_USER = process.env['NVX_USER'] ?? 'admin'
 const NVX_PASS = process.env['NVX_PASS'] ?? ''
 const NVX_VERBOSE = Boolean(process.env['NVX_VERBOSE'])
+const NVX_OUTDIR = process.env['NVX_OUTDIR'] ?? ''
+const NVX_ALL = Boolean(process.env['NVX_ALL'])
 
 if (!NVX_PASS) {
 	console.error('[capture-nvx] ERREUR : NVX_PASS est requis.')
@@ -63,6 +65,10 @@ const ENDPOINTS = [
 	'/Device/DiscoveryConfig',
 	'/Device/AudioVideoInputOutput',
 	'/Device/DeviceOperations',
+	// Mode + énumération (gate 2026-06-12, confirmé doc 7.3.5)
+	'/Device/DeviceSpecific',      // ← Device.DeviceSpecific.DeviceMode = Receiver|Transmitter
+	'/Device/DeviceCapabilities',
+	'/Device',
 ] as const
 
 // ── Logger console (hors runtime Companion) ───────────────────────────────────
@@ -92,10 +98,12 @@ function ensureDir(dirPath: string): void {
 
 async function main(): Promise<void> {
 	// Répertoire de sortie — chemin relatif à la racine du repo
-	const outDir = path.resolve(
-		new URL('.', import.meta.url).pathname,
-		'../docs/hardware-validation/raw',
-	)
+	const outDir = NVX_OUTDIR
+		? path.resolve(process.cwd(), NVX_OUTDIR)
+		: path.resolve(
+			new URL('.', import.meta.url).pathname,
+			`../docs/hardware-validation/raw/${NVX_HOST}`,
+		)
 	ensureDir(outDir)
 
 	const config: ModuleConfig = {
@@ -133,13 +141,24 @@ async function main(): Promise<void> {
 		process.exit(1)
 	}
 
+	// ── Construction de la liste d'endpoints ──────────────────────────────────
+	// Mode EXHAUSTIF (NVX_ALL) : énumère TOUS les sous-systèmes depuis la racine
+	// /Device (varie selon le modèle) ; sinon liste fixe ENDPOINTS.
+	let endpoints: string[] = [...ENDPOINTS]
+	if (NVX_ALL) {
+		const root = await client.get<{ Device?: Record<string, unknown> }>('/Device')
+		const subs = Object.keys(root.Device ?? {})
+		endpoints = ['/Device', ...subs.map((s) => `/Device/${s}`)]
+		console.log(`[capture-nvx] Mode EXHAUSTIF — ${subs.length} sous-systèmes énumérés depuis /Device`)
+	}
+
 	// ── Capture des endpoints ─────────────────────────────────────────────────
-	console.log(`\n[capture-nvx] Capture de ${ENDPOINTS.length} endpoints vers : ${outDir}\n`)
+	console.log(`\n[capture-nvx] Capture de ${endpoints.length} endpoints vers : ${outDir}\n`)
 
 	const successes: string[] = []
 	const failures: { endpoint: string; reason: string }[] = []
 
-	for (const endpoint of ENDPOINTS) {
+	for (const endpoint of endpoints) {
 		try {
 			const data = await client.get<unknown>(endpoint)
 			const filename = endpointToFilename(endpoint)
@@ -155,7 +174,7 @@ async function main(): Promise<void> {
 	}
 
 	// ── Résumé ────────────────────────────────────────────────────────────────
-	const total = ENDPOINTS.length
+	const total = endpoints.length
 	const ok = successes.length
 	console.log(`\n[capture-nvx] Résumé : ${ok}/${total} capturés`)
 	if (failures.length > 0) {

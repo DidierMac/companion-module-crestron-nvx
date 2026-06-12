@@ -1,0 +1,56 @@
+{
+  "Device": {
+    "Usb": {
+      "HotkeyConfig": {
+        "CaptureEntryModeCustomKey": "00 00 00 00 00 00 00 00",
+        "CaptureEntryModeKey": "ScrollLock",
+        "CaptureExitModeCustomKey": "00 00 00 00 00 00 00 00",
+        "CaptureExitModeKey": "EnterOrEscape",
+        "IsEnabled": true
+      },
+      "UsbPorts": [
+        {
+          "HostEnumerated": false,
+          "IsActive": false,
+          "IsAutoUsbPairingEnabled": true,
+          "IsDeviceSuspended": false,
+          "Mode": "Local",
+          "Name": "Podium USB",
+          "Transport": "Layer2",
+          "UsbPairing": {
+            "IsMultipleDeviceSupportEnabled": false,
+            "Layer2": {
+              "LocalDeviceId": "c4:42:68:4e:53:4b",
+              "RemoteDevices": {
+                "Id1": "00:00:00:00:00:00",
+                "Id2": "00:00:00:00:00:00",
+                "Id3": "00:00:00:00:00:00",
+                "Id4": "00:00:00:00:00:00",
+                "Id5": "00:00:00:00:00:00",
+                "Id6": "00:00:00:00:00:00",
+                "Id7": "00:00:00:00:00:00"
+              }
+            },
+            "Layer3": {
+              "LocalDeviceId": "192.168.2.10",
+              "RemoteDevices": {
+                "Id1": "0.0.0.0"
+              }
+            },
+            "PairedStatus": {
+              "Id1": false,
+              "Id2": false,
+              "Id3": false,
+              "Id4": false,
+              "Id5": false,
+              "Id6": false,
+              "Id7": false
+            }
+          },
+          "Uuid": "33c51ceb-9d2b-4211-9615-8021d2cccbd4"
+        }
+      ],
+      "Version": "2.2.0"
+    }
+  }
+}

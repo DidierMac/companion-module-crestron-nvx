@@ -1,0 +1,17 @@
+{
+  "Device": {
+    "ImageMgmnt": {
+      "LocalImages": {
+        "Image00": {
+          "Name": "None",
+          "PreviewImage": ""
+        }
+      },
+      "MaxImages": 20,
+      "MaxImagesMemory": 100,
+      "UploadedImages": 0,
+      "UploadedImagesMemory": "0.0",
+      "Version": "2.2.0"
+    }
+  }
+}

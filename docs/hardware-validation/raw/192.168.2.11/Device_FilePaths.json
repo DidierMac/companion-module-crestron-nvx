@@ -1,0 +1,24 @@
+{
+  "Device": {
+    "FilePaths": {
+      "Certificate": {
+        "Intermediate": "/data/web/tmp/certificate/intermediate",
+        "Machine": "/data/web/tmp/certificate/machine",
+        "Root": "/data/web/tmp/certificate/root",
+        "Webserver": "/data/web/tmp/certificate/webserver"
+      },
+      "Edid": {
+        "Input0": "/data/web/tmp/edid/input0",
+        "Input1": "/data/web/tmp/edid/input1"
+      },
+      "Firmware": {
+        "FirmwareFile": "/data/web/tmp/firmware"
+      },
+      "Infrared": {
+        "Port1": "/data/web/tmp/infrared/port1",
+        "Port2": "/data/web/tmp/infrared/port2"
+      },
+      "Version": "2.4.0"
+    }
+  }
+}

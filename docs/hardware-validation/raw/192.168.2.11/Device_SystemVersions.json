@@ -1,0 +1,210 @@
+{
+  "Device": {
+    "SystemVersions": {
+      "Components": [
+        {
+          "Category": "DM-NVX-E30",
+          "Name": "DM-NVX-E30",
+          "SubComponents": [],
+          "Version": "7.1.5259.00090"
+        },
+        {
+          "Category": "Build",
+          "Name": "Build",
+          "SubComponents": [],
+          "Version": "Jul 16 2025  (575583)"
+        },
+        {
+          "Category": "Updater",
+          "Name": "Updater",
+          "SubComponents": [],
+          "Version": "7.1.5259.00090"
+        },
+        {
+          "Category": "Bootloader",
+          "Name": "Bootloader",
+          "SubComponents": [],
+          "Version": "2.01.113"
+        },
+        {
+          "Category": "CCUI Version",
+          "Name": "CCUI Version",
+          "SubComponents": [],
+          "Version": "1.481.893543"
+        },
+        {
+          "Category": "XIOSDK",
+          "Name": "XIOSDK",
+          "SubComponents": [],
+          "Version": "3.8.1"
+        },
+        {
+          "Category": "IoTSDK",
+          "Name": "IoTSDK",
+          "SubComponents": [],
+          "Version": "1.8.0"
+        },
+        {
+          "Category": "Build time",
+          "Name": "Build time",
+          "SubComponents": [],
+          "Version": "16:09:20"
+        },
+        {
+          "Category": "Product ID",
+          "Name": "Product ID",
+          "SubComponents": [],
+          "Version": "0x7F07"
+        },
+        {
+          "Category": "Revision ID",
+          "Name": "Revision ID",
+          "SubComponents": [],
+          "Version": "0x0000"
+        },
+        {
+          "Category": "HDCP2X-SKE",
+          "Name": "HDCP2X-SKE",
+          "SubComponents": [
+            {
+              "Category": "PRE-BOOT",
+              "Name": "PRE-BOOT",
+              "SubComponents": [],
+              "Version": "[v001.0000.022]"
+            },
+            {
+              "Category": "BOOTLOADER",
+              "Name": "BOOTLOADER",
+              "SubComponents": [],
+              "Version": "[v001.0000.382]"
+            }
+          ],
+          "Version": "HDCP2X-SKE [v1.3803.14434, #0AE5274FD1]"
+        },
+        {
+          "Category": "NIOS",
+          "Name": "NIOS",
+          "SubComponents": [
+            {
+              "Category": "BUILD_TIME",
+              "Name": "BUILD_TIME",
+              "SubComponents": [],
+              "Version": "Jun  2 2025 15:45:19"
+            },
+            {
+              "Category": "PRODUCT_NAME",
+              "Name": "PRODUCT_NAME",
+              "SubComponents": [],
+              "Version": "NVX_E30"
+            },
+            {
+              "Category": "MODE",
+              "Name": "MODE",
+              "SubComponents": [],
+              "Version": "TX"
+            },
+            {
+              "Category": "VAR",
+              "Name": "VAR",
+              "SubComponents": [],
+              "Version": "3"
+            },
+            {
+              "Category": "DSP",
+              "Name": "DSP",
+              "SubComponents": [],
+              "Version": "NONE"
+            },
+            {
+              "Category": "HWREV",
+              "Name": "HWREV",
+              "SubComponents": [],
+              "Version": "0"
+            },
+            {
+              "Category": "SFP",
+              "Name": "SFP",
+              "SubComponents": [],
+              "Version": "None"
+            }
+          ],
+          "Version": "NVX-E30 [v1.5007.00054, #00000000] Stream:a5.0"
+        },
+        {
+          "Category": "FPGA",
+          "Name": "FPGA",
+          "SubComponents": [
+            {
+              "Category": "HPS2NIOS_REG",
+              "Name": "HPS2NIOS_REG",
+              "SubComponents": [],
+              "Version": "0x801f1142"
+            },
+            {
+              "Category": "BUILD_DATE",
+              "Name": "BUILD_DATE",
+              "SubComponents": [],
+              "Version": "5022022"
+            },
+            {
+              "Category": "BUILD_TIME",
+              "Name": "BUILD_TIME",
+              "SubComponents": [],
+              "Version": "101248"
+            },
+            {
+              "Category": "BUILD_NUMBER",
+              "Name": "BUILD_NUMBER",
+              "SubComponents": [],
+              "Version": "2821812"
+            },
+            {
+              "Category": "IPXE",
+              "Name": "IPXE",
+              "SubComponents": [],
+              "Version": "VERSION major:6 internal:164 date:210617"
+            },
+            {
+              "Category": "IPXD",
+              "Name": "IPXD",
+              "SubComponents": [],
+              "Version": "VERSION major:0 internal:0 date:0"
+            }
+          ],
+          "Version": "VERSION major:3 minor:0"
+        },
+        {
+          "Category": "UUID",
+          "Name": "UUID",
+          "SubComponents": [],
+          "Version": "00000000-0000-4002-0059-e204080bff04"
+        },
+        {
+          "Category": "PUF",
+          "Name": "PUF",
+          "SubComponents": [],
+          "Version": "7.1.5259.00090"
+        },
+        {
+          "Category": "Video Player",
+          "Name": "Video Player",
+          "SubComponents": [],
+          "Version": "5.0"
+        },
+        {
+          "Category": "Forced Auth Mode",
+          "Name": "Forced Auth Mode",
+          "SubComponents": [],
+          "Version": "True"
+        },
+        {
+          "Category": "FIPS Mode",
+          "Name": "FIPS Mode",
+          "SubComponents": [],
+          "Version": "True"
+        }
+      ],
+      "Version": "2.0.0"
+    }
+  }
+}

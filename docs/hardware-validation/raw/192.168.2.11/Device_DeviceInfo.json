@@ -1,0 +1,19 @@
+{
+  "Device": {
+    "DeviceInfo": {
+      "BuildDate": "Jul 16 2025  (575583)",
+      "Category": "DM",
+      "DeviceId": "@E-00107fea8a32",
+      "DeviceVersion": "7.1.5259.00090",
+      "Devicekey": "No SystemKey Server",
+      "MacAddress": "00.10.7f.ea.8a.32",
+      "Manufacturer": "Crestron",
+      "Model": "DM-NVX-E30",
+      "Name": "DM-NVX-E30-00107FEA8A32",
+      "PufVersion": "7.1.5259.00090",
+      "RebootReason": "manual",
+      "SerialNumber": "2030JBM03049",
+      "Version": "2.1.0"
+    }
+  }
+}

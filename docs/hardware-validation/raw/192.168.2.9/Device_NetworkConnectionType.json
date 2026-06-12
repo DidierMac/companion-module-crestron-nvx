@@ -1,0 +1,10 @@
+{
+  "Device": {
+    "NetworkConnectionType": {
+      "PointToPoint": {
+        "Mode": 0,
+        "Status": 0
+      }
+    }
+  }
+}

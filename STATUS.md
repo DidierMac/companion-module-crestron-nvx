@@ -1,9 +1,10 @@
-• Session 6 (2026-06-11) close : re-planification roadmap AV + outillage capture/UAT, sur feature/capture-tooling (10 commits, NON mergée)
+• Session 7 (2026-06-12) : GATE hardware FAIT ✅ — 3 NVX réels capturés exhaustivement (360 Rx/Tx + E30 Tx, fw 7.1.5259.00090, tous sous-systèmes dans raw/<ip>/)
 • Roadmap : GATE capture → v0.2 Encoder → v0.3 Decoder → v0.4 Audio/Vidéo → v0.5 Device-Ops → v1.0 (spec 2026-06-11 sur develop)
-• Capture prête : scripts/capture-nvx.ts (sans npm install) + brief nvx-api-explorer → pour le gate du 2026-06-12
-• UAT : plan exécutable docs/UAT.md + agent uat-runner (2 modes) ÉPROUVÉ ; run partiel sans device = 3 PASS/0 FAIL (A1,C2,B5), 8 cas [-] device requis ; Option A retenue, Option B préparée (plan, non activée)
+• Tranché empiriquement : mode=DeviceSpecific.DeviceMode ; le MODÈLE (pas le mode) change le JSON ; sentinelle "UNSUPPORTED PROPERTY" ; contrat écriture POST testé (SetPartial, StatusId 0/1, tableaux par position, live vs reboot). Cf. mémoire api-findings
+• REX : UAT via UI Companion lent/fragile → pivot harness scriptable déterministe (rex-uat-scriptable). Outillage : capture-nvx.ts +NVX_OUTDIR/+NVX_ALL, nouveau probe-post.ts
 
-▶ DEMAIN 2026-06-12 : GATE hardware — capture JSON live (nvx-api-explorer) → docs/hardware-validation.md ; PUIS merge feature/capture-tooling → develop
-▶ Créneau labo : dérouler les 8 cas UAT [-] device-dépendants (ordre non négociable, budget lockout A2=1 tentative)
-▶ Après capture : spec v0.2 Encoder sur JSON vérifié → 1er commit = généraliser poll() (cf. mémoire architecture-v0.2-foundations) → fixtures + code
-▶ Backlog : supprimer coquille feature/v0.2 ; toggle HTTP/HTTPS ; back-merge develop→main à la v1.0 ; activer Option B (gate npm install + dry-run selectors fait)
+▶ EN COURS : agent réécrit docs/hardware-validation.md (3 devices) ; puis COMMIT du gate sur feature/capture-tooling
+▶ NEXT : spec v0.2 Encoder sur JSON vérifié → 1er commit = généraliser poll() (cf. architecture-v0.2-foundations) → fixtures + code
+▶ FUTUR créneau labo : UAT v0.2 fonctionnel (set_stream_mode reboot, enable/disable_stream) — non testable hors device
+▶ À nettoyer : anciens raw/Device_*.json à plat (périmés, exclus du commit) ; /tmp/companion-db-inspect.sqlite (rm interdit au LLM)
+▶ Backlog inchangé : merge feature/capture-tooling après validation ; supprimer coquille feature/v0.2 ; toggle HTTP/HTTPS ; back-merge develop→main à v1.0

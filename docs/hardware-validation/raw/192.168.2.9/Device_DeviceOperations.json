@@ -1,0 +1,10 @@
+{
+  "Device": {
+    "DeviceOperations": {
+      "FirmwareUpgrade": "",
+      "ProjectType": "",
+      "UpgradeStatus": "Puf Upgrade Not Initiated",
+      "Version": "2.3.0"
+    }
+  }
+}

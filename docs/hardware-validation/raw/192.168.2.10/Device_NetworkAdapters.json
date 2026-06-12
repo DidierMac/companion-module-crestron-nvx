@@ -1,0 +1,78 @@
+{
+  "Device": {
+    "NetworkAdapters": {
+      "Adapters": {
+        "Vlan00": {
+          "AddressSchema": "IPv4AndIPv6",
+          "AutoNegotiation": "On",
+          "DomainName": "localdomain",
+          "IPv4": {
+            "Addresses": [
+              {
+                "Address": "192.168.2.10",
+                "SubnetMask": "255.255.255.0"
+              }
+            ],
+            "DefaultGateway": "192.168.2.1",
+            "IsDhcpEnabled": true,
+            "StaticAddresses": [
+              {
+                "Address": "0.0.0.0",
+                "SubnetMask": "0.0.0.0"
+              }
+            ],
+            "StaticDefaultGateway": "0.0.0.0"
+          },
+          "IPv6": {
+            "Addresses": {},
+            "DefaultGateway": "::",
+            "IsDhcpEnabled": true,
+            "StaticAddresses": {},
+            "StaticDefaultGateway": ""
+          },
+          "IsActive": true,
+          "IsAdapterEnabled": true,
+          "IsAdapterReadOnly": false,
+          "IsAutoNegotiationEnabled": false,
+          "LinkStatus": true,
+          "MacAddress": "c4.42.68.4e.53.4b",
+          "Name": "eth0"
+        }
+      },
+      "AddressSchema": "IPv4",
+      "DnsSettings": {
+        "DnsServers": {
+          "InitializationEntry": {},
+          "Server01": {
+            "Address": "",
+            "IsPrimary": true,
+            "IsStatic": true
+          }
+        },
+        "IPv4": {
+          "DnsServers": [
+            "8.8.8.8(DHCP)",
+            ""
+          ],
+          "StaticDns": [
+            "",
+            ""
+          ]
+        },
+        "StaticDns": {
+          "InitializationEntry": {
+            "Address": ""
+          }
+        }
+      },
+      "HostName": "DM-NVX-360-C442684E534B",
+      "IPv6": {
+        "IsIcmpPingEnabled": false,
+        "IsSupported": false
+      },
+      "IgmpVersion": "v3",
+      "IsIcmpPingEnabled": true,
+      "Version": "3.0.0"
+    }
+  }
+}

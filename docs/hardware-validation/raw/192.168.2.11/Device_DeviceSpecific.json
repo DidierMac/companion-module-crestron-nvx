@@ -1,0 +1,20 @@
+{
+  "Device": {
+    "DeviceSpecific": {
+      "ActiveAudioSource": "NoAudioSelected",
+      "ActiveVideoSource": "None",
+      "AudioSource": "AudioFollowsVideo",
+      "AutoInitiationMode": true,
+      "AutoInputRoutingEnabled": true,
+      "DeviceMode": "Transmitter",
+      "DeviceReady": 0,
+      "IsFrontPanelLockoutEnabled": false,
+      "LedsEnabled": true,
+      "MotionDetected": "NoSync",
+      "ShowSetupInformationOnOsd": false,
+      "Version": "2.4.0",
+      "VideoSource": "None",
+      "VideoWallMode": 0
+    }
+  }
+}

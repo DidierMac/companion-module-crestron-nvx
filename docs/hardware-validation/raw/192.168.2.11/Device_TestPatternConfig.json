@@ -1,0 +1,25 @@
+{
+  "Device": {
+    "TestPatternConfig": {
+      "Outputs": {
+        "Output1": {
+          "CurrentTestPattern": "Off",
+          "Resolution": "1920x1080p60 RGB 8-bit"
+        }
+      },
+      "TestPatternsSupported": [
+        "Off",
+        "SMPTE ColorBars",
+        "Black",
+        "White",
+        "Vertical Lines",
+        "Grid",
+        "Color Bars",
+        "Gray Gradient",
+        "RGB Gradient",
+        "Frequency Adjust"
+      ],
+      "Version": "2.0.0"
+    }
+  }
+}

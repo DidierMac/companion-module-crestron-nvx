@@ -1,0 +1,157 @@
+{
+  "Device": {
+    "CustomControlPortCommands": {
+      "AutomaticPowerControl": {
+        "AssociatedOutputs": {
+          "Output1": {
+            "ActivePort": "Port1",
+            "ActivePortType": "None",
+            "AutoPowerOffDelayInSeconds": 5,
+            "IsCustomTimeout": false,
+            "IsEnabled": true,
+            "IsTurnLocalOutputOffEnabled": false
+          }
+        },
+        "AssociatedOutputsSupported": [
+          "Output1"
+        ],
+        "Version": "2.0.0"
+      },
+      "Cec": {
+        "PortList": {
+          "Port1": {
+            "CommandList": {
+              "InputControl": {
+                "Format": "Hex",
+                "IsCustomCmd": true,
+                "Terminator": "None",
+                "TransmitData": ""
+              },
+              "PowerOff": {
+                "Format": "Hex",
+                "IsCustomCmd": true,
+                "Terminator": "None",
+                "TransmitData": ""
+              },
+              "PowerOn": {
+                "Format": "Hex",
+                "IsCustomCmd": true,
+                "Terminator": "None",
+                "TransmitData": ""
+              }
+            },
+            "CommandsSupported": [
+              "PowerOn",
+              "PowerOff",
+              "InputControl"
+            ],
+            "PowerControlConfig": {
+              "InputControlDelayInSeconds": 5,
+              "IsInputControlEnabled": false
+            }
+          }
+        },
+        "PortsSupported": [
+          "Port1"
+        ]
+      },
+      "Infrared": {
+        "PortList": {
+          "Port1": {
+            "CommandList": {
+              "InputControl": {
+                "TransmitData": "",
+                "Type": "None"
+              },
+              "PowerOff": {
+                "TransmitData": "",
+                "Type": "None"
+              },
+              "PowerOn": {
+                "TransmitData": "",
+                "Type": "None"
+              }
+            },
+            "CommandsSupported": [
+              "PowerOn",
+              "PowerOff",
+              "InputControl"
+            ],
+            "PowerControlConfig": {
+              "InputControlDelayInSeconds": 5,
+              "IsInputControlEnabled": false
+            }
+          },
+          "Port2": {
+            "CommandList": {
+              "InputControl": {
+                "TransmitData": "",
+                "Type": "None"
+              },
+              "PowerOff": {
+                "TransmitData": "",
+                "Type": "None"
+              },
+              "PowerOn": {
+                "TransmitData": "",
+                "Type": "None"
+              }
+            },
+            "CommandsSupported": [
+              "PowerOn",
+              "PowerOff",
+              "InputControl"
+            ],
+            "PowerControlConfig": {
+              "InputControlDelayInSeconds": 5,
+              "IsInputControlEnabled": false
+            }
+          }
+        },
+        "PortsSupported": [
+          "Port1",
+          "Port2"
+        ]
+      },
+      "Serial": {
+        "PortList": {
+          "Port1": {
+            "CommandList": {
+              "InputControl": {
+                "Format": "Hex",
+                "Terminator": "None",
+                "TransmitData": "",
+                "Type": "None"
+              },
+              "PowerOff": {
+                "Format": "Hex",
+                "Terminator": "None",
+                "TransmitData": "",
+                "Type": "None"
+              },
+              "PowerOn": {
+                "Format": "Hex",
+                "Terminator": "None",
+                "TransmitData": "",
+                "Type": "None"
+              }
+            },
+            "CommandsSupported": [
+              "PowerOn",
+              "PowerOff",
+              "InputControl"
+            ],
+            "PowerControlConfig": {
+              "InputControlDelayInSeconds": 5,
+              "IsInputControlEnabled": false
+            }
+          }
+        },
+        "PortsSupported": [
+          "Port1"
+        ]
+      },
+      "Version": "2.1.0"
+    }
+  }
+}

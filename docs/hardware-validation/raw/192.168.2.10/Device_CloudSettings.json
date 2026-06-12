@@ -1,0 +1,11 @@
+{
+  "Device": {
+    "CloudSettings": {
+      "Version": "2.1.0",
+      "XioCloud": {
+        "IsEnabled": true,
+        "IsXioCloudClaimed": false
+      }
+    }
+  }
+}
