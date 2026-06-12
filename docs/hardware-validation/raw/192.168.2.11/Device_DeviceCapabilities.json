@@ -1,0 +1,15 @@
+{
+  "Device": {
+    "DeviceCapabilities": {
+      "IsConfigFileUploadSupported": false,
+      "IsLogFileUploadSupported": true,
+      "PortConfig": {
+        "NumberOfDmInputs": 0,
+        "NumberOfEthernetAdapters": 1,
+        "NumberOfHdmiInputs": 1,
+        "NumberOfHdmiOutputs": 0
+      },
+      "Version": "2.1.0"
+    }
+  }
+}

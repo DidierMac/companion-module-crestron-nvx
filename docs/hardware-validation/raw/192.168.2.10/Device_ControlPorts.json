@@ -1,0 +1,55 @@
+{
+  "Device": {
+    "ControlPorts": {
+      "Infrared": {
+        "Port1": {
+          "Id": "Port1",
+          "Name": "",
+          "ParsedCommands": [],
+          "TransmitDataFormat": "Hex"
+        },
+        "Port2": {
+          "Id": "Port2",
+          "Name": "",
+          "ParsedCommands": [],
+          "TransmitDataFormat": "Hex"
+        }
+      },
+      "Serial": {
+        "Port1": {
+          "BaudRate": "9600",
+          "Capabilities": {
+            "BaudRate": [
+              "600",
+              "1200",
+              "2400",
+              "4800",
+              "9600",
+              "14400",
+              "19200",
+              "38400",
+              "57600",
+              "115200"
+            ],
+            "HardwareHandshake": [
+              "None",
+              "RTS",
+              "CTS",
+              "RTS/CTS"
+            ],
+            "SerialPortType": "Serial232"
+          },
+          "DataBits": "8",
+          "HardwareHandshake": "None",
+          "Id": "Port1",
+          "Parity": "None",
+          "ReceivedDataFormat": "Hex",
+          "SoftwareHandshake": "None",
+          "StopBits": "1",
+          "TransmitDataFormat": "Hex"
+        }
+      },
+      "Version": "2.3.0"
+    }
+  }
+}

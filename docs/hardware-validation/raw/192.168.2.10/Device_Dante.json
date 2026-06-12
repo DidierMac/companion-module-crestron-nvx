@@ -1,0 +1,14 @@
+{
+  "Device": {
+    "Dante": {
+      "DantePorts": {
+        "Port1": {
+          "ActiveDanteAudioSource": "NoAudioSelected",
+          "DanteAudioSource": "AudioFollowsVideo",
+          "DanteDeviceName": ""
+        }
+      },
+      "Version": "2.0.0"
+    }
+  }
+}

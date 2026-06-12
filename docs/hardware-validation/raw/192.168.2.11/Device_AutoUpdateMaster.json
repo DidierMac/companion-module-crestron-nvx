@@ -1,0 +1,24 @@
+{
+  "Device": {
+    "AutoUpdateMaster": {
+      "AutoUpdateSchedule": {
+        "CheckInterval": 0,
+        "DayOfWeek": "Daily",
+        "TimeOfDay": "02:24"
+      },
+      "AutoUpdateStatus": {
+        "AutoUpdateState": "UpdateFailed",
+        "AutoUpdateStateId": 4,
+        "LastError": "Error 404",
+        "ManifestCheckStatus": "UpdateFailed"
+      },
+      "IsCustomUrlEnabled": false,
+      "IsEnabled": true,
+      "ManifestPath": "https://crestrondevicefiles.blob.core.windows.net/nvx/DMNVX.txt",
+      "ServerCredentials": {
+        "Username": "NONE"
+      },
+      "Version": "2.1.5"
+    }
+  }
+}

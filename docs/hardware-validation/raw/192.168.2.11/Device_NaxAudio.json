@@ -1,0 +1,120 @@
+{
+  "Device": {
+    "NaxAudio": {
+      "NaxRx": {
+        "MaxStreams": 1,
+        "NaxRxStreams": {
+          "Stream01": {
+            "BitRate": 3072,
+            "Channels": 2,
+            "DiagnosticMessage": "",
+            "EncodingFormat": "Lpcm",
+            "EncodingSampleRate": 48000,
+            "ErrCode": "OK",
+            "IsAutomaticInitiationEnabled": true,
+            "IsDisabled": false,
+            "IsEncryptionEnabled": false,
+            "NetworkAddressRequested": "0.0.0.0",
+            "NetworkAddressStatus": "0.0.0.0",
+            "PortRequested": 5004,
+            "PortStatus": 5004,
+            "SessionNameRequested": "",
+            "SessionNameStatus": "",
+            "StartRequested": false,
+            "StopRequested": true,
+            "StreamStatus": "Stream Stopped"
+          }
+        },
+        "Version": "2.0.3"
+      },
+      "NaxSdp": {
+        "NaxSdpStreams": {
+          "96080428": {
+            "BitRate": 3072,
+            "ChannelsNum": 2,
+            "EncodingFormat": "L24",
+            "EncodingSampleRate": 48000,
+            "IsEncryptionEnabled": false,
+            "NetworkAddressStatus": "239.1.1.5",
+            "PortStatus": 4570,
+            "SessionId": "96080428",
+            "SessionNameStatus": "Stream01c4.42.68.4e.53.4b",
+            "SourceNetworkAddress": "192.168.2.10",
+            "TsRefClkValue": "ptp=IEEE1588-2008:00-10-7F-FF-FE-EA-8A-32:0"
+          },
+          "341555285": {
+            "BitRate": 3072,
+            "ChannelsNum": 2,
+            "EncodingFormat": "L24",
+            "EncodingSampleRate": 48000,
+            "IsEncryptionEnabled": false,
+            "NetworkAddressStatus": "239.1.1.7",
+            "PortStatus": 4570,
+            "SessionId": "341555285",
+            "SessionNameStatus": "Stream0100.10.7f.ea.8a.32",
+            "SourceNetworkAddress": "192.168.2.11",
+            "TsRefClkValue": "ptp=IEEE1588-2008:00-10-7F-FF-FE-EA-8A-32:0"
+          }
+        },
+        "Version": "2.0.1"
+      },
+      "NaxTx": {
+        "IsPtpMasterActive": false,
+        "IsSapDisable": false,
+        "MaxStreams": 1,
+        "NaxTxStreams": {
+          "Stream01": {
+            "AudioLevelAdjust": 0,
+            "BitRate": 3072,
+            "Channels": 2,
+            "DiagnosticMessage": "",
+            "EncodingFormat": "Lpcm",
+            "EncodingSampleRate": 48000,
+            "ErrCode": "OK",
+            "IsAudioAdjustSupported": true,
+            "IsAutomaticInitiationEnabled": true,
+            "IsDisabled": false,
+            "IsEncryptionEnabled": false,
+            "IsMuted": false,
+            "NetworkAddressRequested": "239.1.1.7",
+            "NetworkAddressStatus": "239.1.1.7",
+            "PortRequested": 4570,
+            "PortStatus": 4570,
+            "SessionID": "341555285",
+            "SessionNameRequested": "Stream0100.10.7f.ea.8a.32",
+            "SessionNameStatus": "Stream0100.10.7f.ea.8a.32",
+            "StartRequested": true,
+            "StopRequested": false,
+            "StreamStatus": "Stream Started"
+          }
+        },
+        "PtpDomain": 0,
+        "PtpPriority": 254,
+        "TsRefClkValue": "00107f.fffe.ea8a32",
+        "Version": "2.0.4"
+      },
+      "SecondaryAudioRx": {
+        "AudioMode": "Automatic",
+        "Version": "2.2.0"
+      },
+      "SecondaryAudioTx": {
+        "AudioMode": "Automatic",
+        "Version": "2.2.0"
+      },
+      "StreamReferenceMapping": {
+        "NaxRxStreams": {
+          "Stream01": {
+            "Path": "ZoneOutputs/Zones/Zone1"
+          }
+        },
+        "NaxTxStreams": {
+          "Stream01": {
+            "Path": "InputSources/Inputs/Input01"
+          }
+        },
+        "Version": "2.0.0"
+      },
+      "Version": "2.2.0"
+    }
+  }
+}

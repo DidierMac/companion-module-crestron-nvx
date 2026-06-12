@@ -1,0 +1,20 @@
+{
+  "Device": {
+    "DeviceInfo": {
+      "BuildDate": "Jul 16 2025  (575583)",
+      "Category": "DM",
+      "DeviceCertId": "38549e26-8b2c-474c-9215-ffd657efdb2e",
+      "DeviceId": "@E-c442684e534b",
+      "DeviceVersion": "7.1.5259.00090",
+      "Devicekey": "No SystemKey Server",
+      "MacAddress": "c4.42.68.4e.53.4b",
+      "Manufacturer": "Crestron",
+      "Model": "DM-NVX-360",
+      "Name": "DM-NVX-360-C442684E534B",
+      "PufVersion": "7.1.5259.00090",
+      "RebootReason": "manual",
+      "SerialNumber": "2342NEJ07793",
+      "Version": "2.1.0"
+    }
+  }
+}

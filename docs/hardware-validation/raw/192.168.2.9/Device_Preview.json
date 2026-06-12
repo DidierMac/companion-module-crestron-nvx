@@ -1,0 +1,47 @@
+{
+  "Device": {
+    "Preview": {
+      "BaseFileName": "preview",
+      "ErrorMessage": "",
+      "HostPreviewImage": "local",
+      "ImageList": {
+        "Image1": {
+          "FQDNPath": "https://DM-NVX-360-00107FF7D99A/preview/preview_135px.jpeg",
+          "Height": 135,
+          "IPv4Path": "https://192.168.2.9/preview/preview_135px.jpeg",
+          "IsImageAvailable": true,
+          "Name": "preview_135px.jpeg",
+          "Size": 1937,
+          "Width": 240
+        },
+        "Image2": {
+          "FQDNPath": "https://DM-NVX-360-00107FF7D99A/preview/preview_270px.jpeg",
+          "Height": 270,
+          "IPv4Path": "https://192.168.2.9/preview/preview_270px.jpeg",
+          "IsImageAvailable": true,
+          "Name": "preview_270px.jpeg",
+          "Size": 4460,
+          "Width": 480
+        },
+        "Image3": {
+          "FQDNPath": "https://DM-NVX-360-00107FF7D99A/preview/preview_540px.jpeg",
+          "Height": 540,
+          "IPv4Path": "https://192.168.2.9/preview/preview_540px.jpeg",
+          "IsImageAvailable": true,
+          "Name": "preview_540px.jpeg",
+          "Size": 13044,
+          "Width": 960
+        }
+      },
+      "IsPreviewOutputEnabled": true,
+      "LocalPreview": {
+        "FQDNPath": "https://DM-NVX-360-00107FF7D99A/preview",
+        "IPv4Path": "https://192.168.2.9/preview",
+        "RelativePath": "/preview"
+      },
+      "StatusCode": 0,
+      "StatusMessage": "Image Parsing Success",
+      "Version": "2.1.0"
+    }
+  }
+}

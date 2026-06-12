@@ -1,0 +1,110 @@
+{
+  "Device": {
+    "EdidMgmnt": {
+      "CopyEdidList": {
+        "Copy Output": {
+          "Name": "Copy Output"
+        }
+      },
+      "SystemEdidList": {
+        "1": {
+          "FileName": "1 DM default EDID.cedid",
+          "Name": "01 DM default"
+        },
+        "2": {
+          "FileName": "2 Consumer 1080P HBR.cedid",
+          "Name": "Consumer 1080p60 HBR"
+        },
+        "3": {
+          "FileName": "3 Consumer 720P HBR.cedid",
+          "Name": "Consumer 720p60 HBR"
+        },
+        "4": {
+          "FileName": "4 Consumer 1080P 3D HBR.cedid",
+          "Name": "Consumer 1080p60 3D HBR"
+        },
+        "5": {
+          "FileName": "5 Laptop 16x9 1080P 2CH.cedid",
+          "Name": "Laptop 16x9 1080p60 2ch"
+        },
+        "6": {
+          "FileName": "6 Laptop 16x10 1920x1200 2CH.cedid",
+          "Name": "Laptop 16x10 1920x1200 2ch"
+        },
+        "7": {
+          "FileName": "7 Laptop 16x10 1280x800 2CH.cedid",
+          "Name": "Laptop 16x10 1280x800 2ch"
+        },
+        "8": {
+          "FileName": "8 Laptop widescreen 2CH.cedid",
+          "Name": "Laptop widescreen 2ch"
+        },
+        "9": {
+          "FileName": "9 Consumer 1080P50 HBR.cedid",
+          "Name": "Consumer 1080p50 HBR"
+        },
+        "10": {
+          "FileName": "10 Consumer 720P50 HBR.cedid",
+          "Name": "Consumer 720p50 HBR"
+        },
+        "11": {
+          "FileName": "11 Consumer 1080P50 3D HBR.cedid",
+          "Name": "Consumer 1080p50 3D HBR"
+        },
+        "12": {
+          "FileName": "12 Laptop 16x9 1080P50 2CH.cedid",
+          "Name": "Laptop 16x9 1080p50 2ch"
+        },
+        "13": {
+          "FileName": "13 DM default 4k 30Hz 2CH.cedid",
+          "Name": "DM Default 4k 30Hz 2ch"
+        },
+        "14": {
+          "FileName": "14 Consumer 4k 30Hz HBR 3D.cedid",
+          "Name": "Consumer 4k 30Hz 3D HBR"
+        },
+        "15": {
+          "FileName": "15 Consumer 4k 25Hz HBR 3D.cedid",
+          "Name": "Consumer 4k 25Hz 3D HBR"
+        },
+        "17": {
+          "FileName": "17 DM default 4k 60Hz 2CH.cedid",
+          "Name": "DM Default 4k 60Hz 2ch"
+        },
+        "18": {
+          "FileName": "18 DM Default 4k 60Hz HBR.cedid",
+          "Name": "DM Default 4k 60Hz HBR"
+        },
+        "19": {
+          "FileName": "19 4K60 444 2CH nonHDR.cedid",
+          "Name": "4K60 444 2CH Non-HDR"
+        },
+        "20": {
+          "FileName": "20 4K60 444 2CH HDR.cedid",
+          "Name": "4K60 444 2CH HDR"
+        },
+        "21": {
+          "FileName": "21 4K60 444 HBR HDR.cedid",
+          "Name": "4K60 444 HBR HDR"
+        },
+        "22": {
+          "FileName": "22 4K60 444 2CH HDR DCI.cedid",
+          "Name": "4K60 444 2CH HDR DCI"
+        },
+        "23": {
+          "FileName": "23 4K60 444 HBR nonHDR.cedid",
+          "Name": "4K60 444 HBR Non-HDR"
+        },
+        "25": {
+          "FileName": "25 4K60 444 2CH HDR10+.cedid",
+          "Name": "4K60 444 2CH HDR10+"
+        },
+        "26": {
+          "FileName": "26 4K60 444 HBR HDR10+.cedid",
+          "Name": "4K60 444 HBR HDR10+"
+        }
+      },
+      "Version": "2.4.1"
+    }
+  }
+}

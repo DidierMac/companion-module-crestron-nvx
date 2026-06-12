@@ -1,0 +1,163 @@
+{
+  "Device": {
+    "AudioVideoInputOutput": {
+      "Inputs": [
+        {
+          "Name": "input0",
+          "Ports": [
+            {
+              "AspectRatio": "No Signal",
+              "Audio": {
+                "AudioTypeSelect": 1,
+                "Digital": {
+                  "Channels": 0,
+                  "Format": "NoAudio"
+                }
+              },
+              "ColorDepth": "8-bitMode",
+              "ColorSpace": "Unknown",
+              "Edid": {
+                "CurrentEdid": "4K60 444 2CH Non-HDR",
+                "EdidList": [
+                  {
+                    "Name": "01 DM default",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Consumer 1080p60 HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Consumer 720p60 HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Consumer 1080p60 3D HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Laptop 16x9 1080p60 2ch",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Laptop 16x10 1920x1200 2ch",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Laptop 16x10 1280x800 2ch",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Laptop widescreen 2ch",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Consumer 1080p50 HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Consumer 720p50 HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Consumer 1080p50 3D HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Laptop 16x9 1080p50 2ch",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "DM Default 4k 30Hz 2ch",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Consumer 4k 30Hz 3D HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "Consumer 4k 25Hz 3D HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "DM Default 4k 60Hz 2ch",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "DM Default 4k 60Hz HBR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "4K60 444 2CH Non-HDR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "4K60 444 2CH HDR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "4K60 444 HBR HDR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "4K60 444 2CH HDR DCI",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "4K60 444 HBR Non-HDR",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "4K60 444 2CH HDR10+",
+                    "Type": "System"
+                  },
+                  {
+                    "Name": "4K60 444 HBR HDR10+",
+                    "Type": "System"
+                  }
+                ]
+              },
+              "FramesPerSecond": 0,
+              "Hdmi": {
+                "HdcpReceiverCapability": "Auto",
+                "HdcpState": "Non-HDCPSource",
+                "IsCecErrorDetected": false,
+                "IsSourceHdcpActive": false,
+                "Name": "INPUT 1",
+                "ReceiveCecMessage": "",
+                "Status3D": 0,
+                "TransmitCecMessage": ""
+              },
+              "HorizontalResolution": 0,
+              "IsInterlacedDetected": false,
+              "IsSyncDetected": false,
+              "PortType": "Hdmi",
+              "Uuid": "5d9b480d-ad6b-4130-b5f5-c4ee679b2c7f",
+              "VerticalResolution": 0
+            }
+          ],
+          "Uuid": "df23ab93-c5e9-425a-a78d-fb5b0112020a",
+          "Version": "2.4.0",
+          "VideoPortTypeSelect": "Hdmi"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "output0",
+          "Ports": [
+            {
+              "Audio": {
+                "Delay": 0,
+                "Volume": 0
+              },
+              "PortType": "Analog",
+              "Uuid": "944d3de1-b6c7-4923-9ab3-138e97598682"
+            }
+          ],
+          "Version": "2.4.10"
+        }
+      ],
+      "Version": "2.4.0"
+    }
+  }
+}

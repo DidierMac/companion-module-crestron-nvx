@@ -1,0 +1,39 @@
+{
+  "Device": {
+    "Security": {
+      "CsrMatchesCert": false,
+      "Gateway": {
+        "Mode": "BothSecureUnsecure",
+        "ModeSupportedVersion": "1.0.0",
+        "ModesSupportedOptions": "ControlSystemGatewayModes"
+      },
+      "IsCsrAvailable": false,
+      "IsCsrSupported": true,
+      "Ssl": {
+        "CertificatesSupportedOptions": "SslCertificateOptions",
+        "CertificatesSupportedVersion": "1.0.0",
+        "Mode": "OFF",
+        "ModeSupportedOptions": "DeviceInForcedAuthMode",
+        "ModeSupportedVersion": "1.0.0",
+        "Tls": "TLS1.2",
+        "TlsSupportedOptions": "TlsOptions",
+        "TlsSupportedVersion": "1.0.0"
+      },
+      "VerificationOptions": {
+        "Client": {
+          "HostNameMatchesURL": false,
+          "ServerAuthenticationEnabled": false,
+          "TrustServerCertificate": false
+        },
+        "ServerCertificate": {
+          "ServerAuthenticationEnabled": false
+        },
+        "TrustedCertificate": {
+          "CASigned": false,
+          "TrustedAuthoritySigned": true
+        }
+      },
+      "Version": "2.2.2"
+    }
+  }
+}

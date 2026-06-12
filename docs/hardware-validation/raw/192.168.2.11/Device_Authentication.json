@@ -1,0 +1,71 @@
+{
+  "Device": {
+    "Authentication": {
+      "ActiveDirectoryGroups": {},
+      "AuthenticationState": {
+        "AdminPassword": "",
+        "AdminUsername": "",
+        "IsEnabled": true
+      },
+      "CurrentUser": {
+        "AccessLevel": "Administrator",
+        "IsActiveDirectoryUser": false,
+        "LocalGroups": [
+          "Administrators",
+          "Connects",
+          "Operators",
+          "Programmers",
+          "Users"
+        ],
+        "Name": "didier"
+      },
+      "IsEndUserPageEnabled": false,
+      "IsForceAuthEnabled": true,
+      "IsUserAuthEnabled": false,
+      "LocalGroups": {
+        "Administrators": {
+          "AccessLevel": "Administrator",
+          "Name": "Administrators"
+        },
+        "Connects": {
+          "AccessLevel": "Connect",
+          "Name": "Connects"
+        },
+        "Operators": {
+          "AccessLevel": "Operator",
+          "Name": "Operators"
+        },
+        "Programmers": {
+          "AccessLevel": "Programmer",
+          "Name": "Programmers"
+        },
+        "Users": {
+          "AccessLevel": "User",
+          "Name": "Users"
+        }
+      },
+      "LocalUsers": {
+        "admin": {
+          "AccessLevel": "Administrator",
+          "LocalGroups": [
+            "Administrators"
+          ],
+          "Name": "admin"
+        },
+        "didier": {
+          "AccessLevel": "Administrator",
+          "LocalGroups": [
+            "Administrators",
+            "Connects",
+            "Operators",
+            "Programmers",
+            "Users"
+          ],
+          "Name": "didier"
+        }
+      },
+      "SslMode": "OFF",
+      "Version": "2.7.0"
+    }
+  }
+}

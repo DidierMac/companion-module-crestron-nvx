@@ -1,0 +1,13 @@
+{
+  "Device": {
+    "Osd": {
+      "BackgroundTransparency": 0,
+      "IsEnabled": false,
+      "Location": "Custom",
+      "Text": "",
+      "Version": "2.0.0",
+      "XPosition": 1,
+      "YPosition": 1
+    }
+  }
+}

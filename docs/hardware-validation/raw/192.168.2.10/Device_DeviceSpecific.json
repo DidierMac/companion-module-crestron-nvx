@@ -1,0 +1,25 @@
+{
+  "Device": {
+    "DeviceSpecific": {
+      "ActiveAudioSource": "NoAudioSelected",
+      "ActiveVideoSource": "None",
+      "AudioMode": "Insert",
+      "AudioSource": "AudioFollowsVideo",
+      "AutoInitiationMode": true,
+      "AutoInputRoutingEnabled": true,
+      "DeviceMode": "Transmitter",
+      "DeviceReady": 0,
+      "IsFrontPanelLockoutEnabled": false,
+      "LedsEnabled": true,
+      "MotionDetected": "NoSync",
+      "NaxActiveAudioSource": "NoAudioSelected",
+      "NaxAudioSource": "AudioFollowsVideo",
+      "NaxAudioSourceOptionsName": "",
+      "NaxAudioSourceOptionsVersion": "",
+      "ShowSetupInformationOnOsd": false,
+      "Version": "2.4.0",
+      "VideoSource": "None",
+      "VideoWallMode": 0
+    }
+  }
+}

@@ -1,0 +1,732 @@
+{
+  "Device": {
+    "Ieee8021x": {
+      "AuthenticationMethod": "Password",
+      "Domain": "",
+      "IsEnabled": false,
+      "IsServerValidationEnabled": false,
+      "MachineCertificateName": "",
+      "Ocsp": {
+        "IsSupported": true,
+        "State": "Off"
+      },
+      "Password": "FALSE",
+      "TrustedCertifyingAuthorities": {
+        "Certificates": {
+          "AAA Certificate Services_01": {
+            "Name": "AAA Certificate Services",
+            "Trusted": false,
+            "Uuid": "01"
+          },
+          "AC RAIZ FNMT-RCM SERVIDORES SEGUROS_62F6326CE5C4E3685C1B62DD9C2E9D95": {
+            "Name": "AC RAIZ FNMT-RCM SERVIDORES SEGUROS",
+            "Trusted": false,
+            "Uuid": "62F6326CE5C4E3685C1B62DD9C2E9D95"
+          },
+          "AC RAIZ FNMT-RCM_5D938D306736C8061D1AC754846907": {
+            "Name": "AC RAIZ FNMT-RCM",
+            "Trusted": false,
+            "Uuid": "5D938D306736C8061D1AC754846907"
+          },
+          "ACCVRAIZ1_5EC3B7A6437FA4E0": {
+            "Name": "ACCVRAIZ1",
+            "Trusted": false,
+            "Uuid": "5EC3B7A6437FA4E0"
+          },
+          "ANF Secure Server Root CA_0DD3E3BC6CF96BB1": {
+            "Name": "ANF Secure Server Root CA",
+            "Trusted": false,
+            "Uuid": "0DD3E3BC6CF96BB1"
+          },
+          "Actalis Authentication Root CA_570A119742C4E3CC": {
+            "Name": "Actalis Authentication Root CA",
+            "Trusted": false,
+            "Uuid": "570A119742C4E3CC"
+          },
+          "AffirmTrust Commercial_7777062726A9B17C": {
+            "Name": "AffirmTrust Commercial",
+            "Trusted": false,
+            "Uuid": "7777062726A9B17C"
+          },
+          "AffirmTrust Networking_7C4F04391CD4992D": {
+            "Name": "AffirmTrust Networking",
+            "Trusted": false,
+            "Uuid": "7C4F04391CD4992D"
+          },
+          "AffirmTrust Premium ECC_7497258AC73F7A54": {
+            "Name": "AffirmTrust Premium ECC",
+            "Trusted": false,
+            "Uuid": "7497258AC73F7A54"
+          },
+          "AffirmTrust Premium_6D8C1446B1A60AEE": {
+            "Name": "AffirmTrust Premium",
+            "Trusted": false,
+            "Uuid": "6D8C1446B1A60AEE"
+          },
+          "Amazon Root CA 1_066C9FCF99BF8C0A39E2F0788A43E696365BCA": {
+            "Name": "Amazon Root CA 1",
+            "Trusted": false,
+            "Uuid": "066C9FCF99BF8C0A39E2F0788A43E696365BCA"
+          },
+          "Amazon Root CA 2_066C9FD29635869F0A0FE58678F85B26BB8A37": {
+            "Name": "Amazon Root CA 2",
+            "Trusted": false,
+            "Uuid": "066C9FD29635869F0A0FE58678F85B26BB8A37"
+          },
+          "Amazon Root CA 3_066C9FD5749736663F3B0B9AD9E89E7603F24A": {
+            "Name": "Amazon Root CA 3",
+            "Trusted": false,
+            "Uuid": "066C9FD5749736663F3B0B9AD9E89E7603F24A"
+          },
+          "Amazon Root CA 4_066C9FD7C1BB104C2943E5717B7B2CC81AC10E": {
+            "Name": "Amazon Root CA 4",
+            "Trusted": false,
+            "Uuid": "066C9FD7C1BB104C2943E5717B7B2CC81AC10E"
+          },
+          "Atos TrustedRoot 2011_5C33CB622C5FB332": {
+            "Name": "Atos TrustedRoot 2011",
+            "Trusted": false,
+            "Uuid": "5C33CB622C5FB332"
+          },
+          "Atos TrustedRoot Root CA ECC TLS 2021_3D983BA6663D9063F77E26573804EF00": {
+            "Name": "Atos TrustedRoot Root CA ECC TLS 2021",
+            "Trusted": false,
+            "Uuid": "3D983BA6663D9063F77E26573804EF00"
+          },
+          "Atos TrustedRoot Root CA RSA TLS 2021_53D5CFE619930BFB2B0512D8C22AA2A4": {
+            "Name": "Atos TrustedRoot Root CA RSA TLS 2021",
+            "Trusted": false,
+            "Uuid": "53D5CFE619930BFB2B0512D8C22AA2A4"
+          },
+          "Autoridad de Certificacion Firmaprofesional CIF A62634068_1B70E9D2FFAE6C71": {
+            "Name": "Autoridad de Certificacion Firmaprofesional CIF A62634068",
+            "Trusted": false,
+            "Uuid": "1B70E9D2FFAE6C71"
+          },
+          "Autoridad de Certificacion Firmaprofesional CIF A62634068_53EC3BEEFBB2485F": {
+            "Name": "Autoridad de Certificacion Firmaprofesional CIF A62634068",
+            "Trusted": false,
+            "Uuid": "53EC3BEEFBB2485F"
+          },
+          "BJCA Global Root CA1_556F65E3B4D9906A1B09D16C3EC06C20": {
+            "Name": "BJCA Global Root CA1",
+            "Trusted": false,
+            "Uuid": "556F65E3B4D9906A1B09D16C3EC06C20"
+          },
+          "BJCA Global Root CA2_2C17087D642AC0FE85185906CFB44AEB": {
+            "Name": "BJCA Global Root CA2",
+            "Trusted": false,
+            "Uuid": "2C17087D642AC0FE85185906CFB44AEB"
+          },
+          "Buypass Class 2 Root CA_02": {
+            "Name": "Buypass Class 2 Root CA",
+            "Trusted": false,
+            "Uuid": "02"
+          },
+          "Buypass Class 3 Root CA_02": {
+            "Name": "Buypass Class 3 Root CA",
+            "Trusted": false,
+            "Uuid": "02"
+          },
+          "CA Disig Root R2_92B888DBB08AC163": {
+            "Name": "CA Disig Root R2",
+            "Trusted": false,
+            "Uuid": "92B888DBB08AC163"
+          },
+          "CFCA EV ROOT_184ACCD6": {
+            "Name": "CFCA EV ROOT",
+            "Trusted": false,
+            "Uuid": "184ACCD6"
+          },
+          "COMODO Certification Authority_4E812D8A8265E00B02EE3E350246E53D": {
+            "Name": "COMODO Certification Authority",
+            "Trusted": false,
+            "Uuid": "4E812D8A8265E00B02EE3E350246E53D"
+          },
+          "COMODO ECC Certification Authority_1F47AFAA62007050544C019E9B63992A": {
+            "Name": "COMODO ECC Certification Authority",
+            "Trusted": false,
+            "Uuid": "1F47AFAA62007050544C019E9B63992A"
+          },
+          "COMODO RSA Certification Authority_4CAAF9CADB636FE01FF74ED85B03869D": {
+            "Name": "COMODO RSA Certification Authority",
+            "Trusted": false,
+            "Uuid": "4CAAF9CADB636FE01FF74ED85B03869D"
+          },
+          "Certainly Root E1_062533B1470333275CF98D9AB9BFCCF8": {
+            "Name": "Certainly Root E1",
+            "Trusted": false,
+            "Uuid": "062533B1470333275CF98D9AB9BFCCF8"
+          },
+          "Certainly Root R1_8E0FF94B907168653354F4D44439B7E0": {
+            "Name": "Certainly Root R1",
+            "Trusted": false,
+            "Uuid": "8E0FF94B907168653354F4D44439B7E0"
+          },
+          "Certigna Root CA_CAE91B89F155030DA3E6416DC4E3A6E1": {
+            "Name": "Certigna Root CA",
+            "Trusted": false,
+            "Uuid": "CAE91B89F155030DA3E6416DC4E3A6E1"
+          },
+          "Certigna_FEDCE3010FC948FF": {
+            "Name": "Certigna",
+            "Trusted": false,
+            "Uuid": "FEDCE3010FC948FF"
+          },
+          "Certum EC-384 CA_788F275C81125220A504D02DDDBA73F4": {
+            "Name": "Certum EC-384 CA",
+            "Trusted": false,
+            "Uuid": "788F275C81125220A504D02DDDBA73F4"
+          },
+          "Certum Trusted Network CA 2_21D6D04A4F250FC93237FCAA5E128DE9": {
+            "Name": "Certum Trusted Network CA 2",
+            "Trusted": false,
+            "Uuid": "21D6D04A4F250FC93237FCAA5E128DE9"
+          },
+          "Certum Trusted Network CA_0444C0": {
+            "Name": "Certum Trusted Network CA",
+            "Trusted": false,
+            "Uuid": "0444C0"
+          },
+          "Certum Trusted Root CA_1EBF5950B8C980374C06F7EB554FB5ED": {
+            "Name": "Certum Trusted Root CA",
+            "Trusted": false,
+            "Uuid": "1EBF5950B8C980374C06F7EB554FB5ED"
+          },
+          "D-TRUST BR Root CA 1 2020_7CC98F2B84D7DFEA0FC9659AD34B4D96": {
+            "Name": "D-TRUST BR Root CA 1 2020",
+            "Trusted": false,
+            "Uuid": "7CC98F2B84D7DFEA0FC9659AD34B4D96"
+          },
+          "D-TRUST EV Root CA 1 2020_5F0241D77A877C4C03A3AC968DFBFFD0": {
+            "Name": "D-TRUST EV Root CA 1 2020",
+            "Trusted": false,
+            "Uuid": "5F0241D77A877C4C03A3AC968DFBFFD0"
+          },
+          "D-TRUST Root Class 3 CA 2 2009_0983F3": {
+            "Name": "D-TRUST Root Class 3 CA 2 2009",
+            "Trusted": false,
+            "Uuid": "0983F3"
+          },
+          "D-TRUST Root Class 3 CA 2 EV 2009_0983F4": {
+            "Name": "D-TRUST Root Class 3 CA 2 EV 2009",
+            "Trusted": false,
+            "Uuid": "0983F4"
+          },
+          "DigiCert Assured ID Root CA_0CE7E0E517D846FE8FE560FC1BF03039": {
+            "Name": "DigiCert Assured ID Root CA",
+            "Trusted": false,
+            "Uuid": "0CE7E0E517D846FE8FE560FC1BF03039"
+          },
+          "DigiCert Assured ID Root G2_0B931C3AD63967EA6723BFC3AF9AF44B": {
+            "Name": "DigiCert Assured ID Root G2",
+            "Trusted": false,
+            "Uuid": "0B931C3AD63967EA6723BFC3AF9AF44B"
+          },
+          "DigiCert Assured ID Root G3_0BA15AFA1DDFA0B54944AFCD24A06CEC": {
+            "Name": "DigiCert Assured ID Root G3",
+            "Trusted": false,
+            "Uuid": "0BA15AFA1DDFA0B54944AFCD24A06CEC"
+          },
+          "DigiCert Global Root CA_083BE056904246B1A1756AC95991C74A": {
+            "Name": "DigiCert Global Root CA",
+            "Trusted": false,
+            "Uuid": "083BE056904246B1A1756AC95991C74A"
+          },
+          "DigiCert Global Root G2_033AF1E6A711A9A0BB2864B11D09FAE5": {
+            "Name": "DigiCert Global Root G2",
+            "Trusted": false,
+            "Uuid": "033AF1E6A711A9A0BB2864B11D09FAE5"
+          },
+          "DigiCert Global Root G3_055556BCF25EA43535C3A40FD5AB4572": {
+            "Name": "DigiCert Global Root G3",
+            "Trusted": false,
+            "Uuid": "055556BCF25EA43535C3A40FD5AB4572"
+          },
+          "DigiCert High Assurance EV Root CA_02AC5C266A0B409B8F0B79F2AE462577": {
+            "Name": "DigiCert High Assurance EV Root CA",
+            "Trusted": false,
+            "Uuid": "02AC5C266A0B409B8F0B79F2AE462577"
+          },
+          "DigiCert TLS ECC P384 Root G5_09E09365ACF7D9C8B93E1C0B042A2EF3": {
+            "Name": "DigiCert TLS ECC P384 Root G5",
+            "Trusted": false,
+            "Uuid": "09E09365ACF7D9C8B93E1C0B042A2EF3"
+          },
+          "DigiCert TLS RSA4096 Root G5_08F9B478A8FA7EDA6A333789DE7CCF8A": {
+            "Name": "DigiCert TLS RSA4096 Root G5",
+            "Trusted": false,
+            "Uuid": "08F9B478A8FA7EDA6A333789DE7CCF8A"
+          },
+          "DigiCert Trusted Root G4_059B1B579E8E2132E23907BDA777755C": {
+            "Name": "DigiCert Trusted Root G4",
+            "Trusted": false,
+            "Uuid": "059B1B579E8E2132E23907BDA777755C"
+          },
+          "Entrust Root Certification Authority - EC1_A68B79290000000050D091F9": {
+            "Name": "Entrust Root Certification Authority - EC1",
+            "Trusted": false,
+            "Uuid": "A68B79290000000050D091F9"
+          },
+          "Entrust Root Certification Authority - G2_4A538C28": {
+            "Name": "Entrust Root Certification Authority - G2",
+            "Trusted": false,
+            "Uuid": "4A538C28"
+          },
+          "Entrust Root Certification Authority - G4_D9B5437FAFA9390F000000005565AD58": {
+            "Name": "Entrust Root Certification Authority - G4",
+            "Trusted": false,
+            "Uuid": "D9B5437FAFA9390F000000005565AD58"
+          },
+          "Entrust Root Certification Authority_456B5054": {
+            "Name": "Entrust Root Certification Authority",
+            "Trusted": false,
+            "Uuid": "456B5054"
+          },
+          "Entrust.net Certification Authority (2048)_3863DEF8": {
+            "Name": "Entrust.net Certification Authority (2048)",
+            "Trusted": false,
+            "Uuid": "3863DEF8"
+          },
+          "GDCA TrustAUTH R5 ROOT_7D0997FEF047EA7A": {
+            "Name": "GDCA TrustAUTH R5 ROOT",
+            "Trusted": false,
+            "Uuid": "7D0997FEF047EA7A"
+          },
+          "GLOBALTRUST 2020_5A4BBD5AFB4F8A5BFA65E5": {
+            "Name": "GLOBALTRUST 2020",
+            "Trusted": false,
+            "Uuid": "5A4BBD5AFB4F8A5BFA65E5"
+          },
+          "GTS Root R1_0203E5936F31B01349886BA217": {
+            "Name": "GTS Root R1",
+            "Trusted": false,
+            "Uuid": "0203E5936F31B01349886BA217"
+          },
+          "GTS Root R2_0203E5AEC58D04251AAB1125AA": {
+            "Name": "GTS Root R2",
+            "Trusted": false,
+            "Uuid": "0203E5AEC58D04251AAB1125AA"
+          },
+          "GTS Root R3_0203E5B882EB20F825276D3D66": {
+            "Name": "GTS Root R3",
+            "Trusted": false,
+            "Uuid": "0203E5B882EB20F825276D3D66"
+          },
+          "GTS Root R4_0203E5C068EF631A9C72905052": {
+            "Name": "GTS Root R4",
+            "Trusted": false,
+            "Uuid": "0203E5C068EF631A9C72905052"
+          },
+          "GlobalSign Root CA_040000000001154B5AC394": {
+            "Name": "GlobalSign Root CA",
+            "Trusted": false,
+            "Uuid": "040000000001154B5AC394"
+          },
+          "GlobalSign Root E46_11D2BBBA336ED4BCE62468C50D841D98E843": {
+            "Name": "GlobalSign Root E46",
+            "Trusted": false,
+            "Uuid": "11D2BBBA336ED4BCE62468C50D841D98E843"
+          },
+          "GlobalSign Root R46_11D2BBB9D723189E405F0A9D2DD0DF2567D1": {
+            "Name": "GlobalSign Root R46",
+            "Trusted": false,
+            "Uuid": "11D2BBB9D723189E405F0A9D2DD0DF2567D1"
+          },
+          "GlobalSign_0203E57EF53F93FDA50921B2A6": {
+            "Name": "GlobalSign",
+            "Trusted": false,
+            "Uuid": "0203E57EF53F93FDA50921B2A6"
+          },
+          "GlobalSign_04000000000121585308A2": {
+            "Name": "GlobalSign",
+            "Trusted": false,
+            "Uuid": "04000000000121585308A2"
+          },
+          "GlobalSign_45E6BB038333C3856548E6FF4551": {
+            "Name": "GlobalSign",
+            "Trusted": false,
+            "Uuid": "45E6BB038333C3856548E6FF4551"
+          },
+          "GlobalSign_605949E0262EBB55F90A778A71F94AD86C": {
+            "Name": "GlobalSign",
+            "Trusted": false,
+            "Uuid": "605949E0262EBB55F90A778A71F94AD86C"
+          },
+          "Go Daddy Class 2 Certification Authority_0": {
+            "Name": "Go Daddy Class 2 Certification Authority",
+            "Trusted": false,
+            "Uuid": "0"
+          },
+          "Go Daddy Root Certificate Authority - G2_0": {
+            "Name": "Go Daddy Root Certificate Authority - G2",
+            "Trusted": false,
+            "Uuid": "0"
+          },
+          "HARICA TLS ECC Root CA 2021_67749D8D77D83B6ADB22F4FF59E2BFCE": {
+            "Name": "HARICA TLS ECC Root CA 2021",
+            "Trusted": false,
+            "Uuid": "67749D8D77D83B6ADB22F4FF59E2BFCE"
+          },
+          "HARICA TLS RSA Root CA 2021_39CA931CEF43F3C68E93C7F46489387E": {
+            "Name": "HARICA TLS RSA Root CA 2021",
+            "Trusted": false,
+            "Uuid": "39CA931CEF43F3C68E93C7F46489387E"
+          },
+          "Hellenic Academic and Research Institutions ECC RootCA 2015_0": {
+            "Name": "Hellenic Academic and Research Institutions ECC RootCA 2015",
+            "Trusted": false,
+            "Uuid": "0"
+          },
+          "Hellenic Academic and Research Institutions RootCA 2015_0": {
+            "Name": "Hellenic Academic and Research Institutions RootCA 2015",
+            "Trusted": false,
+            "Uuid": "0"
+          },
+          "HiPKI Root CA - G1_2DDDACCE629794A143E8B0CD766A5E60": {
+            "Name": "HiPKI Root CA - G1",
+            "Trusted": false,
+            "Uuid": "2DDDACCE629794A143E8B0CD766A5E60"
+          },
+          "Hongkong Post Root CA 3_08165F8A4CA5EC00C99340DFC4C6AE23B81C5AA4": {
+            "Name": "Hongkong Post Root CA 3",
+            "Trusted": false,
+            "Uuid": "08165F8A4CA5EC00C99340DFC4C6AE23B81C5AA4"
+          },
+          "ISRG Root X1_8210CFB0D240E3594463E0BB63828B00": {
+            "Name": "ISRG Root X1",
+            "Trusted": false,
+            "Uuid": "8210CFB0D240E3594463E0BB63828B00"
+          },
+          "ISRG Root X2_41D29DD172EAEEA780C12C6CE92F8752": {
+            "Name": "ISRG Root X2",
+            "Trusted": false,
+            "Uuid": "41D29DD172EAEEA780C12C6CE92F8752"
+          },
+          "IdenTrust Commercial Root CA 1_0A0142800000014523C844B500000002": {
+            "Name": "IdenTrust Commercial Root CA 1",
+            "Trusted": false,
+            "Uuid": "0A0142800000014523C844B500000002"
+          },
+          "IdenTrust Public Sector Root CA 1_0A0142800000014523CF467C00000002": {
+            "Name": "IdenTrust Public Sector Root CA 1",
+            "Trusted": false,
+            "Uuid": "0A0142800000014523CF467C00000002"
+          },
+          "Izenpe.com_B0B75A16485FBFE1CBF58BD719E67D": {
+            "Name": "Izenpe.com",
+            "Trusted": false,
+            "Uuid": "B0B75A16485FBFE1CBF58BD719E67D"
+          },
+          "Microsec e-Szigno Root CA 2009_C27E43044E473F19": {
+            "Name": "Microsec e-Szigno Root CA 2009",
+            "Trusted": false,
+            "Uuid": "C27E43044E473F19"
+          },
+          "Microsoft ECC Root Certificate Authority 2017_66F23DAF87DE8BB14AEA0C573101C2EC": {
+            "Name": "Microsoft ECC Root Certificate Authority 2017",
+            "Trusted": false,
+            "Uuid": "66F23DAF87DE8BB14AEA0C573101C2EC"
+          },
+          "Microsoft RSA Root Certificate Authority 2017_1ED397095FD8B4B347701EAABE7F45B3": {
+            "Name": "Microsoft RSA Root Certificate Authority 2017",
+            "Trusted": false,
+            "Uuid": "1ED397095FD8B4B347701EAABE7F45B3"
+          },
+          "NAVER Global Root Certification Authority_0194301EA20BDDF5C5332AB1434471F8D6504D0D": {
+            "Name": "NAVER Global Root Certification Authority",
+            "Trusted": false,
+            "Uuid": "0194301EA20BDDF5C5332AB1434471F8D6504D0D"
+          },
+          "NetLock Arany (Class Gold) Főtanúsítvány_49412CE40010": {
+            "Name": "NetLock Arany (Class Gold) Főtanúsítvány",
+            "Trusted": false,
+            "Uuid": "49412CE40010"
+          },
+          "OISTE WISeKey Global Root GB CA_76B1205274F0858746B3F8231AF6C2C0": {
+            "Name": "OISTE WISeKey Global Root GB CA",
+            "Trusted": false,
+            "Uuid": "76B1205274F0858746B3F8231AF6C2C0"
+          },
+          "OISTE WISeKey Global Root GC CA_212A560CAEDA0CAB4045BF2BA22D3AEA": {
+            "Name": "OISTE WISeKey Global Root GC CA",
+            "Trusted": false,
+            "Uuid": "212A560CAEDA0CAB4045BF2BA22D3AEA"
+          },
+          "QuoVadis Root CA 1 G3_78585F2EAD2C194BE3370735341328B596D46593": {
+            "Name": "QuoVadis Root CA 1 G3",
+            "Trusted": false,
+            "Uuid": "78585F2EAD2C194BE3370735341328B596D46593"
+          },
+          "QuoVadis Root CA 2 G3_445734245B81899B35F2CEB82B3B5BA726F07528": {
+            "Name": "QuoVadis Root CA 2 G3",
+            "Trusted": false,
+            "Uuid": "445734245B81899B35F2CEB82B3B5BA726F07528"
+          },
+          "QuoVadis Root CA 2_0509": {
+            "Name": "QuoVadis Root CA 2",
+            "Trusted": false,
+            "Uuid": "0509"
+          },
+          "QuoVadis Root CA 3 G3_2EF59B0228A7DB7AFFD5A3A9EEBD03A0CF126A1D": {
+            "Name": "QuoVadis Root CA 3 G3",
+            "Trusted": false,
+            "Uuid": "2EF59B0228A7DB7AFFD5A3A9EEBD03A0CF126A1D"
+          },
+          "QuoVadis Root CA 3_05C6": {
+            "Name": "QuoVadis Root CA 3",
+            "Trusted": false,
+            "Uuid": "05C6"
+          },
+          "SSL.com EV Root Certification Authority ECC_2C299C5B16ED0595": {
+            "Name": "SSL.com EV Root Certification Authority ECC",
+            "Trusted": false,
+            "Uuid": "2C299C5B16ED0595"
+          },
+          "SSL.com EV Root Certification Authority RSA R2_56B629CD34BC78F6": {
+            "Name": "SSL.com EV Root Certification Authority RSA R2",
+            "Trusted": false,
+            "Uuid": "56B629CD34BC78F6"
+          },
+          "SSL.com Root Certification Authority ECC_75E6DFCBC1685BA8": {
+            "Name": "SSL.com Root Certification Authority ECC",
+            "Trusted": false,
+            "Uuid": "75E6DFCBC1685BA8"
+          },
+          "SSL.com Root Certification Authority RSA_7B2C9BD316803299": {
+            "Name": "SSL.com Root Certification Authority RSA",
+            "Trusted": false,
+            "Uuid": "7B2C9BD316803299"
+          },
+          "SSL.com TLS ECC Root CA 2022_1403F5ABFB378B17405BE243B2A5D1C4": {
+            "Name": "SSL.com TLS ECC Root CA 2022",
+            "Trusted": false,
+            "Uuid": "1403F5ABFB378B17405BE243B2A5D1C4"
+          },
+          "SSL.com TLS RSA Root CA 2022_6FBEDAAD73BD0840E28B4DBED4F75B91": {
+            "Name": "SSL.com TLS RSA Root CA 2022",
+            "Trusted": false,
+            "Uuid": "6FBEDAAD73BD0840E28B4DBED4F75B91"
+          },
+          "SZAFIR ROOT CA2_3E8A5D07EC55D232D5B7E3B65F01EB2DDCE4D6E4": {
+            "Name": "SZAFIR ROOT CA2",
+            "Trusted": false,
+            "Uuid": "3E8A5D07EC55D232D5B7E3B65F01EB2DDCE4D6E4"
+          },
+          "Sectigo Public Server Authentication Root E46_42F2CCDA1B6937445F15FE752810B8F4": {
+            "Name": "Sectigo Public Server Authentication Root E46",
+            "Trusted": false,
+            "Uuid": "42F2CCDA1B6937445F15FE752810B8F4"
+          },
+          "Sectigo Public Server Authentication Root R46_758DFD8BAE7C0700FAA925A7E1C7AD14": {
+            "Name": "Sectigo Public Server Authentication Root R46",
+            "Trusted": false,
+            "Uuid": "758DFD8BAE7C0700FAA925A7E1C7AD14"
+          },
+          "Secure Global CA_075622A4E8D48A894DF413C8F0F8EAA5": {
+            "Name": "Secure Global CA",
+            "Trusted": false,
+            "Uuid": "075622A4E8D48A894DF413C8F0F8EAA5"
+          },
+          "SecureSign RootCA11_01": {
+            "Name": "SecureSign RootCA11",
+            "Trusted": false,
+            "Uuid": "01"
+          },
+          "SecureTrust CA_0CF08E5C0816A5AD427FF0EB271859D0": {
+            "Name": "SecureTrust CA",
+            "Trusted": false,
+            "Uuid": "0CF08E5C0816A5AD427FF0EB271859D0"
+          },
+          "Security Communication ECC RootCA1_D65D9BB378812EEB": {
+            "Name": "Security Communication ECC RootCA1",
+            "Trusted": false,
+            "Uuid": "D65D9BB378812EEB"
+          },
+          "Security Communication RootCA2_0": {
+            "Name": "Security Communication RootCA2",
+            "Trusted": false,
+            "Uuid": "0"
+          },
+          "Security Communication RootCA3_E17C3740FD1BFE67": {
+            "Name": "Security Communication RootCA3",
+            "Trusted": false,
+            "Uuid": "E17C3740FD1BFE67"
+          },
+          "Starfield Class 2 Certification Authority_0": {
+            "Name": "Starfield Class 2 Certification Authority",
+            "Trusted": false,
+            "Uuid": "0"
+          },
+          "Starfield Root Certificate Authority - G2_0": {
+            "Name": "Starfield Root Certificate Authority - G2",
+            "Trusted": false,
+            "Uuid": "0"
+          },
+          "Starfield Services Root Certificate Authority - G2_0": {
+            "Name": "Starfield Services Root Certificate Authority - G2",
+            "Trusted": false,
+            "Uuid": "0"
+          },
+          "SwissSign Gold CA - G2_BB401C43F55E4FB0": {
+            "Name": "SwissSign Gold CA - G2",
+            "Trusted": false,
+            "Uuid": "BB401C43F55E4FB0"
+          },
+          "SwissSign Silver CA - G2_4F1BD42F54BB2F4B": {
+            "Name": "SwissSign Silver CA - G2",
+            "Trusted": false,
+            "Uuid": "4F1BD42F54BB2F4B"
+          },
+          "T-TeleSec GlobalRoot Class 2_01": {
+            "Name": "T-TeleSec GlobalRoot Class 2",
+            "Trusted": false,
+            "Uuid": "01"
+          },
+          "T-TeleSec GlobalRoot Class 3_01": {
+            "Name": "T-TeleSec GlobalRoot Class 3",
+            "Trusted": false,
+            "Uuid": "01"
+          },
+          "TUBITAK Kamu SM SSL Kok Sertifikasi - Surum 1_01": {
+            "Name": "TUBITAK Kamu SM SSL Kok Sertifikasi - Surum 1",
+            "Trusted": false,
+            "Uuid": "01"
+          },
+          "TWCA Global Root CA_0CBE": {
+            "Name": "TWCA Global Root CA",
+            "Trusted": false,
+            "Uuid": "0CBE"
+          },
+          "TWCA Root Certification Authority_01": {
+            "Name": "TWCA Root Certification Authority",
+            "Trusted": false,
+            "Uuid": "01"
+          },
+          "Telia Root CA v2_01675F27D6FE7AE3E4ACBE095B059E": {
+            "Name": "Telia Root CA v2",
+            "Trusted": false,
+            "Uuid": "01675F27D6FE7AE3E4ACBE095B059E"
+          },
+          "TeliaSonera Root CA v1_95BE16A0F72E46F17B398272FA8BCD96": {
+            "Name": "TeliaSonera Root CA v1",
+            "Trusted": false,
+            "Uuid": "95BE16A0F72E46F17B398272FA8BCD96"
+          },
+          "TrustCor ECA-1_84822C5F1C62D040": {
+            "Name": "TrustCor ECA-1",
+            "Trusted": false,
+            "Uuid": "84822C5F1C62D040"
+          },
+          "TrustCor RootCert CA-1_DA9BEC71F303B019": {
+            "Name": "TrustCor RootCert CA-1",
+            "Trusted": false,
+            "Uuid": "DA9BEC71F303B019"
+          },
+          "TrustCor RootCert CA-2_25A1DFCA33CB5902": {
+            "Name": "TrustCor RootCert CA-2",
+            "Trusted": false,
+            "Uuid": "25A1DFCA33CB5902"
+          },
+          "Trustwave Global Certification Authority_05F70E86DA49F346352EBAB2": {
+            "Name": "Trustwave Global Certification Authority",
+            "Trusted": false,
+            "Uuid": "05F70E86DA49F346352EBAB2"
+          },
+          "Trustwave Global ECC P256 Certification Authority_0D6A5F083F285C3E5195DF5D": {
+            "Name": "Trustwave Global ECC P256 Certification Authority",
+            "Trusted": false,
+            "Uuid": "0D6A5F083F285C3E5195DF5D"
+          },
+          "Trustwave Global ECC P384 Certification Authority_08BD85976C9927A48068473B": {
+            "Name": "Trustwave Global ECC P384 Certification Authority",
+            "Trusted": false,
+            "Uuid": "08BD85976C9927A48068473B"
+          },
+          "TunTrust Root CA_1302D5E2404C92468616675DB4BBBBB26B3EFC13": {
+            "Name": "TunTrust Root CA",
+            "Trusted": false,
+            "Uuid": "1302D5E2404C92468616675DB4BBBBB26B3EFC13"
+          },
+          "UCA Extended Validation Root_4FD22B8FF564C8339E4F345866237060": {
+            "Name": "UCA Extended Validation Root",
+            "Trusted": false,
+            "Uuid": "4FD22B8FF564C8339E4F345866237060"
+          },
+          "UCA Global G2 Root_5DDFB1DA5AA3ED5DBE5A6520650390EF": {
+            "Name": "UCA Global G2 Root",
+            "Trusted": false,
+            "Uuid": "5DDFB1DA5AA3ED5DBE5A6520650390EF"
+          },
+          "USERTrust ECC Certification Authority_5C8B99C55A94C5D27156DECD8980CC26": {
+            "Name": "USERTrust ECC Certification Authority",
+            "Trusted": false,
+            "Uuid": "5C8B99C55A94C5D27156DECD8980CC26"
+          },
+          "USERTrust RSA Certification Authority_01FD6D30FCA3CA51A81BBC640E35032D": {
+            "Name": "USERTrust RSA Certification Authority",
+            "Trusted": false,
+            "Uuid": "01FD6D30FCA3CA51A81BBC640E35032D"
+          },
+          "XRamp Global Certification Authority_50946CEC18EAD59C4DD597EF758FA0AD": {
+            "Name": "XRamp Global Certification Authority",
+            "Trusted": false,
+            "Uuid": "50946CEC18EAD59C4DD597EF758FA0AD"
+          },
+          "certSIGN ROOT CA G2_110034B64EC6362D36": {
+            "Name": "certSIGN ROOT CA G2",
+            "Trusted": false,
+            "Uuid": "110034B64EC6362D36"
+          },
+          "certSIGN ROOT CA_200605167002": {
+            "Name": "certSIGN ROOT CA",
+            "Trusted": false,
+            "Uuid": "200605167002"
+          },
+          "e-Szigno Root CA 2017_015448EF21FD97590DF5040A": {
+            "Name": "e-Szigno Root CA 2017",
+            "Trusted": false,
+            "Uuid": "015448EF21FD97590DF5040A"
+          },
+          "ePKI Root Certification Authority_15C8BD65475CAFB897005EE406D2BC9D": {
+            "Name": "ePKI Root Certification Authority",
+            "Trusted": false,
+            "Uuid": "15C8BD65475CAFB897005EE406D2BC9D"
+          },
+          "emSign ECC Root CA - C3_7B71B68256B8127C9CA8": {
+            "Name": "emSign ECC Root CA - C3",
+            "Trusted": false,
+            "Uuid": "7B71B68256B8127C9CA8"
+          },
+          "emSign ECC Root CA - G3_3CF607A968700EDA8B84": {
+            "Name": "emSign ECC Root CA - G3",
+            "Trusted": false,
+            "Uuid": "3CF607A968700EDA8B84"
+          },
+          "emSign Root CA - C1_AECF00BAC4CF32F843B2": {
+            "Name": "emSign Root CA - C1",
+            "Trusted": false,
+            "Uuid": "AECF00BAC4CF32F843B2"
+          },
+          "emSign Root CA - G1_31F5E4620C6C58EDD6D8": {
+            "Name": "emSign Root CA - G1",
+            "Trusted": false,
+            "Uuid": "31F5E4620C6C58EDD6D8"
+          },
+          "vTrus ECC Root CA_6E6ABC59AA53BE983967A2D26BA43BE66D1CD6DA": {
+            "Name": "vTrus ECC Root CA",
+            "Trusted": false,
+            "Uuid": "6E6ABC59AA53BE983967A2D26BA43BE66D1CD6DA"
+          },
+          "vTrus Root CA_43E37113D8B359145DB7CE8CFD35FD6FBC058D45": {
+            "Name": "vTrus Root CA",
+            "Trusted": false,
+            "Uuid": "43E37113D8B359145DB7CE8CFD35FD6FBC058D45"
+          }
+        }
+      },
+      "UserName": "",
+      "Version": "2.0.1"
+    }
+  }
+}

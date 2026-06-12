@@ -1,0 +1,49 @@
+{
+  "Device": {
+    "Ethernet": {
+      "Adapters": [
+        {
+          "AddressSchema": "IPv4",
+          "IPv4": {
+            "Addresses": [
+              {
+                "Address": "192.168.2.10",
+                "SubnetMask": "255.255.255.0"
+              }
+            ],
+            "DefaultGateway": "192.168.2.1",
+            "DnsServers": [
+              "8.8.8.8(DHCP)",
+              ""
+            ],
+            "IsDhcpEnabled": true,
+            "StaticAddresses": [
+              {
+                "Address": "0.0.0.0",
+                "SubnetMask": "0.0.0.0"
+              }
+            ],
+            "StaticDefaultGateway": "0.0.0.0",
+            "StaticDns": [
+              "",
+              ""
+            ]
+          },
+          "InternalName": "eth0",
+          "IsAdapterEnabled": true,
+          "LinkStatus": true,
+          "MacAddress": "c4.42.68.4e.53.4b",
+          "Name": "FEC1",
+          "Type": "Vlan00"
+        }
+      ],
+      "AutoNegotiationEnabled": true,
+      "DomainName": "localdomain",
+      "HostName": "DM-NVX-360-C442684E534B",
+      "IgmpVersion": "v3",
+      "IsIcmpPingEnabled": true,
+      "IsSshEnabled": false,
+      "Version": "2.2.0"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "Device": {
+    "DeviceInfo": {
+      "BuildDate": "Jul 16 2025  (575583)",
+      "Category": "DM",
+      "DeviceId": "@E-00107ff7d99a",
+      "DeviceVersion": "7.1.5259.00090",
+      "Devicekey": "No SystemKey Server",
+      "IsMacIdReProgrammed": true,
+      "MacAddress": "00.10.7f.f7.d9.9a",
+      "Manufacturer": "Crestron",
+      "Model": "DM-NVX-360",
+      "Name": "DM-NVX-360-00107FF7D99A",
+      "PufVersion": "7.1.5259.00090",
+      "RebootReason": "poweron",
+      "SerialNumber": "2044NEJ06246",
+      "Version": "2.1.0"
+    }
+  }
+}

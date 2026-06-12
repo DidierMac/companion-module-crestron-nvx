@@ -1,0 +1,12 @@
+{
+  "Device": {
+    "IpTable": {
+      "EncryptConnection": false,
+      "Entries": [],
+      "MaxEntries": 0,
+      "Password": "",
+      "Username": "",
+      "Version": "2.0.3"
+    }
+  }
+}

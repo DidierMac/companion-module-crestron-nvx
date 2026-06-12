@@ -1,0 +1,31 @@
+{
+  "Device": {
+    "PortSelection": {
+      "Flows": {
+        "Dante": {
+          "ExtPort": "Port3"
+        },
+        "Mgmt": {
+          "ExtPort": "Port1"
+        },
+        "Nax": {
+          "ExtPort": "Port3"
+        },
+        "Usb": {
+          "ExtPort": "Port1"
+        },
+        "Video": {
+          "ExtPort": "Port1"
+        }
+      },
+      "IsEnabled": false,
+      "PortList": [
+        "Port1",
+        "Port2",
+        "Port3",
+        "Port4"
+      ],
+      "Version": "2.0.0"
+    }
+  }
+}

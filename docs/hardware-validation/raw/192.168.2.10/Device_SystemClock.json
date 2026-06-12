@@ -1,0 +1,30 @@
+{
+  "Device": {
+    "SystemClock": {
+      "CurrentTime": "2026-06-12T08:22:14Z",
+      "CurrentTimeWithOffset": "2026-06-12T08:22:14-04:00",
+      "DaylightSavingsEnabled": true,
+      "Ntp": {
+        "IsEnabled": true,
+        "Servers": {
+          "Server1": {
+            "Address": "pool.ntp.org",
+            "AuthKey": "",
+            "AuthKeyId": 0,
+            "AuthMethod": "NONE",
+            "Port": 123
+          }
+        },
+        "ServersCurrentKeyList": [
+          "Server1"
+        ]
+      },
+      "Sntp": {
+        "IsEnabled": true,
+        "SntpServer": "pool.ntp.org"
+      },
+      "TimeZone": "014",
+      "Version": "2.2.0"
+    }
+  }
+}

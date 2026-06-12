@@ -1,0 +1,14 @@
+{
+  "Device": {
+    "IpTableV2": {
+      "EncryptConnection": true,
+      "Entries": {},
+      "EntriesCurrentKeyList": [],
+      "IsReadOnly": false,
+      "MaxEntries": 256,
+      "Password": "********",
+      "Username": "admin",
+      "Version": "2.0.0"
+    }
+  }
+}
