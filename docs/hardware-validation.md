@@ -149,7 +149,29 @@ Comparaison des clés sous `Device` (root `Device.json`), **observée**.
 `AvRouting`, `BackgroundImage`, `Dante`, `FanControl`, `ImageMgmnt`, `Osd`, `PortSelection`, **`StreamReceive`**, `Usb`, `XioSubscription`.
 Inversement, le E30 n'a **aucun** sous-système absent du 360. (Vérifié par diff d'ensembles sur les 3 `Device.json`.)
 
-### 6.2 Sentinelle modèle-dépendante — **contrainte de parsing**
+### 6.2 DeviceCapabilities — PortConfig (signal de capacité matérielle)
+
+Dumps : `raw/<host>/Device_DeviceCapabilities.json`. Racine `Device.DeviceCapabilities`. Schéma `Version` = `"2.1.0"` (observé les 3).
+
+| Chemin | Statut | Type | Valeurs réelles observées |
+|---|---|---|---|
+| `Device.DeviceCapabilities.PortConfig.NumberOfHdmiInputs` | ✅ CONFIRMÉ | Number (≥0) | `.9` (Receiver) `1` · `.10` (Transmitter) `1` · `.11` (E30) `1` |
+| `Device.DeviceCapabilities.PortConfig.NumberOfHdmiOutputs` | ✅ CONFIRMÉ | Number (≥0) | `.9` `1` · `.10` `1` · `.11` `0` |
+
+**Rôle — détection de capacité matérielle** :
+
+Ces chemins signalent les **capacités de port HDMI** et permettent au module de déduire :
+- **Encodeur possible** (peut transmettre) = `NumberOfHdmiInputs ≥ 1` ✅ observé sur les 3 appareils
+- **Décodeur possible** (peut recevoir) = `NumberOfHdmiOutputs ≥ 1` — réel sur `.9`/`.10` mais **0 sur `.11` (E30 pur encodeur)**
+- **Basculement mode possible** = les deux ≥ 1
+
+Utilisation code : `src/capability.ts::detectCapability()` (lignes 23-32) lit ces deux valeurs pour calculer `Capability.canEncode`, `canDecode`, `canSwitchMode`.
+
+**Propriétés additionnelles observées** : `IsConfigFileUploadSupported` (`false` les 3) ; `IsLogFileUploadSupported` (`true` les 3) — hors périmètre AV.
+
+**Lien avec les sous-systèmes (§6.1)** : la capacité `canDecode` (qui dépend de `NumberOfHdmiOutputs ≥ 1`) coïncide avec la présence de `StreamReceive`. Le E30, avec `NumberOfHdmiOutputs = 0`, n'expose pas le sous-système `StreamReceive` — cohérence matérielle confirmée (observé).
+
+### 6.3 Sentinelle modèle-dépendante — **contrainte de parsing**
 Sur le E30, l'endpoint isolé `GET /Device/StreamReceive` ne renvoie **pas** un objet mais la **chaîne** :
 ```json
 { "Device": { "StreamReceive": "UNSUPPORTED PROPERTY, CHECK REST API!!!" } }
@@ -157,7 +179,9 @@ Sur le E30, l'endpoint isolé `GET /Device/StreamReceive` ne renvoie **pas** un 
 (observé `raw/192.168.2.11/Device_StreamReceive.json`). Dans le `Device.json` racine du E30, la clé `StreamReceive` est carrément **absente** (les deux comportements coexistent : sentinelle en endpoint isolé, omission en énumération racine).
 ➡️ **Contrainte module** : **tout** sous-système peut, selon le modèle, renvoyer cette chaîne sentinelle au lieu d'un objet. Le parsing doit tester `typeof valeur === 'object'` avant d'accéder aux sous-champs et traiter la chaîne `"UNSUPPORTED PROPERTY, CHECK REST API!!!"` (et l'absence de clé) comme **« sous-système absent »** — sans crasher.
 
-### 6.3 Racine `/Device` = arbre complet, mais Uuids volatils
+**Impact sur `DeviceCapabilities`** : bien que jamais absent en §6.2, la logique sentinelle s'applique à tous les sous-systèmes. Le helper `subsystemObject()` (`src/capability.ts:14-20`) teste `typeof sub === 'object'` — conforme.
+
+### 6.4 Racine `/Device` = arbre complet, mais Uuids volatils
 `GET /Device` contient le **contenu profond** de chaque sous-système, identique aux endpoints isolés.
 **Caveat — OBSERVÉ dans le corpus** : les `Uuid` de `AudioVideoInputOutput.Inputs[]/Outputs[]/Ports[].Uuid` sont **régénérés à chaque requête HTTP**. Preuve : sur `.10`, le bloc `AudioVideoInputOutput` du `Device.json` racine et celui du dump isolé `Device_AudioVideoInputOutput.json` (= **deux GET distincts du même run de capture**) diffèrent sur **exactement** ces 4 feuilles `Uuid` (et seulement elles ; les 115 autres feuilles sont identiques). ➡️ **Ne JAMAIS utiliser ces `Uuid` comme identifiants stables.** Indexer par position (`Inputs[0]`, `Ports[0]`).
 
@@ -165,7 +189,7 @@ Sur le E30, l'endpoint isolé `GET /Device/StreamReceive` ne renvoie **pas** un 
 
 ## 7. StreamReceive (DECODER) — `GET /Device/StreamReceive` — v0.3 (référence)
 
-Dumps : `raw/192.168.2.9/Device_StreamReceive.json` (Receiver) et `raw/192.168.2.10/…` (Transmitter, **présent et peuplé**). Racine `Device.StreamReceive.Streams[]` (4) + `Version "2.0.1"`. **Absent/sentinelle sur E30** (§6.2).
+Dumps : `raw/192.168.2.9/Device_StreamReceive.json` (Receiver) et `raw/192.168.2.10/…` (Transmitter, **présent et peuplé**). Racine `Device.StreamReceive.Streams[]` (4) + `Version "2.0.1"`. **Absent/sentinelle sur E30** (§6.3).
 
 Chemins clés **observés** (v0.3, hors périmètre v0.2) : `…Streams[i].StreamLocation` (`""`), `MulticastAddress` (`""`), `InitiatorAddress` (`""`), `Start`/`Stop` (`false`), `Status` (`"Stream Stopped"`), `RtspPort` (`554`), `RtpVideoPort`/`RtpAudioPort` (`49170/49172` ou `40000/40002`), `Buffer` (`1000`), `Volume` (Number `0`), `TcpMode` (`"Auto"`), `TransportMode` (`"MPEG2TSRTP"` ou `"RTP"`), `SessionInitiation` (`"Multicast via RTSP"` ou `"ByReceiver"`), `VideoFormat`, et un sous-objet `StreamTrustedCertifyingAuthorities` (certificats CA).
 ❌ Réfutation conservée : `AspectRatio` **absent** de `StreamReceive` (il est dans `AudioVideoInputOutput`, §8).
