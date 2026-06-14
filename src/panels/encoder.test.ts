@@ -3,6 +3,12 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { encoderPanel, streamTransmitBody } from './encoder.js'
 import type { PanelContext } from './types.js'
+import type { NvxApiClient } from '../api.js'
+
+function def<T>(d: T | false | undefined): T {
+  if (!d) throw new Error('definition missing/disabled')
+  return d
+}
 
 const load = (host: string): unknown =>
   JSON.parse(readFileSync(`docs/hardware-validation/raw/${host}/Device_StreamTransmit.json`, 'utf8'))
@@ -38,8 +44,6 @@ test('streamTransmitBody addresses Streams[0] by position, leaves others empty',
   })
 })
 
-import type { NvxApiClient } from '../api.js'
-
 function fakeApi(): { calls: unknown[]; api: NvxApiClient } {
   const calls: unknown[] = []
   const api = { postSetPartial: async (body: unknown) => { calls.push(body); return 0 } } as unknown as NvxApiClient
@@ -49,7 +53,7 @@ function fakeApi(): { calls: unknown[]; api: NvxApiClient } {
 test('set_stream_name action POSTs RtspSessionName on Streams[0]', async () => {
   const { calls, api } = fakeApi()
   const actions = encoderPanel.buildActions(api)
-  await actions.set_stream_name!.callback(
+  await def(actions.set_stream_name).callback(
     { actionId: 'set_stream_name', options: { name: 'STUDIO-A' }, controlId: 'c', surfaceId: undefined, id: 'i' } as never,
     {} as never,
   )
@@ -59,15 +63,15 @@ test('set_stream_name action POSTs RtspSessionName on Streams[0]', async () => {
 test('enable_stream POSTs Start:true, disable_stream POSTs Stop:true', async () => {
   const { calls, api } = fakeApi()
   const actions = encoderPanel.buildActions(api)
-  await actions.enable_stream!.callback({ actionId: 'enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
-  await actions.disable_stream!.callback({ actionId: 'disable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
+  await def(actions.enable_stream).callback({ actionId: 'enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
+  await def(actions.disable_stream).callback({ actionId: 'disable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
   assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ Start: true }] } } })
   assert.deepEqual(calls[1], { Device: { StreamTransmit: { Streams: [{ Stop: true }] } } })
 })
 
 test('stream_enabled feedback reflects the latest polled state', () => {
   const fb = encoderPanel.buildFeedbacks(() => ({ stream_enabled: true }))
-  const on = fb.stream_enabled!.callback(
+  const on = def(fb.stream_enabled).callback(
     { feedbackId: 'stream_enabled', options: {}, controlId: 'c', id: 'i', type: 'boolean' } as never,
     {} as never,
   )
@@ -77,7 +81,7 @@ test('stream_enabled feedback reflects the latest polled state', () => {
 test('stream_name_matches compares the option to the polled stream_name', () => {
   const fb = encoderPanel.buildFeedbacks(() => ({ stream_name: 'STUDIO-A' }))
   const make = (name: string) =>
-    fb.stream_name_matches!.callback(
+    def(fb.stream_name_matches).callback(
       { feedbackId: 'stream_name_matches', options: { name }, controlId: 'c', id: 'i', type: 'boolean' } as never,
       {} as never,
     )
@@ -88,7 +92,7 @@ test('stream_name_matches compares the option to the polled stream_name', () => 
 test('set_multicast_address action POSTs MulticastAddress on Streams[0]', async () => {
   const { calls, api } = fakeApi()
   const actions = encoderPanel.buildActions(api)
-  await actions.set_multicast_address!.callback(
+  await def(actions.set_multicast_address).callback(
     { actionId: 'set_multicast_address', options: { address: '239.1.1.9' }, controlId: 'c', surfaceId: undefined, id: 'i' } as never,
     {} as never,
   )
