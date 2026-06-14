@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { writeRun } from '../lib/report.js'
@@ -10,7 +11,32 @@ import { CompanionUi } from '../tools/chromium.js'
 import { makeClient } from '../tiers/tier0-logic.js'
 import { localSteps } from './steps-local.js'
 import { labSteps } from './steps-lab.js'
-import type { JourneyContext, JourneyConfig, JourneyStep } from './types.js'
+import type { JourneyContext, JourneyConfig, JourneyStep, ButtonRef } from './types.js'
+
+const LAYOUT_FILE = 'scripts/uat/fixtures/layout.json'
+
+/** Load the button layout: UAT_LAYOUT env (JSON) wins, else the fixture file. `_`-keys dropped. */
+export function loadLayout(env: NodeJS.ProcessEnv): Record<string, ButtonRef> | undefined {
+  let raw: string | undefined = env.UAT_LAYOUT
+  if (!raw) {
+    try {
+      raw = readFileSync(LAYOUT_FILE, 'utf8')
+    } catch {
+      return undefined
+    }
+  }
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const layout: Record<string, ButtonRef> = {}
+    for (const [k, v] of Object.entries(parsed)) {
+      if (k.startsWith('_')) continue
+      layout[k] = v as ButtonRef
+    }
+    return layout
+  } catch {
+    return undefined
+  }
+}
 
 export function loadJourneyConfig(env: NodeJS.ProcessEnv): JourneyConfig {
   return {
@@ -19,6 +45,7 @@ export function loadJourneyConfig(env: NodeJS.ProcessEnv): JourneyConfig {
     label: env.UAT_LABEL ?? 'nvx-uat',
     nvxHost: env.NVX_HOST ?? '192.0.2.1',
     nvxPass: env.NVX_PASS ?? '',
+    layout: loadLayout(env),
   }
 }
 
