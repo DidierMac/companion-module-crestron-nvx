@@ -6,7 +6,7 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"build:watch": "tsc -p tsconfig.build.json --watch",
-		"test": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs --test src/*.test.ts",
+		"test": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs --test src/*.test.ts src/**/*.test.ts",
 		"lint": "eslint .",
 		"format": "prettier -w ."
 	},
