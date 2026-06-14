@@ -1,0 +1,34 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { renderMarkdown, renderEscalation } from './report.js'
+import { pass, fail, human } from './verdict.js'
+import type { RunResult } from './case.js'
+
+const run: RunResult = {
+  startedAt: '2026-06-14T10:00:00.000Z',
+  version: 'v0.2',
+  verdicts: [
+    pass('A3', 'good login', 0, { note: 'HTTP 200' }),
+    fail('ENC-01', 'stream name', 0, { expected: 'X', observed: 'Y' }),
+    human('C1', 'physical drop', 0, {}),
+  ],
+}
+
+test('renderMarkdown includes a header, counts, and one row per verdict', () => {
+  const md = renderMarkdown(run)
+  assert.match(md, /v0\.2/)
+  assert.match(md, /PASS.*1/s)
+  assert.match(md, /A3/)
+  assert.match(md, /ENC-01/)
+  assert.match(md, /C1/)
+})
+
+test('renderEscalation keeps only FAIL/AMBIGUOUS/HUMAN with full evidence', () => {
+  const pkt = renderEscalation(run)
+  assert.equal(pkt.cases.length, 2) // ENC-01 (FAIL) + C1 (HUMAN); A3 PASS excluded
+  const ids = pkt.cases.map((c) => c.id).sort()
+  assert.deepEqual(ids, ['C1', 'ENC-01'])
+  const enc = pkt.cases.find((c) => c.id === 'ENC-01')!
+  assert.equal(enc.evidence.expected, 'X')
+  assert.equal(enc.evidence.observed, 'Y')
+})
