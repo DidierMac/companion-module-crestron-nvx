@@ -1,5 +1,5 @@
 import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@companion-module/base'
-import type { JsonObject, CompanionVariableValues } from '@companion-module/base'
+import type { JsonObject, CompanionVariableValues, CompanionActionDefinitions, CompanionFeedbackDefinitions } from '@companion-module/base'
 
 import { getConfigFields, missingCredential, type ModuleConfig, type ModuleSecrets } from './config.js'
 import { NvxApiClient, NvxAuthError } from './api.js'
@@ -25,7 +25,6 @@ class CrestronNvxInstance extends InstanceBase {
 	private role: DeviceRole | null = null
 	private active: Panel[] = []
 	private state: CompanionVariableValues = {}
-	private feedbackIds: string[] = []
 	private readonly allPanels: Panel[] = [deviceInfoPanel, encoderPanel]
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -144,15 +143,14 @@ class CrestronNvxInstance extends InstanceBase {
 
 		this.setVariableDefinitions({ ...connectionVariableDefinitions, ...composeVariableDefinitions(this.active) })
 
-		let actions = {}
-		let feedbacks: Record<string, unknown> = baseFeedbackDefinitions(() => this.connected, () => this.role)
+		let actions: CompanionActionDefinitions = {}
+		let feedbacks: CompanionFeedbackDefinitions = baseFeedbackDefinitions(() => this.connected, () => this.role)
 		for (const p of this.active) {
 			actions = { ...actions, ...p.buildActions(this.api) }
 			feedbacks = { ...feedbacks, ...p.buildFeedbacks(() => this.state) }
 		}
-		this.feedbackIds = Object.keys(feedbacks)
 		this.setActionDefinitions(actions)
-		this.setFeedbackDefinitions(feedbacks as Parameters<this['setFeedbackDefinitions']>[0])
+		this.setFeedbackDefinitions(feedbacks)
 	}
 
 	// ── Polling ────────────────────────────────────────────────────────────────
@@ -205,11 +203,11 @@ class CrestronNvxInstance extends InstanceBase {
 				this.connected = true
 				this.updateStatus(InstanceStatus.Ok)
 			}
-			if (this.feedbackIds.length > 0) this.checkFeedbacks(this.feedbackIds[0], ...this.feedbackIds.slice(1))
+			this.checkAllFeedbacks()
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err)
 			this.connected = false
-			if (this.feedbackIds.length > 0) this.checkFeedbacks(this.feedbackIds[0], ...this.feedbackIds.slice(1))
+			this.checkAllFeedbacks()
 			this.stopPolling()
 			if (err instanceof NvxAuthError) {
 				this.updateStatus(InstanceStatus.AuthenticationFailure, msg)
