@@ -11,10 +11,15 @@
 		"test": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs --test src/*.test.ts src/**/*.test.ts scripts/uat/*.test.ts scripts/uat/**/*.test.ts",
 		"uat": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/run.ts",
 		"uat:tier0": "UAT_TIERS=0 node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/run.ts",
+		"uat:journey": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/journey/run-journey.ts",
 		"lint": "eslint .",
 		"format": "prettier -w ."
 	},
-	"keywords": ["companion", "crestron", "nvx"],
+	"keywords": [
+		"companion",
+		"crestron",
+		"nvx"
+	],
 	"license": "MIT",
 	"dependencies": {
 		"@companion-module/base": "^2.0.4"
@@ -22,9 +27,9 @@
 	"devDependencies": {
 		"@companion-module/tools": "^3.0.1",
 		"@types/node": "^22",
-		"typescript": "~5.8",
 		"eslint": "^9",
-		"prettier": "^3"
+		"prettier": "^3",
+		"typescript": "~5.8"
 	},
 	"engines": {
 		"node": ">=22"
