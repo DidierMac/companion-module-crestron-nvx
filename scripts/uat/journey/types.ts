@@ -15,8 +15,12 @@ export interface JourneyConfig {
   companionUrl: string
   container: string // docker container name for logs
   label: string // connection label under test
-  nvxHost: string
+  nvxHost: string // device host as the MODULE reaches it (real IP, or host.docker.internal for the fake)
+  nvxPort: number // device HTTPS port (443 real; 8443 for the local fake)
   nvxPass: string // empty → lab-only steps SKIP
+  /** Device host as the ORACLE (host process) reaches it. Defaults to nvxHost; differs only for
+   *  the local fake (module → host.docker.internal, oracle → 127.0.0.1). */
+  oracleHost?: string
   /** Action id → button location. WRITE (USE) steps press these; unmapped → step SKIPs. */
   layout?: Record<string, ButtonRef>
 }

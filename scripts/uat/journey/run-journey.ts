@@ -44,15 +44,17 @@ export function loadJourneyConfig(env: NodeJS.ProcessEnv): JourneyConfig {
     container: env.COMPANION_CONTAINER ?? 'companion-nvx-companion-1',
     label: env.UAT_LABEL ?? 'nvx-uat',
     nvxHost: env.NVX_HOST ?? '192.0.2.1',
+    nvxPort: Number(env.NVX_PORT ?? 443),
     nvxPass: env.NVX_PASS ?? '',
+    oracleHost: env.ORACLE_HOST,
     layout: loadLayout(env),
   }
 }
 
 export function buildContext(cfg: JourneyConfig): JourneyContext {
   const harness: HarnessConfig = {
-    nvxHost: cfg.nvxHost,
-    nvxPort: 443,
+    nvxHost: cfg.oracleHost ?? cfg.nvxHost, // oracle (host process) may reach the device differently
+    nvxPort: cfg.nvxPort,
     nvxUser: 'admin',
     nvxPass: cfg.nvxPass,
     companionUrl: cfg.companionUrl,

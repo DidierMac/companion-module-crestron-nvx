@@ -14,7 +14,7 @@ function ctx(over: Partial<JourneyContext> = {}, nvxPass = ''): JourneyContext {
     },
     http: {
       findConnectionId: async () => 'abc',
-      status: async () => ({ category: 'ok', level: 'OK', message: '' }),
+      status: async () => ({ category: 'good', level: 'OK', message: '' }),
       enable: async () => {},
       disable: async () => {},
       restart: async () => {},

@@ -26,6 +26,10 @@ async function configFailureStep(
   const connId = await ctx.http.findConnectionId(ctx.config.label)
   if (!connId) return fail(id, title, 1, { note: `connection '${ctx.config.label}' not found — run SETUP` })
 
+  // 1b. Ensure it is enabled (idempotent) — a prior TEARDOWN may have disabled it, and the
+  //     config form is only editable while the connection is enabled.
+  await ctx.http.enable(connId)
+
   // 2. Apply the config state through the UI (the one thing REST cannot do).
   const page = await ctx.ui.open()
   try {

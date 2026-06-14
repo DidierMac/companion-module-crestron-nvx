@@ -17,7 +17,7 @@ function noDevice(ctx: JourneyContext): boolean {
 async function setConfig(
   ctx: JourneyContext,
   connId: string,
-  fields: { host?: string; username?: string; password?: string },
+  fields: { host?: string; port?: number; username?: string; password?: string },
 ): Promise<void> {
   const page = await ctx.ui.open()
   try {
@@ -50,6 +50,28 @@ async function pollLog(ctx: JourneyContext, mark: { ts: string }, re: RegExp): P
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
+
+/**
+ * Read a Companion variable, polling while it is undefined (404 → throws) or not yet `ready` —
+ * the module defines/populates variables a moment after connecting. Returns the last value seen.
+ */
+async function readVar(
+  ctx: JourneyContext,
+  name: string,
+  ready: (v: string) => boolean = () => true,
+): Promise<string> {
+  let value = ''
+  for (let i = 0; i < POLL_ATTEMPTS; i++) {
+    try {
+      value = await ctx.http.getVariable(ctx.config.label, name)
+      if (ready(value)) return value
+    } catch {
+      /* 404 — variable not defined yet */
+    }
+    await ctx.sleep(POLL_DELAY_MS)
+  }
+  return value
+}
 
 // Known test values the SETUP buttons must be configured to set (so the oracle can verify).
 const UAT_STREAM_NAME = 'UAT-STREAM'
@@ -108,7 +130,7 @@ const useSteps: JourneyStep[] = [
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip('CAP', 'capability (no device)', 1, { note: 'NVX_PASS unset' })
-      const role = await ctx.http.getVariable(ctx.config.label, 'device_role')
+      const role = await readVar(ctx, 'device_role', (v) => v === 'Transmitter')
       return role === 'Transmitter'
         ? pass('CAP', 'encoder panel active (role=Transmitter)', 1, { note: `device_role=${role}` })
         : fail('CAP', 'expected a Transmitter device for the encoder journey', 1, {
@@ -124,12 +146,12 @@ const useSteps: JourneyStep[] = [
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip('ENC-VARS', 'variables (no device)', 1, { note: 'NVX_PASS unset' })
       const s = await ctx.oracle.readStream0()
-      const get = (n: string) => ctx.http.getVariable(ctx.config.label, n)
       const checks: Record<string, [string, string]> = {
-        stream_name: [await get('stream_name'), str(s.RtspSessionName)],
-        multicast_address: [await get('multicast_address'), str(s.MulticastAddress)],
-        encoder_url: [await get('encoder_url'), str(s.StreamLocation)],
-        stream_enabled: [await get('stream_enabled'), String(str(s.Status) === 'Stream started')],
+        // wait for the panel to have polled at least once (stream_name populated), then read all
+        stream_name: [await readVar(ctx, 'stream_name', (v) => v !== ''), str(s.RtspSessionName)],
+        multicast_address: [await readVar(ctx, 'multicast_address'), str(s.MulticastAddress)],
+        encoder_url: [await readVar(ctx, 'encoder_url'), str(s.StreamLocation)],
+        stream_enabled: [await readVar(ctx, 'stream_enabled'), String(str(s.Status) === 'Stream started')],
       }
       const mismatches = Object.entries(checks).filter(([, [a, b]]) => a !== b)
       return mismatches.length === 0
@@ -146,7 +168,7 @@ const useSteps: JourneyStep[] = [
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip('ENC-FEEDBACKS', 'feedbacks (no device)', 1, { note: 'NVX_PASS unset' })
       // Satellite colour check deferred (spec §8); validate the variable that drives the feedback.
-      const varVal = await ctx.http.getVariable(ctx.config.label, 'stream_enabled')
+      const varVal = await readVar(ctx, 'stream_enabled', (v) => v !== '')
       const s = await ctx.oracle.readStream0()
       const deviceVal = String(str(s.Status) === 'Stream started')
       return varVal === deviceVal
@@ -172,7 +194,8 @@ const authSteps: JourneyStep[] = [
       const connId = await ctx.http.findConnectionId(ctx.config.label)
       if (!connId) return fail('CFG-WRONGPASS', 'wrong password', 1, { note: `connection '${ctx.config.label}' not found` })
 
-      await setConfig(ctx, connId, { host: ctx.config.nvxHost, username: 'admin', password: WRONG_PASSWORD })
+      await ctx.http.enable(connId) // idempotent — a prior TEARDOWN may have disabled it
+      await setConfig(ctx, connId, { host: ctx.config.nvxHost, port: ctx.config.nvxPort, username: 'admin', password: WRONG_PASSWORD })
       const m = ctx.logs.mark()
       await ctx.http.restart(connId)
       const logged = await pollLog(ctx, m, /401|403|auth|unauthor|forbidden|credential/i)
@@ -195,9 +218,11 @@ const authSteps: JourneyStep[] = [
       const connId = await ctx.http.findConnectionId(ctx.config.label)
       if (!connId) return fail('CFG-GOOD', 'good password', 1, { note: `connection '${ctx.config.label}' not found` })
 
-      await setConfig(ctx, connId, { host: ctx.config.nvxHost, username: 'admin', password: ctx.config.nvxPass })
+      await ctx.http.enable(connId) // idempotent — a prior TEARDOWN may have disabled it
+      await setConfig(ctx, connId, { host: ctx.config.nvxHost, port: ctx.config.nvxPort, username: 'admin', password: ctx.config.nvxPass })
       await ctx.http.restart(connId)
-      const category = await pollStatusCategory(ctx, connId, 'ok')
+      // REST category for a healthy connection is 'good' (the UI label is "OK") — verified live.
+      const category = await pollStatusCategory(ctx, connId, 'good')
 
       // Independent proof of a real session: the oracle logs in and reads Streams[0].
       let oracleOk = false
@@ -208,10 +233,10 @@ const authSteps: JourneyStep[] = [
       } catch (err) {
         oracleErr = err instanceof Error ? err.message : String(err)
       }
-      return category === 'ok' && oracleOk
-        ? pass('CFG-GOOD', 'connected (oracle confirms session)', 1, { companion: { category }, note: 'status ok + oracle read stream' })
+      return category === 'good' && oracleOk
+        ? pass('CFG-GOOD', 'connected (oracle confirms session)', 1, { companion: { category }, note: 'status good + oracle read stream' })
         : fail('CFG-GOOD', 'connected (oracle confirms session)', 1, {
-            expected: { category: 'ok', oracle: 'readStream0 succeeds' },
+            expected: { category: 'good', oracle: 'readStream0 succeeds' },
             observed: { category, oracleOk, oracleErr },
           })
     },

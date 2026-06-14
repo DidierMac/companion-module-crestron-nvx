@@ -80,9 +80,10 @@ export class CompanionUi {
   /** Fill the currently-open config form, then Save. Locators per the verified strategy. */
   async fillConfig(
     page: Page,
-    fields: { host?: string; username?: string; password?: string },
+    fields: { host?: string; port?: number; username?: string; password?: string },
   ): Promise<void> {
     if (fields.host !== undefined) await this.fillByLabel(page, 'Device IP / Hostname', fields.host)
+    if (fields.port !== undefined) await this.fillByLabel(page, 'HTTPS Port', String(fields.port))
     if (fields.username !== undefined) await this.fillByLabel(page, 'Username', fields.username)
     if (fields.password !== undefined) await this.fillByLabel(page, 'Password', fields.password)
     // Save is enabled only when there are pending changes.
