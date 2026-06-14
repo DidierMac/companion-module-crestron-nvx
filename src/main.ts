@@ -224,4 +224,8 @@ class CrestronNvxInstance extends InstanceBase {
 }
 
 // v2 SDK: module entry via default export (runEntrypoint was removed in v2.0)
+// Upgrade scripts (migrations de config) — convention SDK v2 : export nommé `UpgradeScripts`
+// (le 2e arg de runEntrypoint n'existe plus). À réintroduire au 1er breaking-change de la
+// structure de config :  import { UpgradeScripts } from './upgrades.js'  puis  export { UpgradeScripts }
+// Le tableau est cumulatif : une fois un script publié, sa position = son n° de version, ne jamais le retirer.
 export default CrestronNvxInstance
