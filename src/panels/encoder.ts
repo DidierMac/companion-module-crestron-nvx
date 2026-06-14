@@ -37,6 +37,35 @@ export const encoderPanel: Panel = {
       stream_enabled: str(s?.Status) === 'Stream started',
     }
   },
-  buildActions: () => ({}),     // filled in Task 7
+  buildActions: (api) => ({
+    set_stream_name: {
+      name: 'Encoder: set stream name',
+      options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '' }],
+      callback: async (ev) => {
+        await api.postSetPartial(streamTransmitBody(0, { RtspSessionName: String(ev.options.name ?? '') }))
+      },
+    },
+    set_multicast_address: {
+      name: 'Encoder: set multicast address',
+      options: [{ type: 'textinput', id: 'address', label: 'Multicast address', default: '239.1.1.1' }],
+      callback: async (ev) => {
+        await api.postSetPartial(streamTransmitBody(0, { MulticastAddress: String(ev.options.address ?? '') }))
+      },
+    },
+    enable_stream: {
+      name: 'Encoder: start stream',
+      options: [],
+      callback: async () => {
+        await api.postSetPartial(streamTransmitBody(0, { Start: true }))
+      },
+    },
+    disable_stream: {
+      name: 'Encoder: stop stream',
+      options: [],
+      callback: async () => {
+        await api.postSetPartial(streamTransmitBody(0, { Stop: true }))
+      },
+    },
+  }),
   buildFeedbacks: () => ({}),   // filled in Task 8
 }
