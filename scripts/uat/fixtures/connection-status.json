@@ -1,0 +1,11 @@
+{
+  "_comment": "Capture live de GET /api/connections/<id>/status (Companion 4.3.4 local, 2026-06-14). Le statut est NESTED sous .status.",
+  "id": "jUFq3QSEiZOsg6uRoF7yc",
+  "label": "Crestron_NVX_Receiver",
+  "enabled": true,
+  "status": {
+    "category": "error",
+    "level": "Connection Failure",
+    "message": "NVX timeout: GET /userlogin.html"
+  }
+}
