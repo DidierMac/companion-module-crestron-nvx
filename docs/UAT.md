@@ -135,20 +135,90 @@ Phase C — Disruptif & teardown : drop device → injoignable → destroy   (en
 
 ---
 
-## v0.2 — Encoder (StreamTransmit) 🔲 à compléter après le gate hardware
+## v0.2 — Encoder (StreamTransmit) ✅ (livrée — à valider au labo)
 
-> Cas concrets figés après la capture (chemins JSON vérifiés), au **même format** (précondition / action / attendu / PASS si / pièges / postcondition + `[AUTO]`/`[HUMAN]`). Intentions :
-- **ENC-01** `set_stream_name` → nom du stream changé **réellement** (re-vérifier via GET côté device, pas seulement la variable Companion). `[HUMAN]` vérif device.
-- **ENC-02** `set_multicast_address` → adresse changée réellement.
-- **ENC-03** `enable_stream`/`disable_stream` → stream démarré/arrêté (statut device).
-- **ENC-04** `set_stream_mode → Encoder` → device en mode encodeur.
-- **ENC-05** variables encoder reflètent l'état réel (croiser device).
-- **ENC-06** feedbacks `is_encoder`/`stream_enabled`/`stream_name_matches` corrects.
-- **ENC-07** **Non-régression** : le polling généralisé n'a pas cassé le heartbeat v0.1 → **rejouer toute la Phase B**.
+> Cas figés après le gate hardware (chemins JSON **vérifiés** dans `docs/hardware-validation.md` §4–§5 et la fixture `raw/192.168.2.10/Device_StreamTransmit.json`), au **même format** que les phases A/B/C. v0.2 = **lire + écrire l'encodeur** (StreamTransmit). **PAS de bascule de mode** (reportée v0.5 : reboot non testé empiriquement).
+>
+> **Périmètre exact du code v0.2** (source `src/panels/encoder.ts`) :
+> - Actions : `set_stream_name` (→ `RtspSessionName`), `set_multicast_address` (→ `MulticastAddress`), `enable_stream` (→ `Start:true`), `disable_stream` (→ `Stop:true`). Toutes ciblent **`Streams[0]` par position** (`streamTransmitBody(0, …)`), enveloppe `{"Device":{"StreamTransmit":{"Streams":[{…}]}}}`.
+> - Variables : `stream_name`, `multicast_address`, `encoder_url` (= `StreamLocation`), `stream_enabled` (= `Status === 'Stream started'`).
+> - Feedbacks : `stream_enabled`, `stream_name_matches` (panel) + `is_encoder`/`is_decoder` (niveau connexion, `feedbacks.ts`).
+
+### Précondition de toute la phase Encoder (mode Transmitter)
+
+> ⚠️ Le device doit être en mode **Transmitter** AVANT de commencer la phase. **Le module v0.2 ne sait PAS basculer le mode** (action de mode = v0.5). Le réglage se fait via l'**UI native du device** (ou son interface web), pas via Companion. Confirmer côté device que `DeviceMode == "Transmitter"` avant CAP-01. Si le device est en `Receiver`, le panneau encoder ne s'activera pas (gate `role === 'Transmitter'`) et tous les ENC-* seront `[-]` non testables.
+
+> 🔒 **Budget lockout** : toute la phase Encoder tourne sur la **session déjà active** établie en A3 (bon login). **0 login supplémentaire → 0 échec d'auth → 0 lockout consommé.** Ne PAS Disable→Enable l'instance pendant la phase (cela rouvrirait une session). Exception : CAP-01 et ENC-07 peuvent exiger un ré-init **propre** (Disable→Enable) — c'est un **bon** login, qui ne consomme pas de budget d'échec (cf. §27 : seul un *échec* compte).
+
+#### CAP-01 · détection capability/role au connect → panneau encoder activé `[AUTO]`
+- **Précondition** : device confirmé en mode **Transmitter** (UI native). Instance configurée avec host/user/password **valides**. Ré-init propre (Disable→Enable) pour forcer un connect frais.
+- **Action** : activer l'instance ; laisser le connect aboutir (vert) ; ouvrir les onglets Variables, Actions et Feedbacks de Companion.
+- **Attendu** : au connect, le module lit `DeviceCapabilities` + `DeviceSpecific`, détecte `role=Transmitter`, **active le panneau encoder**. La variable `device_role` vaut `Transmitter` ; les **actions** encoder (`set_stream_name`, `set_multicast_address`, `enable_stream`, `disable_stream`) et les **variables** `stream_*` apparaissent dans Companion.
+- **PASS si** : `$(crestron-nvx:device_role)` = `Transmitter` **ET** les 4 actions encoder sont listées dans le sélecteur d'actions **ET** les variables `stream_name`/`multicast_address`/`encoder_url`/`stream_enabled` existent (onglet Variables) **ET** les feedbacks `stream_enabled`/`stream_name_matches`/`is_encoder` sont proposables.
+- **Pièges** : ❌ Faux positif si `device_role` est une valeur **en cache** d'un run précédent — croiser avec l'**état réel du device** (mode `Transmitter` confirmé côté device, log `[CONN] … role=Transmitter → panels: deviceInfo, encoder` **frais**). ❌ Si le device était en `Receiver`, le panneau encoder est correctement **absent** : ce n'est PAS un FAIL du code, c'est une précondition non remplie (corriger le mode device, rejouer). ⚠️ La détection a lieu **à chaque (re)connexion** : un changement de mode fait côté device n'est pris en compte qu'après une reconnexion (reboot ou ré-init).
+- **Lockout** : 0 (réutilise / ré-ouvre une session par **bon** login). Sûr.
+- **Postcondition** : connecté, panneau encoder actif. Conserver la session pour ENC-01..06.
+
+#### ENC-01 · set_stream_name → `RtspSessionName` réellement changé côté device `[HUMAN]`
+- **Précondition** : depuis CAP-01 (connecté, encoder actif). Choisir un nom témoin **non ambigu**, ex. `UAT-STREAM-X`.
+- **Action** : `[AUTO]` déclencher l'action `set_stream_name` avec `name = UAT-STREAM-X` (bouton Companion ou exécution directe de l'action). Puis `[HUMAN]` (ou GET direct si accès device) relire l'état du device.
+- **Attendu** : POST `{"Device":{"StreamTransmit":{"Streams":[{"RtspSessionName":"UAT-STREAM-X"}]}}}` ; le device applique **LIVE sans reboot** (contrat §4.2 : `RtspSessionName` testé writable live) ; `StatusId = 0` (OK).
+- **PASS si** : un `GET /Device/StreamTransmit` **côté device** montre `Streams[0].RtspSessionName == "UAT-STREAM-X"` **ET** le module a loggé un `StatusId 0` pour ce POST **ET** la variable Companion `stream_name` reflète `UAT-STREAM-X` au poll suivant.
+- **Pièges** : ❌ **Anti-faux-positif majeur** : ne PAS conclure PASS sur la seule variable Companion `stream_name` — elle peut refléter ce que le module *croit* avoir écrit, pas l'état device. La preuve est le **GET côté device** (`Streams[0]` par position, pas par UUID). ⚠️ `Streams[0]` est ciblé **par position** : vérifier `Streams[0]`, pas un autre index. ⚠️ Si `StatusId` loggé ≠ 0 → écriture refusée (FAIL, noter le StatusId). Restaurer le nom d'origine après le test (relever la valeur initiale avant — `.10` réel : `DM-NVX-360-C442684E534B`, mais le device labo peut différer → `<à confirmer au labo>`).
+- **Lockout** : 0.
+- **Postcondition** : nom restauré à sa valeur initiale.
+
+#### ENC-02 · set_multicast_address → `MulticastAddress` réellement changée `[HUMAN]`
+- **Précondition** : depuis ENC-01 (connecté). Adresse témoin multicast valide, ex. `239.9.9.9`.
+- **Action** : `[AUTO]` déclencher `set_multicast_address` avec `address = 239.9.9.9`. Puis `[HUMAN]`/GET relire le device.
+- **Attendu** : POST `{"Device":{"StreamTransmit":{"Streams":[{"MulticastAddress":"239.9.9.9"}]}}}` sur `Streams[0]`.
+- **PASS si** : `GET /Device/StreamTransmit` device → `Streams[0].MulticastAddress == "239.9.9.9"` **ET** `StatusId 0` loggé **ET** variable `multicast_address` = `239.9.9.9` au poll suivant.
+- **Pièges** : ⚠️ Écriture **inférée** : seul `RtspSessionName` est testé POST end-to-end (§4.2/§5.1) ; `MulticastAddress` est sur le **même tableau `Streams[0]`** donc présumé identique, mais c'est **le premier POST réel sur ce champ** → noter explicitement le résultat (confirme ou infirme l'inférence). ❌ Anti-faux-positif : croiser le device, pas seulement la variable. ⚠️ Valeur d'origine `.10` = `239.1.1.4` (fixture) ; sur le device labo → `<à confirmer au labo>` avant test pour restauration.
+- **Lockout** : 0.
+- **Postcondition** : adresse multicast restaurée à sa valeur initiale.
+
+#### ENC-03 · enable_stream / disable_stream → stream démarré/arrêté côté device `[HUMAN]`
+- **Précondition** : depuis ENC-02 (connecté). Relever l'état initial du stream (`Status`) avant de le perturber.
+- **Action** : `[AUTO]` déclencher `disable_stream`, attendre, relire device + variable ; puis `[AUTO]` déclencher `enable_stream`, attendre, relire device + variable.
+- **Attendu** : `disable_stream` POST `{… "Streams":[{"Stop":true}]}` → `Streams[0].Status == "Stream Stopped"` ; `enable_stream` POST `{… "Streams":[{"Start":true}]}` → `Streams[0].Status == "Stream started"` (chaînes **exactes**, casse incluse — §5.2). `StatusId 0` à chaque POST.
+- **PASS si** : on **observe la transition** côté device `Stream started → Stream Stopped` (disable) **puis** `Stream Stopped → Stream started` (enable) — les **deux** transitions — **ET** la variable `stream_enabled` passe `true→false` puis `false→true` en miroir **ET** `StatusId 0` aux deux POST.
+- **Pièges** : ❌ **Preuve par la transition, pas l'état final** (§19) : « le stream est started à la fin » peut signifier qu'il l'était déjà et que rien ne s'est passé. Voir le passage par `Stream Stopped` est la preuve. ⚠️ Le code calcule `stream_enabled` depuis **`Status`** (`Status === 'Stream started'`), **pas** depuis `Start`/`Stop` — donc vérifier `Status` côté device, c'est l'autorité. ⚠️ Écriture `Start`/`Stop` **inférée** (non testée end-to-end §5.1) → noter le résultat réel. ⚠️ Laisser un délai ≥ 1 intervalle de poll pour que la variable se rafraîchisse (ne pas lire `stream_enabled` instantanément après le POST).
+- **Lockout** : 0.
+- **Postcondition** : stream **remis dans son état initial** (relevé en précondition).
+
+#### ENC-05 · variables encoder reflètent l'état réel `[HUMAN]`
+- **Précondition** : depuis ENC-03, stream dans un état connu et **stable** (ne plus le modifier).
+- **Action** : `[HUMAN]`/GET lire `GET /Device/StreamTransmit` côté device (vérité terrain) ; `[AUTO]` lire les 4 variables Companion (`stream_name`, `multicast_address`, `encoder_url`, `stream_enabled`).
+- **Attendu** : chaque variable = la valeur réelle de `Streams[0]` côté device : `stream_name = Streams[0].RtspSessionName` ; `multicast_address = Streams[0].MulticastAddress` ; `encoder_url = Streams[0].StreamLocation` (URL RTSP **calculée par le device**, lecture seule — ex. fixture `.10` : `rtsp://192.168.2.10:554/live.sdp`) ; `stream_enabled = (Streams[0].Status === "Stream started")`.
+- **PASS si** : les 4 variables **égalent** les valeurs lues côté device sur `Streams[0]` (pas « non vides » — **égales**), `stream_enabled` cohérent avec `Status`.
+- **Pièges** : ❌ Anti-faux-positif (§18) : une variable peuplée ne prouve rien — comparer **valeur à valeur** avec le GET device. ⚠️ `encoder_url`/`StreamLocation` est **vide (`""`)** sur un stream **au repos** (observé : `Streams[1..3]` de la fixture) — donc si le stream est arrêté, `encoder_url` vide est **correct**, pas un bug. ⚠️ Lire `Streams[0]` (position), jamais un autre index.
+- **Lockout** : 0.
+- **Postcondition** : inchangé (lecture seule).
+
+#### ENC-06 · feedbacks encoder corrects sur boutons `[AUTO]`
+- **Précondition** : depuis ENC-05 (connecté, état stream stable). Préparer 3 boutons Companion avec : feedback `is_encoder`, feedback `stream_enabled`, feedback `stream_name_matches` (option `name` = le nom réel courant du stream, relevé en ENC-05).
+- **Action** : `[AUTO]` observer les 3 boutons ; puis pour `stream_enabled`, basculer l'état du stream (réutiliser ENC-03) et re-observer ; pour `stream_name_matches`, mettre une fois la **bonne** valeur, une fois une valeur **fausse**.
+- **Attendu** : `is_encoder` actif (role = Transmitter) ; `stream_enabled` actif **ssi** `stream_enabled == true` ; `stream_name_matches` actif **ssi** l'option `name` == `stream_name` courant.
+- **PASS si** : `is_encoder` est **actif** (couleur) ; `stream_enabled` suit l'état réel (actif quand started, inactif quand stopped) **avec transition observée** ; `stream_name_matches` actif sur la bonne valeur **et** inactif sur la fausse.
+- **Pièges** : ⚠️ Les feedbacks lisent l'état **du dernier poll** (`state()` closure) : laisser passer un poll après un changement avant de juger. ❌ Ne pas tester `stream_name_matches` uniquement sur la bonne valeur — le cas **faux** (doit être inactif) prouve la discrimination. ⚠️ `is_encoder` est un feedback **niveau connexion** (toujours enregistré), pas un feedback de panneau : il dépend de `device_role`, pas de l'activation du panneau.
+- **Lockout** : 0.
+- **Postcondition** : inchangé.
+
+#### ENC-07 · Non-régression v0.1 — heartbeat + reconnexion intacts `[AUTO]`/`[HUMAN]`
+- **Précondition** : connecté en mode Transmitter (le poll généralisé v0.2 inclut le panneau `deviceInfo` toujours-actif).
+- **Action** : **rejouer toute la Phase B** (B1→B5) sur la session active, puis rejouer un cas type **C1** (CONN-DROP) `[HUMAN]` pour vérifier `scheduleReconnect`.
+- **Attendu** : Phase B intégralement verte (le `poll()` généralisé n'a pas cassé le heartbeat) : `device_name`, `firmware_version`, `ip_address`, `connection_status`, feedback `connected`, toggle verbose. Et la coupure device → `connection_status` déconnecté → reconnexion auto au retour.
+- **PASS si** : B1–B5 **tous PASS** (mêmes critères que v0.1 — `device_name`/`firmware_version` = vérité terrain device) **ET** transition vert→rouge→vert observée sur la coupure/reprise (preuve de `scheduleReconnect`, identique v0.1).
+- **Pièges** : ❌ Régression silencieuse : `device_name`/`firmware_version` sont désormais peuplées par le **panneau `deviceInfo`** (et non plus par l'ancien `getDeviceInfo()`), via `Device.DeviceInfo.Name` / `.DeviceVersion`. Si elles restent vides alors que `connected` est vert → régression de migration (le panneau deviceInfo n'a pas peuplé) = **FAIL bloquant**, remonter. ⚠️ `scheduleReconnect` : après reconnexion, `detectAndRegister()` re-tourne → re-vérifier que le panneau encoder est toujours actif (CAP-01 implicite). ⏱️ Reconnexion : attendre (retry à 10 s), ne pas conclure à 2 s.
+- **Lockout** : 0 (C1 coupe le **réseau/alim device**, pas d'échec d'auth).
+- **Postcondition** : reconnecté, encoder actif.
 
 ## v0.3 — Decoder (StreamReceive) 🔲 à compléter
 ## v0.4 — Audio & Vidéo I/O 🔲 à compléter
 ## v0.5 — Device Operations & Mode 🔲 à compléter
+
+> Déplacé ici depuis v0.2 (la bascule de mode n'existe PAS dans le code v0.2 — reboot non testé empiriquement, cf. spec §5 et `hardware-validation.md` §6/§8) :
+- **ENC-04 (→ MODE-xx)** `set_stream_mode → Encoder` (POST `Device.DeviceSpecific.DeviceMode = "Transmitter"`) → device en mode encodeur **après reboot** (`StatusId 1` = reboot needed, §4.2). À tester en créneau labo dédié avec accord opérateur (impact device : reboot). 🔲 à compléter au format complet quand v0.5 sera spécifiée.
 
 ---
 
