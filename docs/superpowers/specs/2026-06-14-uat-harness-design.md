@@ -1,178 +1,120 @@
-# Harness UAT scriptable & déterministe — Design
+# Harness UAT — parcours utilisateur & 4 outils — Design
 
-**Date** : 2026-06-14
+**Date** : 2026-06-14 (révisé — remplace la version « 3 tiers par couche technique »)
 **Statut** : validé (brainstorming Didier)
-**Portée** : outillage de test d'acceptation (UAT) du module Companion Crestron NVX — exécution rapide, reproductible et scriptable des scénarios de `docs/UAT.md`, avec fallback vers le `uat-runner` LLM.
-**Branche** : `feature/uat-harness` (depuis `feature/v0.2-encoder` — le harness teste le code v0.2 et consomme ses scénarios UAT).
-**Sources** : `docs/UAT.md` (scénarios, format, ordre), mémoire `rex-uat-scriptable` (REX du 1er run), `reference-uat-e2e-practices` (standards E2E/HIL), `scripts/capture-nvx.ts` (moule de script Node zéro-install).
+**Portée** : tester **le module Crestron NVX** en rejouant le **parcours d'un utilisateur** (installer → connecter → configurer → utiliser → teardown), happy path complet **et** tous les échecs normaux, via 4 outils complémentaires.
+**Branche** : `feature/uat-harness` (depuis `feature/v0.2-encoder`).
+**Sources** : `docs/UAT.md`, `docs/debugging.md`, mémoire `rex-uat-scriptable` + `reference-companion-automation-api`, code existant `src/api.ts` (oracle) + socle `scripts/uat/` (Vague 1).
 
 ---
 
-## 1. Contexte & problème
+## 1. Contexte & objectif
 
-Le 1er run UAT sur device réel (2026-06-12) via l'agent `uat-runner` en mode autonome Playwright s'est révélé **lent et fragile** : blocage avant A1, détour DB, fenêtres d'observation longues × N cas (REX `rex-uat-scriptable`). Or la majorité des scénarios `docs/UAT.md` testent la **logique du module** (auth, POST encodeur, mapping variables) contre le device — pas l'UI Companion. Ils sont donc **scriptables de façon déterministe**, rapide et lockout-sûre.
+**Objectif : tester LE MODULE comme un utilisateur l'utilise.** On exécute le parcours réel — installer le module dans Companion, créer une connexion, la paramétrer, s'en servir — et à **chaque étape on teste aussi les échecs attendus** (pas de mot de passe, mot de passe erroné, appareil injoignable). « Ne louper aucun test » : le happy path **et** chaque cas d'échec normal.
 
-**Objectif** : un harness scriptable qui exécute les scénarios `[AUTO]` rapidement et de façon reproductible, croise l'état réel du device, et **escalade vers le `uat-runner` LLM** uniquement le résidu (échecs, cas ambigus, gestes humains).
-
-**Décision directrice (Didier)** : concevoir les deux couches (logique + UI) ensemble ; **Playwright autorisé en devDependency** pour la couche UI (décision Zéro Installation actée par Didier).
+**Pourquoi ce redesign** : la version précédente s'organisait par **couche technique** (Tier 0 logique / Tier 1 API / Tier 2 UI). Le « Tier 0 » testait le module **en court-circuitant Companion** — utile pour la vitesse, mais **ce n'est pas le parcours utilisateur** (l'utilisateur ne touche jamais le device en direct). On réorganise donc **par parcours**, et le device en direct devient un **oracle de vérité terrain**, pas une couche de pilotage.
 
 ---
 
-## 2. Architecture — 3 tiers + fallback
+## 2. Les 4 outils (rôles uniques, tous vérifiés en local 2026-06-14)
 
-| Tier | Outils | Couvre (réf `docs/UAT.md`) | Déterminisme |
+| # | Outil | Mécanisme (vérifié) | Rôle |
 |---|---|---|---|
-| **0 — Logique** | `NvxApiClient` direct + GET device | A1/A2/A3 (auth-gauntlet, contrôle total des credentials) ; effet POST encodeur sur device (ENC-01/02/03) ; mapping variables sur JSON live (ENC-05 vs device) ; C2 (injoignable) ; C3 (logout) | ★★★ total |
-| **1 — Intégration Companion** | HTTP API (`/api/location/.../press`, `/api/variable/<label>/<name>/value`, `/api/connections/:id/status`) + **Satellite TCP 16622** (couleur feedback résolue, `KEY-STATE`) | CAP-01 (statut+variables au connect) ; ENC-06 (feedbacks couleur) ; B1–B3 (variables via Companion) ; ENC-07 (heartbeat) | ★★☆ haut |
-| **2 — UI config** | Playwright (librairie) | **couverture complète du formulaire de config DU MODULE** dans Companion (cf. §5 bis) | ★★☆ |
-| **Fallback** | `uat-runner` LLM | `[HUMAN]` (C1 coupure physique) + tout cas `FAIL`/`AMBIGUOUS` remonté | n/a |
+| 1 | **REST API Companion** | `localhost:8000/api/…` | **Pilote + observe Companion.** `GET /api/connections` (résoudre l'`id` par `label`) · `GET /api/connections/:id/status` (`ok`/`warning`/`error`/`disabled` + message) · `POST /api/connections/:id/{enable,disable,restart}` · `GET /api/variable/<label>/<name>/value` · `POST /api/location/<p>/<r>/<c>/press`. **Ne crée/configure PAS une connexion.** Usage maximal. |
+| 2 | **Logs Companion** | **`docker logs <conteneur>`** (stdout) ou `/companion/logs/` (volume) — **pas** d'endpoint REST (`/api/log*` → 404) | **Prouve la DÉTECTION d'erreur.** Grep par `label` + préfixe `[AUTH]/[CONN]/[HTTP]/[POLL]/[INIT]`. Un statut peut être bon par hasard ; le log prouve que le module a vu la **bonne cause** (ex. `[CONN] Connection failed … NVX timeout`). |
+| 3 | **REST device (oracle)** | `NvxApiClient` (réutilisé de `src/api.ts`), GET sur le device | **Vérité terrain.** Baseline au début, vérification continue (anti-faux-positif), restauration au teardown. |
+| 4 | **Chromium** | Playwright (`playwright-core`, GLOBAL + `npm link`) + **Google Chrome système** (`channel:'chrome'`) | **L'irréductible UX** que REST ne peut pas faire : installer le module (le voir dans *Modules*), **créer** une connexion, **remplir le formulaire** (host/user/password). |
 
-**Frontière** : le Tier 0 teste la *logique du module* (rapide, court-circuite Companion) ; le Tier 1 prouve le *câblage réel* Companion→module→device (un POST encodeur peut marcher en Tier 0 mais être mal relié à un bouton — capté seulement en Tier 1).
-
-**Capacités d'observation sans navigateur** (vérifié, Companion v4.3.x — labo en v4.3.4) :
-- Presser un bouton : `POST /api/location/<page>/<row>/<col>/press`.
-- Lire une variable de module : `GET /api/variable/<label>/<name>/value` (v4.2+).
-- Lire le statut de connexion : `GET /api/connections/:id/status` (v4.3.0+).
-- Lire la **couleur de feedback résolue** : Satellite API TCP 16622 (`KEY-STATE` → COLOR/TEXT), seule surface l'exposant.
-- Le navigateur (Playwright) n'est requis que pour l'**UI de configuration de Companion** (formulaire, états grisés) — pas pour l'état fonctionnel du module.
-
-**Principes hérités** (REX + reference-uat-e2e-practices) :
-- **Anti-faux-positif** : un `PASS` exige le **croisement device** (GET réel), jamais la seule variable Companion.
-- **Lockout** : le Tier 0 **compte exactement** les logins (1 faux pour A2, jamais de retry — le harness ne boucle pas). Budget ~3 échecs (15 min/24 h) trivial à respecter.
-- **Test d'absence** (pas de reconnexion, C3) : **proxy positif** (un marqueur/log prouvant que l'absence persistera), pas un simple « rien vu pendant 30 s ».
+**Principe** : on utilise au **maximum REST API Companion** ; on lit les **logs** quand on cherche une erreur ; on interroge le **device** quand on valide une modification ; on n'ouvre **Chromium** que pour l'irréductible (install + saisie config).
 
 ---
 
-## 3. Orchestration d'un run & fallback LLM
-
-**Entrée unique** `scripts/uat/run.ts` (moule `capture-nvx.ts` : env-vars + ts-resolver), respectant l'**ordre non négociable** de `docs/UAT.md` :
+## 3. Le parcours (v0.1 = fondation traversée · **v0.2 Encoder = cœur du test**)
 
 ```
-1. Tier 0 — auth-gauntlet (A1 vide → A2 faux → A3 bon)   ⟵ lockout-sensible, EN PREMIER
-2. Tier 0/1 — lectures non destructives (variables, POST encodeur, feedbacks, statut)
-3. Tier 2 — UI config (Playwright)
-4. Tier 0 — disruptif EN DERNIER (C2 injoignable, C3 logout)
-   → [HUMAN] (C1 coupure physique) jamais exécuté par le harness
+1. INSTALL                Chromium : le module crestron-nvx apparaît dans Companion (Modules)
+2. CONFIG + GAUNTLET      Chromium remplit le formulaire · REST lit le statut · LOG vérifie la détection
+     • pas de mdp     → statut BadConfig             + log « no password » (zéro réseau)
+     • IP injoignable → statut ConnectionFailure     + log « [CONN] … NVX timeout »
+     • mdp erroné     → statut AuthenticationFailure + log « [AUTH] … 401/403 »
+     • bon + bonne IP → statut OK                    + ORACLE confirme la session côté device
+3. BASELINE               Oracle : snapshot de l'état device de départ (détection de changement + restauration)
+4. USE = v0.2 ENCODER     REST presse · ORACLE valide · REST lit variables/statut · LOG vérifie StatusId
+     • CAP : device_role=Transmitter (REST /api/variable) → panneau encoder actif (actions exposées)
+     • set_stream_name / set_multicast_address → ORACLE : Streams[0] changé ; LOG : StatusId 0
+     • enable_stream / disable_stream → ORACLE : Status « Stream started/Stopped » (transition)
+     • feedbacks is_encoder / stream_enabled / stream_name_matches ; variables stream_*
+     • edge v0.2 : device en Receiver → panneau encoder ABSENT (correct, pas un échec)
+5. TEARDOWN               Oracle restaure l'état device · REST/Chromium désactive la connexion · logout émis
 ```
 
-**Modèle de verdict** — chaque cas (1 fonction → `Verdict`) produit :
+**Extensible** : v0.3 Decoder, etc. réutilisent les phases 1-3 et 5 ; seule la phase 4 (USE) change de sous-système.
 
-| Verdict | Sens | Suite |
+---
+
+## 4. Modèle de verdict, oracle, reporting (réutilise le socle Vague 1)
+
+- **Verdict par étape** : `PASS` / `FAIL` / `AMBIGUOUS` / `HUMAN` / `SKIP` (inchangé, `scripts/uat/lib/verdict.ts`).
+- **Oracle (device)** :
+  1. **Baseline** au début du parcours (snapshot `StreamTransmit` etc.).
+  2. **Vérif continue** : après chaque action via Companion, comparer device-maintenant vs attendu (jamais la seule variable Companion — anti-faux-positif).
+  3. **Restauration** au teardown (run idempotent, rejouable).
+- **Vérification d'une erreur attendue = TRIPLE** : (a) statut Companion (REST) = l'état attendu ; (b) **log** Companion = la bonne cause détectée ; (c) le cas échéant, l'oracle confirme (ex. « bon mdp → une session existe vraiment »). Le log distingue « bon statut par hasard » de « bonne cause détectée ».
+- **Reporting** : `report.md` + `escalation.json` (`scripts/uat/lib/report.ts`, avec `redact()` anti-fuite secret). Les cas `FAIL`/`AMBIGUOUS`/`HUMAN` escaladés au `uat-runner` LLM (fallback batch inchangé).
+- **Lecture des logs corrélée** : avant une action, **mémoriser la position courante du log** (timestamp/nb de lignes) ; après l'action, ne lire que les **nouvelles** lignes du `label` concerné → évite de capter un log d'un run précédent.
+
+---
+
+## 5. Local vs labo (réalité du device)
+
+| Étape | Local (Companion seul) | Labo (device requis) |
 |---|---|---|
-| `PASS` | assertion + croisement device OK | — |
-| `FAIL` | assertion contredite (avec preuve) | escalade LLM (vrai bug ? ou limite harness ?) |
-| `AMBIGUOUS` | le harness ne peut conclure (ex. POST inféré ENC-02/03, observation limite) | escalade LLM |
-| `HUMAN` | exige un geste physique (`[HUMAN]`, C1) | escalade LLM mode assisté |
-| `SKIP [-]` | précondition non remplie (ex. device en Receiver) | noté, non bloquant |
+| 1. Install | ✅ | |
+| 2a. pas de mdp → BadConfig | ✅ (garde pure, zéro réseau) | |
+| 2b. IP injoignable → ConnectionFailure | ✅ (IP TEST-NET `192.0.2.1` → timeout — déjà observé live) | |
+| 2c. mdp erroné → AuthenticationFailure | | ✅ (exige un device **joignable qui rejette** → 401/403) |
+| 2d. bon mdp → OK | | ✅ |
+| 3-4. Baseline + USE v0.2 | | ✅ (device Transmitter) |
+| 5. Teardown | partiel (désactiver/logout) | restauration device au labo |
 
-**Fallback piloté par le rapport (batch, pas inline)** :
-1. Le harness scriptable tourne **jusqu'au bout** (le chemin rapide ne bloque jamais sur le LLM) et émet dans `docs/uat-runs/<date>-<version>/` :
-   - `report.md` — lisible (format `docs/UAT.md` : verdict + preuve par cas) ; **rejouable sans Claude**.
-   - `escalation.json` — paquet machine : cas `FAIL`/`AMBIGUOUS`/`HUMAN` **avec contexte complet** (précondition, action jouée, JSON device brut, réponses Companion, logs, attendu vs observé).
-2. **Étape 2 optionnelle** : lancer le `uat-runner` LLM avec `escalation.json`. Il (a) re-juge les `FAIL`/`AMBIGUOUS`, (b) pilote en **assisté** les `[HUMAN]` (dicte les gestes, juge les observations opérateur), (c) traite les cas UI-config résiduels via Playwright MCP, puis **fusionne** ses verdicts dans `report.md`.
+**Un seul parcours**, chaque étape marquée local/labo. Le sous-ensemble **local** (install + config + 2 échecs sur 3) est exécutable et rejouable **maintenant** ; le reste s'exécute au créneau labo.
 
-`AMBIGUOUS` est un verdict de **première classe** (pas un FAIL déguisé) : un POST inféré (ENC-02/03) qui « semble » marcher sans avoir été validé en écriture mérite l'œil du LLM + un `[HUMAN]` de confirmation, pas un faux PASS.
+**Discipline lockout** : seul **2c (mdp erroné)** consomme du budget (1 échec) — et le module ne retente pas sur `AuthenticationFailure` (tracé `api.ts`), donc **exactement 1 échec**. À jouer une seule fois, device en main.
 
 ---
 
-## 4. Configuration, secrets & bootstrap Companion (Tier 1)
+## 6. Ce qui est réutilisé / ce qui change
 
-**Secrets — séparation par tier** :
+**Réutilisé** (rien jeté) :
+- Socle Vague 1 : `verdict.ts`, `report.ts` (+`redact()`), orchestrateur, hook test/pretest.
+- `NvxApiClient` (`src/api.ts`) → devient le **client oracle** (lecture device).
+- Le smoke Chromium (`playwright-core` + `channel:'chrome'`) → base de la couche Chromium.
+- Les « cas » A1/A2/A3/ENC de la Vague 2 → **ré-exprimés en étapes du parcours** (la logique reste, l'orchestration change : via Companion, plus en court-circuit).
 
-| Secret | Tier 0 (direct device) | Tier 1 (via Companion) |
-|---|---|---|
-| Mot de passe NVX | `NVX_PASS` (env, jamais commité) | **stocké dans Companion** (saisi 1 fois par l'opérateur) → le harness ne le voit jamais |
-| Host/port device | `NVX_HOST` / `NVX_PORT` (env) — pour le GET de croisement | idem |
-| Accès Companion | — | `COMPANION_URL` (défaut `http://localhost:8000`) + `COMPANION_API_KEY` optionnel |
-
-Le Tier 1 n'a pas besoin du mot de passe NVX (Companion détient les credentials). Le secret le plus sensible reste en un seul endroit pour ce tier.
-
-**Bootstrap Tier 1 — setup unique documenté, pas d'auto-magie** :
-- L'API HTTP de Companion **ne crée pas** de connexion ni de boutons (seulement enable/disable/restart/status). Et **éditer `db.sqlite` en live est fragile/non supporté** (REX). → On assume un **setup opérateur unique, versionné**.
-- **Fixtures committées (secret-free)** :
-  - `uat/companion-page.companionconfig` — export d'une page Companion : boutons liés aux actions/feedbacks du module à des positions connues.
-  - `uat/layout.json` — carte `action/feedback → page/row/col` + page de surface Satellite à observer + **label** de connexion attendu.
-- **Runbook** `docs/uat-runs/SETUP.md` : importer la page, créer la connexion NVX au **label connu**, taper le mot de passe une fois.
-- **Garde-fou de précondition** : avant le Tier 1, le harness vérifie via `GET /api/connections` que Companion répond + que la connexion au label existe (et résout son `id`). Sinon → cas Tier 1 en `SKIP [-]` avec message « lancer le setup unique » ; **jamais** de crash ni d'édition DB.
-
-**Décision de périmètre (REX)** : l'**auth-gauntlet (A1/A2/A3) est Tier 0 uniquement** (direct device). On ne le rejoue pas via l'UI Companion (fragile, et ça testerait Companion, pas le module).
-
----
-
-## 5. Structure de code, runner & reporting
-
-```
-scripts/uat/
-├── run.ts                  # orchestrateur (entrée unique, env-driven, ordre UAT.md)
-├── lib/
-│   ├── verdict.ts          # modèle PASS/FAIL/AMBIGUOUS/HUMAN/SKIP + helpers d'assertion
-│   ├── report.ts           # émetteurs report.md + escalation.json
-│   ├── companion-http.ts   # client HTTP /api/... (press, variable, connections/status)
-│   └── satellite-client.ts # client TCP Satellite natif (net.Socket → parse KEY-STATE)
-├── tiers/{tier0-logic,tier1-companion,tier2-ui}.ts
-└── cases/{auth,encoder,…}.ts   # définitions de cas (1 cas = fn → Verdict)
-uat/
-├── layout.json             # committé, secret-free : button-map + label connexion
-└── companion-page.companionconfig   # committé : export page Companion
-docs/uat-runs/
-├── SETUP.md                # runbook setup unique opérateur
-└── <date>-<version>/{report.md, escalation.json}
-```
-
-**Runner & reporting** :
-- **Orchestrateur dédié, pas `node:test`** : l'ordre strict (gauntlet séquentiel lockout-sensible), le contrôle des credentials et le **rapport unifié cross-tier** ne rentrent pas dans le modèle parallèle de `node:test`. `run.ts` est un script (moule `capture-nvx.ts`) ; chaque cas est une fonction → `Verdict`, séquencée dans l'ordre UAT.md.
-- **Playwright en librairie** (`import { chromium } from 'playwright'`), **pas `@playwright/test`** → un seul orchestrateur, un seul rapport.
-- **Lancement** : `node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/run.ts` + npm scripts `uat`, `uat:tier0`. Playwright (devDep) + `npx playwright install` = partie du setup.
-- **Reporting** : `report.md` (humain, format UAT.md) + `escalation.json` (machine). JUnit/Allure différés (gate Zéro Installation ; cf. reference-uat-e2e-practices).
-- **Le harness teste le harness** : `verdict.ts`, `report.ts`, le parser `satellite-client` (sur frames capturées) sont unit-testables `node:test` sur fixtures, **sans device**.
-
----
-
-## 5 bis. Tier 2 — couverture complète du formulaire de config (Playwright)
-
-Périmètre = **le formulaire de configuration DU MODULE** (les 8 champs déclarés dans `src/config.ts:getConfigFields`), pas l'UI générique de Companion. Companion tourne **en local** (image `ghcr.io/bitfocus/companion/companion` présente sur la machine) — ce tier ne dépend **pas** du labo.
-
-| Cas | Vérifie |
-|---|---|
-| **UI-01** | Les 8 champs s'affichent avec type/label corrects : `info` (static-text), `host` (textinput), `port` (number), `username` (textinput), `password` (secret-text), `pollInterval` (number), `ignoreSelfSignedCert` (checkbox), `verbose` (checkbox). |
-| **UI-02** | `password` est un champ **secret masqué** (canal `secrets`, jamais rendu en clair) — non-régression du « Bug A » (cf. `sdk-companion`). |
-| **UI-03** | Bornes des `number` appliquées par l'UI : `port` ∈ [1, 65535], `pollInterval` ∈ [500, 30000]. |
-| **UI-04** | Valeurs par défaut pré-remplies : `port=443`, `username=admin`, `pollInterval=2000`, `ignoreSelfSignedCert` coché, `verbose` décoché. |
-| **UI-05** | Persistance : les valeurs sauvegardées sont re-pré-remplies à la ré-ouverture de la config. |
-| **UI-06** | Contrainte REX : config **non éditable quand l'instance est `disabled`** — documenter/vérifier le comportement (impacte la mise en scène UAT). |
-
-**Hors périmètre Tier 2** : le comportement générique de l'UI Companion (layout, navigation) — on teste **notre module**, pas Companion.
-
----
-
-## 6. Jalons d'implémentation
-
-| Vague | Contenu | Dépend de | Valeur |
-|---|---|---|---|
-| **1 — Fondation** | verdict model + report (md+json) + squelette orchestrateur (ordre, config env, registre de cas) | rien (zéro install, zéro device) | socle testable |
-| **2 — Tier 0** | auth-gauntlet + POST encodeur + mapping variables + C2/C3 via `NvxApiClient` | Vague 1 | **ROI immédiat** : tue le gauntlet LLM lent, zéro install |
-| **3 — Tier 1** | `companion-http` + `satellite-client` + cas intégration (CAP-01, ENC-06 couleur, B-reads) | Companion qui tourne + fixture layout | preuve de câblage |
-| **4 — Tier 2 + escalade** | cas Playwright UI-config + glue `escalation.json` → `uat-runner` + fusion rapport | Playwright + uat-runner | UI + boucle LLM |
-
-Chaque vague = logiciel livrable et testable. **Vagues 1+2 délivrent l'essentiel du ROI sans Companion ni Playwright** (zéro install) ; 3-4 ajoutent l'intégration et l'UI.
+**Ce qui change vs la version « 3 tiers »** :
+- Plus de « Tier 0 bypass-Companion » comme couche : le device en direct n'est plus un *chemin de test* mais un *oracle*.
+- Nouvel outil **logs** (via `docker logs`) — vérification de la détection d'erreur.
+- Nouvelle couche **Companion HTTP** centrée sur `/api/connections/:id/status` (statut/alerte sans navigateur).
+- Le parcours remplace les « tiers » comme unité d'organisation.
 
 ---
 
 ## 7. Décisions validées
 
-1. Architecture **3 tiers** (logique directe / intégration API Companion / UI Playwright) + **fallback LLM batch**.
-2. **Playwright en devDependency** autorisé (décision Zéro Installation de Didier).
-3. **Fallback piloté par le rapport** (`escalation.json`), pas inline — le chemin rapide reste pur.
-4. **Auth-gauntlet en Tier 0 uniquement** (direct device).
-5. **Setup Companion unique documenté** + fixtures committées ; jamais d'édition `db.sqlite` live ; garde-fou `SKIP`.
-6. **Orchestrateur dédié** (pas `node:test`) + **Playwright en librairie** (pas `@playwright/test`) → run + rapport unifiés.
+1. **Objectif = tester le module via le parcours utilisateur** (install → config → use → teardown), happy + échecs normaux.
+2. **4 outils complémentaires** : REST API Companion (max) · logs (`docker logs`, détection d'erreur) · REST device (oracle : baseline/vérif/restauration) · Chromium (Google Chrome via Playwright, install+config seulement).
+3. **Statut/alerte lu en REST** (`/api/connections/:id/status`) → Chromium réduit à l'irréductible.
+4. **v0.2 Encoder = cœur de la phase USE** (v0.1 = fondation traversée). Extensible v0.3+.
+5. **Oracle device** : baseline au début, vérif continue anti-faux-positif, restauration au teardown.
+6. **Sous-ensemble local exécutable maintenant** (install + config + 2 échecs) ; happy path complet au labo.
 
 ---
 
-## 8. Hors périmètre / à confirmer
+## 8. Hors périmètre / à confirmer (découvertes Vague 1 du plan)
 
-- **Reporting riche** (Allure, JUnit XML) : différé (Zéro Installation). `report.md` markdown suffit en v1.
-- **Auto-setup de l'instance Companion** : non supporté par l'API → exclu (setup opérateur unique à la place).
-- **Authentification de l'API HTTP Companion** : à vérifier en **local** (image Companion présente sur la machine — **non dépendant du labo**) en démarrant le conteneur au début de la Vague 3. `COMPANION_API_KEY` prévu en option si l'API exige une clé.
-- **Détail du protocole Satellite** (séquence `ADD-DEVICE`, navigation de pages, parsing `KEY-STATE`) : à figer au plan d'implémentation (Vague 3) ; le parser est unit-testable sur frames capturées.
-- **Cas Tier 2** : **résolus** — couverture complète du formulaire de config du module (UI-01..06, cf. §5 bis). « Tout tester » = tous nos champs de config + masquage secret + pièges REX.
+- **Forme JSON exacte de `/api/connections/:id/status`** (statut + message) : à confirmer en live (endpoint présent).
+- **Sélecteurs du formulaire de config** (Chromium) : pas de `data-testid` dans Companion → POM par rôle/texte/`title` (gotchas du dry-run 2026-06-11 en mémoire) ; cibler les inputs par label → champ adjacent.
+- **Lecture des logs** : `docker logs <conteneur>` confirmé ; nom du conteneur/service compose **configurable** (le harness lance une commande docker — dépendance assumée à l'accès Docker local).
+- **Frames Satellite `KEY-STATE`** (couleur de feedback résolue) : à capturer si on veut vérifier la couleur d'un feedback côté UI ; sinon les feedbacks se valident via leur effet (variables/état) + l'oracle.
+- **Création/config de connexion via Chromium** : reprend le REX (config éditable, création de connexion neuve évite le piège « vider un mdp stocké »).
+- **Reporting riche** (Allure/JUnit) : différé. `report.md` + `escalation.json` suffisent.
