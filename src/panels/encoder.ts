@@ -1,3 +1,4 @@
+import { combineRgb } from '@companion-module/base'
 import type { Panel } from './types.js'
 import { subsystemObject } from '../capability.js'
 
@@ -67,5 +68,22 @@ export const encoderPanel: Panel = {
       },
     },
   }),
-  buildFeedbacks: () => ({}),   // filled in Task 8
+  buildFeedbacks: (state) => ({
+    stream_enabled: {
+      type: 'boolean',
+      name: 'Encoder: stream enabled',
+      description: 'Active when the encoder stream is started',
+      defaultStyle: { bgcolor: combineRgb(0, 170, 0), color: combineRgb(255, 255, 255) },
+      options: [],
+      callback: () => state().stream_enabled === true,
+    },
+    stream_name_matches: {
+      type: 'boolean',
+      name: 'Encoder: stream name matches',
+      description: 'Active when the encoder stream name equals the given value',
+      defaultStyle: { bgcolor: combineRgb(0, 102, 204), color: combineRgb(255, 255, 255) },
+      options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '' }],
+      callback: (fb) => state().stream_name === String(fb.options.name ?? ''),
+    },
+  }),
 }
