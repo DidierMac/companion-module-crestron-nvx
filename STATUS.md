@@ -1,9 +1,9 @@
-• Session 2026-06-14 (très dense) : DEUX chantiers. (1) v0.2 Encoder CODE COMPLET sur feature/v0.2-encoder (3 vagues, 44 tests, revues GO) → attend UAT labo. (2) Harness UAT NOUVEAU sur feature/uat-harness : spec+plan+Vagues 1-2 (66 tests) + smoke live réussi.
+• Session 2026-06-14 (très dense, multi-itérations). DEUX chantiers. (1) v0.2 Encoder CODE COMPLET sur feature/v0.2-encoder (44 tests, revues GO) → attend UAT labo. (2) Harness UAT sur feature/uat-harness : REDESIGN parcours utilisateur + 4 outils, Wave 0 découverte faite.
 • Roadmap : GATE capture ✅ → v0.2 Encoder (CODE FAIT, UAT à venir) → v0.3 Decoder → v0.4 Audio/Vidéo → v0.5 Device-Ops → v1.0
-• v0.2 : panneau=1 sous-système+gate ; main.ts migré (scheduleReconnect intact) ; hook pretest typecheck ; checkAllFeedbacks ; upgrades.ts supprimé. Scénarios UAT v0.2 dans docs/UAT.md. ⛔ pas de merge develop sans UAT labo.
-• Harness UAT : 3 tiers + fallback LLM batch. Vagues 1-2 = socle (verdict/report/redact) + Tier 0 (auth-gauntlet, encoder POST, restauration device). Runner dédié. playwright-core GLOBAL+npm link (channel:chrome). Smoke live : Companion 4.3.4 + module crestron-nvx (dev) + Chrome système vus.
+• Harness UAT — REDESIGN (après /fin) : abandonné l'orga « 3 tiers » → PARCOURS UTILISATEUR + 4 outils (REST API Companion · logs docker · REST device=oracle · Chromium=Chrome système). Spec COURANTE = specs/2026-06-14-uat-harness-design.md (78a6dc6) ; plan COURANT = plans/2026-06-14-uat-harness-journey.md (ff16f72). Socle Vagues 1-2 (66 tests : verdict/report/redact + oracle) réutilisé.
+• Wave 0 découverte FAITE (e5e5681, c784336) : statut INLINE dans /api/connections ({category,level,message}) ; corrélation logs `docker logs --since <ISO-Z>` (Z obligatoire) ; flux formulaire config cartographié (modales Welcome→Cancel/What's New→X, search NVX→Add). Notes : scripts/uat/fixtures/discovery-notes.md.
 
-▶ NEXT harness = VAGUE 3 (Tier 1 Companion, FAISABLE EN LOCAL sans device) : capturer frames Satellite KEY-STATE → companion-http.ts + satellite-client.ts + cas CAP-01/ENC-06/B1-B3 + uat/layout.json + SETUP.md. Plan = docs/superpowers/plans/2026-06-14-uat-harness.md (Tasks 9-16).
-▶ NEXT v0.2 = UAT au labo (device requis, mode Transmitter). Backlog complet : docs/VALIDATION.md.
-▶ Env live laissé : conteneur companion-uat (port 8000, module chargé). 2 vulns npm « high » (playwright-core) à voir à froid. package.json reformaté cosmétique non committé (laissé). scripts/uat/_browser-smoke.mjs untracked.
-▶ Sources de vérité reprise : plans (57a04b3 v0.2, 2026-06-14 harness) + docs/VALIDATION.md + mémoire project-state.
+▶ NEXT harness = WAVE 1 du plan journey (4 outils companion-http/companion-logs/oracle/chromium) → Wave 2 (étapes LOCALES install + 2 échecs, runnable SANS device) → Wave 3 labo. Locators précis du formulaire = Wave 1 Task 1.4 (flux déjà cartographié).
+▶ NEXT v0.2 = UAT au labo (device, mode Transmitter). Backlog : docs/VALIDATION.md.
+▶ Env live laissé : companion-uat sur :8001 (isolé, module chargé) + Companion compose Didier sur :8000 (3 instances NVX, NE PAS reprendre 8000). playwright-core global+npm link, Chrome 149. 2 vulns npm high (playwright-core) à voir à froid.
+▶ Untracked : scripts/uat/_browser-smoke.mjs, scripts/uat/_explore-config.mjs (smokes jetables). package.json reformaté cosmétique non committé (laissé).
