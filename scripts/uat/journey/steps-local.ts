@@ -10,6 +10,10 @@ import type { JourneyStep, JourneyContext } from './types.js'
  * Log timing is deterministic: mark() is stamped BEFORE restart(), so the cause is always
  * logged after the mark (no reliance on enable() being non-idempotent).
  */
+// The NVX timeout logs ~5s after a restart (measured Wave 2 Task 2.3); poll up to ~15s.
+const LOG_POLL_ATTEMPTS = 15
+const LOG_POLL_DELAY_MS = 1000
+
 async function configFailureStep(
   ctx: JourneyContext,
   fields: { host?: string; username?: string; password?: string },
@@ -18,25 +22,33 @@ async function configFailureStep(
   id: string,
   title: string,
 ): Promise<Verdict> {
-  // 1. Apply the config state through the UI (the one thing REST cannot do).
+  // 1. Locate the connection (REST) — needed to deep-link its config editor.
+  const connId = await ctx.http.findConnectionId(ctx.config.label)
+  if (!connId) return fail(id, title, 1, { note: `connection '${ctx.config.label}' not found — run SETUP` })
+
+  // 2. Apply the config state through the UI (the one thing REST cannot do).
   const page = await ctx.ui.open()
   try {
+    await ctx.ui.openConnectionConfig(page, connId)
     await ctx.ui.fillConfig(page, fields)
   } finally {
     await ctx.ui.close()
   }
 
-  // 2. Locate the connection.
-  const connId = await ctx.http.findConnectionId(ctx.config.label)
-  if (!connId) return fail(id, title, 1, { note: `connection '${ctx.config.label}' not found — run SETUP` })
-
   // 3. Mark logs, then force a fresh attempt so the cause is logged AFTER the mark.
   const m = ctx.logs.mark()
   await ctx.http.restart(connId)
 
-  // 4. Triple-check: REST status category + log proof of the cause.
+  // 4. Wait (bounded) for the cause to appear in the logs — the category is already sticky,
+  //    but the proof line lands only after the NVX attempt completes.
+  let logged = false
+  for (let i = 0; i < LOG_POLL_ATTEMPTS && !logged; i++) {
+    logged = ctx.logs.detect(m, ctx.config.label, causeRe)
+    if (!logged) await ctx.sleep(LOG_POLL_DELAY_MS)
+  }
+
+  // 5. Triple-check: REST status category + log proof of the cause.
   const st = await ctx.http.status(connId)
-  const logged = ctx.logs.detect(m, ctx.config.label, causeRe)
   return st.category === expectCat && logged
     ? pass(id, title, 1, { companion: st, note: `status=${expectCat} + cause logged` })
     : fail(id, title, 1, {

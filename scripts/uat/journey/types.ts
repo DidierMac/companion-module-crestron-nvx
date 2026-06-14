@@ -18,6 +18,8 @@ export interface JourneyContext {
   logs: CompanionLogs
   oracle: Oracle
   ui: CompanionUi
+  /** Bounded-wait primitive (real setTimeout in prod, instant in tests). */
+  sleep: (ms: number) => Promise<void>
 }
 
 export interface JourneyStep {

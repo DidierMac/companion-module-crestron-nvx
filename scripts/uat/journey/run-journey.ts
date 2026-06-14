@@ -37,6 +37,7 @@ export function buildContext(cfg: JourneyConfig): JourneyContext {
     logs: new CompanionLogs(cfg.container),
     oracle: new Oracle(() => makeClient(harness)),
     ui: new CompanionUi(cfg.companionUrl),
+    sleep: (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
   }
 }
 

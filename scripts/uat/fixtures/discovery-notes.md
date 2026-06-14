@@ -46,3 +46,16 @@ Exploration Playwright (Chrome système, `companion-uat` isolé sur :8001) — *
 3. Cliquer **Add** → le formulaire de config apparaît (host/port/username/password/poll/verbose, cf. `src/config.ts`).
 
 **À finaliser en Task 1.4** : une fois le formulaire atteint, capturer la stratégie de locators. `getByLabel(...)` a renvoyé 0 (mais le form n'avait pas été atteint — non concluant) ; plan B confirmé par le dry-run 2026-06-11 (mémoire) = **pas de `data-testid` ni d'association label/for** → cibler par **texte de label → input adjacent** (`label:has-text(...) + input` ou `locator('label').filter(...).locator('xpath=following::input[1]')`). Champs (labels exacts depuis `config.ts`) : « Device IP / Hostname », « HTTPS Port », « Username », « Password », « Poll Interval (ms) », « Ignore Self-Signed Certificate », « Enable verbose logging ».
+
+## 5. Task 2.3 — VÉRIFIÉ LIVE contre Companion 4.3.4 (`companion-nvx-companion-1`, :8000, 2026-06-14)
+
+Run `npm run uat:journey` → **3/3 PASS** (INSTALL, CFG-NOPASS, CFG-UNREACHABLE) contre le vrai Companion. Hypothèses Wave 0 toutes réfutées-survivantes :
+
+- **Modal d'onboarding** : en contexte `playwright-core` frais (≠ profil MCP onboardé), **seul « What's New »** apparaît, **~3 s APRÈS `domcontentloaded`** (rendu React). Bouton de fermeture = `<button class="btn btn-close" aria-label="Close">` → sélecteur `.modal.show .btn-close, button[aria-label="Close"]`. ⚠️ Le `dismissOnboarding` doit **poller** (le modal arrive tard) et **re-dismisser après chaque `page.goto`** (un rechargement complet le réaffiche).
+- **Création connexion** : Add → modale « Add Crestron: … » avec champ Label (`input[name="colFormLabel"]`) → renommer → bouton **Add**. La connexion s'ouvre en deep-link **`/connections/<id>`** (le form de config y est directement accessible).
+- **Locators du formulaire = VÉRIFIÉS** : inputs **sans name/id/placeholder**, labels = `<div>` (pas `<label for>`) → `getByLabel`=0. Stratégie qui marche : **`//*[normalize-space(text())="<label>"]/following::input[1]`** (nœud-feuille → input suivant en ordre documentaire ; `following::` exclut les descendants). Vérifié pour host/port/username/password/poll.
+- **Sauvegarde** : pas de bouton « Save » permanent. Sans changement → Save **disabled** + « Done ». Après un changement de champ → Save **enabled** + « Cancel ». Donc `fillConfig` clique Save **seulement si `isEnabled()`**.
+- **INSTALL** : `getByText('DM-NVX')` → `count()>0` (présence DOM), **PAS** `isVisible()` (la plupart des matches sont dans la sidebar Variables repliée = cachés). Si le module était absent, le label « DM-NVX » ne se rendrait pas (« Unknown module »).
+- **Statut BadConfig (no-password)** : `category: "warning"` (hypothèse Wave 0 **confirmée**) · log `[CONN] No password configured — not attempting login` (immédiat, sans réseau).
+- **Timing logs après `restart` REST** : `category` reste `error`/`warning` immédiatement (sticky), mais la **ligne de preuve** `[CONN]/[HTTP]` arrive **~5 s** après (timeout NVX). → le step **poll le log** (15×1 s) ; le `sleep` est injecté dans `JourneyContext` (réel en prod, no-op en test).
+- **Connexion `nvx-uat` créée** dans le Companion compose (id `PrAb-tXh4zXbVP5oharQc`) — connexion de test dédiée, persiste pour les runs suivants (teardown en Wave 3).

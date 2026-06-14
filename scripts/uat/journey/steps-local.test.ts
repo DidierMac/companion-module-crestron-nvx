@@ -25,8 +25,10 @@ function ctx(over: Partial<JourneyContext> = {}): JourneyContext {
       open: async () => ({}),
       close: async () => {},
       moduleAvailable: async () => true,
+      openConnectionConfig: async () => {},
       fillConfig: async () => {},
     } as never,
+    sleep: async () => {},
   }
   return { ...base, ...over } as JourneyContext
 }
