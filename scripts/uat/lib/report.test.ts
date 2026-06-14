@@ -32,3 +32,15 @@ test('renderEscalation keeps only FAIL/AMBIGUOUS/HUMAN with full evidence', () =
   assert.equal(enc.evidence.expected, 'X')
   assert.equal(enc.evidence.observed, 'Y')
 })
+
+test('redaction: secrets in evidence never reach md or json', () => {
+  const leaky: RunResult = {
+    startedAt: '2026-06-14T10:00:00.000Z', version: 'v0.2',
+    verdicts: [fail('X', 'leak', 0, { observed: { password: 'hunter2', token: 'abc', host: '1.2.3.4' } })],
+  }
+  const md = renderMarkdown(leaky)
+  const pkt = JSON.stringify(renderEscalation(leaky))
+  assert.doesNotMatch(md, /hunter2|abc/)
+  assert.doesNotMatch(pkt, /hunter2|abc/)
+  assert.match(pkt, /1\.2\.3\.4/) // non-sensitive value preserved
+})

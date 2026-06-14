@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import type { UatCase, HarnessConfig, RunResult, RunContext } from './lib/case.js'
 import type { Tier, Verdict } from './lib/verdict.js'
 import { writeRun } from './lib/report.js'
@@ -62,6 +63,6 @@ async function main(): Promise<void> {
 }
 
 // Only run main() when executed directly, not when imported by tests.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   void main()
 }
