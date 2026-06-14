@@ -25,11 +25,16 @@
 
 > Items que le plan `docs/superpowers/plans/2026-06-14-uat-harness.md` (Task 9) impose de **capturer avant** d'écrire le code dépendant. Companion tourne en local (image présente) — **pas besoin du labo**.
 
-- [ ] **Auth de l'API HTTP Companion** — ouverte (réseau local) ou clé requise ? → démarrer le conteneur et sonder `GET /api/connections`.
+- [x] **Auth de l'API HTTP Companion** — ✅ **OUVERTE, aucune clé** (testé live, Companion 4.3.4 local : `GET /api/connections` → `[]` HTTP 200).
 - [ ] **Format exact des frames Satellite `KEY-STATE`** — capturer (séquence `ADD-DEVICE`, tokens COLOR/TEXT) ; le parser Tier 1 s'écrit **contre la capture**, pas contre la doc.
-- [ ] **Forme JSON de `/api/connections`** — pour résoudre l'`id` de connexion par `label`.
-- [ ] **Endpoints HTTP confirmés** — `/api/location/.../press`, `/api/variable/<label>/<name>/value`, `/api/connections/:id/status` (vérifiés en doc, à confirmer en live).
+- [~] **Forme JSON de `/api/connections`** — endpoint OK (`[]` sans connexion) ; forme avec instance à voir une fois une connexion créée.
+- [x] **Endpoints HTTP confirmés** — ✅ live : `POST /api/location/1/0/0/press` → 204 ; `GET /api/variable/internal/time_hms/value` → 200 ; `GET /api/connections` → 200. (`:id/status` à confirmer avec une connexion.)
 - [ ] **Sélecteurs DOM Tier 2** — formulaire de config du module (role/text/title, pas de data-testid dans Companion) pour UI-01..06.
+
+### Découvertes live (2026-06-14) — recette SETUP.md Vague 3
+- **Chargement du module en dev** (vérifié) : `docker run -d --name companion-uat -p 8000:8000 -v <repo>:/extra-modules/crestron-nvx ghcr.io/bitfocus/companion/companion:latest --extra-module-path /extra-modules` → logs « Connection: crestron-nvx … (Dev) ». Le flag est **`--extra-module-path <dir>`** (dir contenant les dossiers de modules). Module id = `crestron-nvx`.
+- **Navigateur Tier 2 sans téléchargement** (vérifié) : `playwright-core` (installé **global** par Didier, lié au projet via `npm link` — PAS en devDep) + `chromium.launch({ channel: 'chrome' })` → pilote le Google Chrome système (149). Ouvre l'UI Companion (titre « Bitfocus Companion - Admin »). ⚠️ Le harness Tier 2 (`import 'playwright-core'`) suppose ce global+link sur la machine ; à documenter pour autre dev/CI.
+- **Conteneur** `companion-uat` laissé tournant (port 8000). **2 vulnérabilités npm « high »** dans l'arbre `playwright-core` (global) — à regarder à froid, pas de `audit fix --force`.
 
 ## C. Harness UAT — à valider au 1er run réel (device + Companion)
 
