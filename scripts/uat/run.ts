@@ -6,7 +6,7 @@ import { writeRun } from './lib/report.js'
 import { authCases } from './cases/auth.js'
 import { encoderCases } from './cases/encoder.js'
 
-const PHASE_ORDER: Record<UatCase['phase'], number> = { auth: 0, read: 1, ui: 2, disruptive: 3 }
+const PHASE_ORDER: Record<UatCase['phase'], number> = { auth: 0, read: 1, write: 2, ui: 3, disruptive: 4 }
 
 /** Stable sort by docs/UAT.md phase order (auth → read → ui → disruptive). */
 export function orderCases(cases: UatCase[]): UatCase[] {

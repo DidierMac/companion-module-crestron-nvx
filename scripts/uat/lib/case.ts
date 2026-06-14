@@ -1,7 +1,8 @@
 import type { Verdict, Tier } from './verdict.js'
+import type { NvxApiClient } from '../../../src/api.js'
 
 /** Phases map to docs/UAT.md ordering: auth gauntlet first, disruptive last. */
-export type Phase = 'auth' | 'read' | 'ui' | 'disruptive'
+export type Phase = 'auth' | 'read' | 'write' | 'ui' | 'disruptive'
 
 export interface HarnessConfig {
   nvxHost: string
@@ -15,6 +16,8 @@ export interface HarnessConfig {
 
 export interface RunContext {
   config: HarnessConfig
+  /** Optional client factory for tests (DI). Defaults to makeClient. */
+  clientFactory?: (config: HarnessConfig) => NvxApiClient
 }
 
 export interface UatCase {

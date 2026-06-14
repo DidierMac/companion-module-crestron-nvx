@@ -8,7 +8,11 @@ const ESCALATED: VerdictStatus[] = ['FAIL', 'AMBIGUOUS', 'HUMAN']
 const SENSITIVE = /pass(word)?|secret|token|cookie|sessionid|authorization|api[_-]?key/i
 
 /** Recursively mask values whose KEY looks sensitive, so secrets in evidence
- *  (device/Companion JSON dumps) never reach report.md or escalation.json. */
+ *  (device/Companion JSON dumps) never reach report.md or escalation.json.
+ *  ⚠️ Masque par CLÉ uniquement (pass/token/cookie/…). Un secret apparaissant
+ *  comme VALEUR sous une clé non sensible (ex. dans une string `note`) n'est
+ *  PAS masqué — la non-fuite repose alors sur la discipline amont (api.ts
+ *  n'interpole jamais de secret dans ses messages d'erreur). */
 function redact(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(redact)
   if (value && typeof value === 'object') {
