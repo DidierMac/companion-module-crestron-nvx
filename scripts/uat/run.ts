@@ -3,6 +3,8 @@ import { pathToFileURL } from 'node:url'
 import type { UatCase, HarnessConfig, RunResult, RunContext } from './lib/case.js'
 import type { Tier, Verdict } from './lib/verdict.js'
 import { writeRun } from './lib/report.js'
+import { authCases } from './cases/auth.js'
+import { encoderCases } from './cases/encoder.js'
 
 const PHASE_ORDER: Record<UatCase['phase'], number> = { auth: 0, read: 1, ui: 2, disruptive: 3 }
 
@@ -45,8 +47,8 @@ export async function runCases(cases: UatCase[], ctx: RunContext): Promise<Verdi
   return verdicts
 }
 
-// The registry is populated as waves land. Empty in Wave 1.
-export const allCases: UatCase[] = []
+// Registry populated by wave. Wave 2 adds Tier 0 cases.
+export const allCases: UatCase[] = [...authCases, ...encoderCases]
 
 async function main(): Promise<void> {
   const config = loadConfig(process.env)
