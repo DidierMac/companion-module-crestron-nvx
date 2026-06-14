@@ -102,6 +102,19 @@ export class NvxApiClient {
 		return this.request<T>('POST', path, JSON.stringify(body))
 	}
 
+	/**
+	 * POST a CresNext SetPartial body to /Device and return the first
+	 * Results[].StatusId (0 = OK, 1 = Reboot needed, other = error, -1 = malformed).
+	 * Contract observed in docs/hardware-validation.md §4.
+	 */
+	async postSetPartial(body: unknown): Promise<number> {
+		const resp = await this.post<{ Actions?: Array<{ Results?: Array<{ StatusId?: number }> }> }>(
+			'/Device',
+			body,
+		)
+		return resp.Actions?.[0]?.Results?.[0]?.StatusId ?? -1
+	}
+
 	// ── Device info (v0.1 heartbeat) ─────────────────────────────────────────
 
 	async getDeviceInfo(): Promise<DeviceInfo> {
