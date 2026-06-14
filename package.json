@@ -6,6 +6,8 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"build:watch": "tsc -p tsconfig.build.json --watch",
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"pretest": "tsc -p tsconfig.json --noEmit",
 		"test": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs --test src/*.test.ts src/**/*.test.ts",
 		"lint": "eslint .",
 		"format": "prettier -w ."
