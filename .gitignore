@@ -10,3 +10,6 @@ dist/
 docs/uat-runs/assets/
 # UAT run artifacts (generated)
 docs/uat-runs/*/
+
+# UAT fake device — self-signed test cert (generated)
+scripts/uat/fake-device/certs/
