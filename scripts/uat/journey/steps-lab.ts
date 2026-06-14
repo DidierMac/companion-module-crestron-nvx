@@ -49,6 +49,117 @@ async function pollLog(ctx: JourneyContext, mark: { ts: string }, re: RegExp): P
   return logged
 }
 
+const str = (v: unknown): string => (typeof v === 'string' ? v : '')
+
+// Known test values the SETUP buttons must be configured to set (so the oracle can verify).
+const UAT_STREAM_NAME = 'UAT-STREAM'
+const UAT_MULTICAST = '239.200.0.1'
+
+/** Press the button mapped to `actionKey`, or return false if none is mapped (SETUP missing). */
+async function pressMapped(ctx: JourneyContext, actionKey: string): Promise<boolean> {
+  const loc = ctx.config.layout?.[actionKey]
+  if (!loc) return false
+  await ctx.http.press(loc.page, loc.row, loc.col)
+  return true
+}
+
+/** Poll the device (oracle) until `pred(Streams[0])` holds, returning the last snapshot. */
+async function pollOracle(
+  ctx: JourneyContext,
+  pred: (s: Record<string, unknown>) => boolean,
+): Promise<{ ok: boolean; snapshot: Record<string, unknown> | null }> {
+  let snapshot: Record<string, unknown> | null = null
+  for (let i = 0; i < POLL_ATTEMPTS; i++) {
+    snapshot = await ctx.oracle.readStream0()
+    if (pred(snapshot)) return { ok: true, snapshot }
+    await ctx.sleep(POLL_DELAY_MS)
+  }
+  return { ok: false, snapshot }
+}
+
+/** A WRITE step: press an action button, then confirm the device changed via the oracle. */
+function writeStep(
+  id: string,
+  title: string,
+  actionKey: string,
+  pred: (s: Record<string, unknown>) => boolean,
+  expected: unknown,
+): JourneyStep {
+  return {
+    id,
+    title,
+    scope: 'lab',
+    run: async (ctx): Promise<Verdict> => {
+      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
+      if (!(await pressMapped(ctx, actionKey)))
+        return skip(id, `${title} (button unmapped)`, 1, { note: `button '${actionKey}' not in layout — see SETUP` })
+      const r = await pollOracle(ctx, pred)
+      return r.ok
+        ? pass(id, title, 1, { deviceJson: r.snapshot, note: 'device changed as expected' })
+        : fail(id, title, 1, { expected, observed: r.snapshot })
+    },
+  }
+}
+
+const useSteps: JourneyStep[] = [
+  {
+    id: 'CAP',
+    title: 'encoder panel active (device_role = Transmitter)',
+    scope: 'lab',
+    run: async (ctx): Promise<Verdict> => {
+      if (noDevice(ctx)) return skip('CAP', 'capability (no device)', 1, { note: 'NVX_PASS unset' })
+      const role = await ctx.http.getVariable(ctx.config.label, 'device_role')
+      return role === 'Transmitter'
+        ? pass('CAP', 'encoder panel active (role=Transmitter)', 1, { note: `device_role=${role}` })
+        : fail('CAP', 'expected a Transmitter device for the encoder journey', 1, {
+            expected: 'Transmitter',
+            observed: role,
+          })
+    },
+  },
+  {
+    id: 'ENC-VARS',
+    title: 'encoder variables (REST) == device (oracle)',
+    scope: 'lab',
+    run: async (ctx): Promise<Verdict> => {
+      if (noDevice(ctx)) return skip('ENC-VARS', 'variables (no device)', 1, { note: 'NVX_PASS unset' })
+      const s = await ctx.oracle.readStream0()
+      const get = (n: string) => ctx.http.getVariable(ctx.config.label, n)
+      const checks: Record<string, [string, string]> = {
+        stream_name: [await get('stream_name'), str(s.RtspSessionName)],
+        multicast_address: [await get('multicast_address'), str(s.MulticastAddress)],
+        encoder_url: [await get('encoder_url'), str(s.StreamLocation)],
+        stream_enabled: [await get('stream_enabled'), String(str(s.Status) === 'Stream started')],
+      }
+      const mismatches = Object.entries(checks).filter(([, [a, b]]) => a !== b)
+      return mismatches.length === 0
+        ? pass('ENC-VARS', 'companion variables == device', 1, { note: `${Object.keys(checks).length}/4 match` })
+        : fail('ENC-VARS', 'variable/device mismatch', 1, {
+            observed: Object.fromEntries(mismatches.map(([k, [a, b]]) => [k, { companion: a, device: b }])),
+          })
+    },
+  },
+  {
+    id: 'ENC-FEEDBACKS',
+    title: 'stream_enabled feedback source matches device',
+    scope: 'lab',
+    run: async (ctx): Promise<Verdict> => {
+      if (noDevice(ctx)) return skip('ENC-FEEDBACKS', 'feedbacks (no device)', 1, { note: 'NVX_PASS unset' })
+      // Satellite colour check deferred (spec §8); validate the variable that drives the feedback.
+      const varVal = await ctx.http.getVariable(ctx.config.label, 'stream_enabled')
+      const s = await ctx.oracle.readStream0()
+      const deviceVal = String(str(s.Status) === 'Stream started')
+      return varVal === deviceVal
+        ? pass('ENC-FEEDBACKS', 'feedback source matches device', 1, { note: `stream_enabled=${varVal}` })
+        : fail('ENC-FEEDBACKS', 'feedback source mismatch', 1, { expected: deviceVal, observed: varVal })
+    },
+  },
+  writeStep('ENC-NAME', 'set stream name → device', 'set_stream_name', (s) => str(s.RtspSessionName) === UAT_STREAM_NAME, { RtspSessionName: UAT_STREAM_NAME }),
+  writeStep('ENC-MULTICAST', 'set multicast address → device', 'set_multicast_address', (s) => str(s.MulticastAddress) === UAT_MULTICAST, { MulticastAddress: UAT_MULTICAST }),
+  writeStep('ENC-ENABLE', 'start stream → device', 'enable_stream', (s) => str(s.Status) === 'Stream started', { Status: 'Stream started' }),
+  writeStep('ENC-DISABLE', 'stop stream → device', 'disable_stream', (s) => str(s.Status) !== 'Stream started', { Status: 'not started' }),
+]
+
 const authSteps: JourneyStep[] = [
   {
     // ⚠️ Consumes exactly ONE login failure from the NVX lockout budget (~3 → 15min block).
@@ -107,4 +218,4 @@ const authSteps: JourneyStep[] = [
   },
 ]
 
-export const labSteps: JourneyStep[] = [...authSteps]
+export const labSteps: JourneyStep[] = [...authSteps, ...useSteps]

@@ -50,6 +50,40 @@ test('lab steps include the auth gauntlet ids', () => {
   assert.ok(ids.includes('CFG-GOOD'))
 })
 
+test('lab steps include the v0.2 encoder USE ids', () => {
+  const ids = labSteps.map((s) => s.id)
+  for (const id of ['CAP', 'ENC-VARS', 'ENC-FEEDBACKS', 'ENC-NAME', 'ENC-MULTICAST', 'ENC-ENABLE', 'ENC-DISABLE'])
+    assert.ok(ids.includes(id), `missing ${id}`)
+})
+
+test('CAP PASSes when device_role is Transmitter', async () => {
+  const step = labSteps.find((s) => s.id === 'CAP')!
+  const v = await step.run(
+    ctx(
+      {
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'ok' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => 'Transmitter',
+          press: async () => {},
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'PASS')
+})
+
+test('a WRITE step SKIPs when its button is not mapped (device present, no layout)', async () => {
+  const step = labSteps.find((s) => s.id === 'ENC-NAME')!
+  const v = await step.run(ctx({}, 'realpass')) // config.layout undefined
+  assert.equal(v.status, 'SKIP')
+  assert.match(String(v.evidence.note), /layout|SETUP/i)
+})
+
 test('every lab step SKIPs without a device (empty nvxPass)', async () => {
   for (const s of labSteps) {
     const v = await s.run(ctx({}, ''))
