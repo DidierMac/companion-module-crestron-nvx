@@ -1,12 +1,9 @@
-• Session 2026-06-14 (feature/v0.2-encoder) : design v0.2 + exécution team-dev-exec SYNC. CODE v0.2 COMPLET — Vagues 1+2+3 FAITES. Reste UAT labo avant merge.
+• Session 2026-06-14 (très dense) : DEUX chantiers. (1) v0.2 Encoder CODE COMPLET sur feature/v0.2-encoder (3 vagues, 44 tests, revues GO) → attend UAT labo. (2) Harness UAT NOUVEAU sur feature/uat-harness : spec+plan+Vagues 1-2 (66 tests) + smoke live réussi.
 • Roadmap : GATE capture ✅ → v0.2 Encoder (CODE FAIT, UAT à venir) → v0.3 Decoder → v0.4 Audio/Vidéo → v0.5 Device-Ops → v1.0
-• Archi v0.2 (spec 29c6249) : panneau = 1 sous-système + gate(ctx) uniforme ; affichage par DeviceMode courant ; capacité PortConfig → action bascule (reportée v0.5). Détection dynamique des panneaux à la (re)connexion.
-• VAGUE 1 (6 commits 3a7cd50→af87a0c) : capability.ts + panels/{types,registry,deviceInfo} + api.postSetPartial.
-• VAGUE 2 (5 commits c77c065→6f7af0e) : panels/encoder.ts (gate Transmitter, readVariables StreamTransmit, 4 actions name/multicast/start-stop, 2 feedbacks, streamTransmitBody). + durcissement strict-TS tests + hook pretest typecheck (prod+tests).
-• VAGUE 3 (4 commits 9a264c8→1f90efc) : main.ts migré au modèle panneau (détection capability+role au connect, registre, poll() généralisé, scheduleReconnect INTACT) ; trim variables/feedbacks/actions ; polish checkAllFeedbacks()+types ; suppression dead upgrades.ts (doc convention v2) ; MAJ docs/architecture.md (302→200, modèle panneau).
-• Qualité : 44 tests verts, build+tsc 0 erreur. Vérifs indépendantes : architect CONFORME (6/6, scheduleReconnect = identique v0.1), QA GO, companion-reviewer GO (SDK). Réserve SDK levée (re-set*Definitions à chaud supporté, doc+code host).
+• v0.2 : panneau=1 sous-système+gate ; main.ts migré (scheduleReconnect intact) ; hook pretest typecheck ; checkAllFeedbacks ; upgrades.ts supprimé. Scénarios UAT v0.2 dans docs/UAT.md. ⛔ pas de merge develop sans UAT labo.
+• Harness UAT : 3 tiers + fallback LLM batch. Vagues 1-2 = socle (verdict/report/redact) + Tier 0 (auth-gauntlet, encoder POST, restauration device). Runner dédié. playwright-core GLOBAL+npm link (channel:chrome). Smoke live : Companion 4.3.4 + module crestron-nvx (dev) + Chrome système vus.
 
-▶ NEXT = UAT v0.2 au futur créneau labo (device requis). À valider en réel : detection capability/role au connect ; enable_stream/disable_stream fonctionnels ; set_stream_name/set_multicast_address ; feedbacks stream_enabled/stream_name_matches ; le live = les fixtures. Agent uat-runner dispo.
-▶ ⚠️ PAS de merge sur develop sans cet UAT réel (feedback-delivery-gate). Code prêt mais NON testé sur device.
-▶ Dette tracée : upgradeScripts à réintroduire (export nommé UpgradeScripts) au 1er breaking-change de config — convention documentée dans main.ts.
-▶ Le PLAN (57a04b3) Tasks 6-11 = FAIT. Pour v0.3 Decoder : ajouter panels/decoder.ts (gate Receiver, StreamReceive) sur le même modèle.
+▶ NEXT harness = VAGUE 3 (Tier 1 Companion, FAISABLE EN LOCAL sans device) : capturer frames Satellite KEY-STATE → companion-http.ts + satellite-client.ts + cas CAP-01/ENC-06/B1-B3 + uat/layout.json + SETUP.md. Plan = docs/superpowers/plans/2026-06-14-uat-harness.md (Tasks 9-16).
+▶ NEXT v0.2 = UAT au labo (device requis, mode Transmitter). Backlog complet : docs/VALIDATION.md.
+▶ Env live laissé : conteneur companion-uat (port 8000, module chargé). 2 vulns npm « high » (playwright-core) à voir à froid. package.json reformaté cosmétique non committé (laissé). scripts/uat/_browser-smoke.mjs untracked.
+▶ Sources de vérité reprise : plans (57a04b3 v0.2, 2026-06-14 harness) + docs/VALIDATION.md + mémoire project-state.
