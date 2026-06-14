@@ -9,8 +9,6 @@
 		"typecheck": "tsc -p tsconfig.json --noEmit",
 		"pretest": "tsc -p tsconfig.json --noEmit",
 		"test": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs --test src/*.test.ts src/**/*.test.ts scripts/uat/*.test.ts scripts/uat/**/*.test.ts",
-		"uat": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/run.ts",
-		"uat:tier0": "UAT_TIERS=0 node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/run.ts",
 		"uat:journey": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/journey/run-journey.ts",
 		"lint": "eslint .",
 		"format": "prettier -w ."
