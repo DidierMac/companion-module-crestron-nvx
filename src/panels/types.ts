@@ -3,6 +3,8 @@ import type {
   CompanionVariableValues,
   CompanionActionDefinitions,
   CompanionFeedbackDefinitions,
+  CompanionPresetDefinitions,
+  CompanionPresetSection,
 } from '@companion-module/base'
 import type { Capability, DeviceRole } from '../capability.js'
 import type { NvxApiClient } from '../api.js'
@@ -27,4 +29,6 @@ export interface Panel {
   buildActions(api: NvxApiClient): CompanionActionDefinitions
   /** SDK feedback definitions; `state()` returns the latest polled variable values. */
   buildFeedbacks(state: () => CompanionVariableValues): CompanionFeedbackDefinitions
+  /** Optional ready-to-use presets this panel ships: a UI section + its preset definitions. */
+  buildPresets?(): { section: CompanionPresetSection; presets: CompanionPresetDefinitions }
 }

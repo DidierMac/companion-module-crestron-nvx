@@ -6,7 +6,7 @@ import { NvxApiClient, NvxAuthError } from './api.js'
 import { ModuleLogger } from './logger.js'
 import { detectCapability, parseDeviceMode, type Capability, type DeviceRole } from './capability.js'
 import type { Panel, PanelContext } from './panels/types.js'
-import { activePanels, composeVariableDefinitions } from './panels/registry.js'
+import { activePanels, composeVariableDefinitions, composePresets } from './panels/registry.js'
 import { deviceInfoPanel } from './panels/deviceInfo.js'
 import { encoderPanel } from './panels/encoder.js'
 import { connectionVariableDefinitions } from './variables.js'
@@ -151,6 +151,8 @@ class CrestronNvxInstance extends InstanceBase {
 		}
 		this.setActionDefinitions(actions)
 		this.setFeedbackDefinitions(feedbacks)
+		const { structure, presets } = composePresets(this.active)
+		this.setPresetDefinitions(structure, presets)
 	}
 
 	// ── Polling ────────────────────────────────────────────────────────────────

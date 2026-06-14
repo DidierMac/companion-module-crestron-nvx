@@ -98,3 +98,28 @@ test('set_multicast_address action POSTs MulticastAddress on Streams[0]', async 
   )
   assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ MulticastAddress: '239.1.1.9' }] } } })
 })
+
+test('encoder presets reference only real action ids and live under the Encoder section', () => {
+  const { section, presets } = encoderPanel.buildPresets!()
+  const actionIds = new Set(Object.keys(encoderPanel.buildActions({} as never)))
+  assert.equal(section.name, 'Encoder')
+  const ids = Object.keys(presets)
+  assert.deepEqual(ids.sort(), ['enc_set_multicast', 'enc_set_stream_name', 'enc_start_stream', 'enc_stop_stream'])
+  // the section lists exactly the shipped presets
+  assert.deepEqual([...section.definitions].map(String).sort(), [...ids].sort())
+  for (const p of Object.values(presets)) {
+    if (!p || p.type !== 'simple') continue
+    for (const step of p.steps) {
+      for (const a of step.down) assert.ok(actionIds.has(String(a.actionId)), `unknown actionId ${String(a.actionId)}`)
+    }
+  }
+})
+
+test('encoder start preset carries the stream_enabled feedback', () => {
+  const { presets } = encoderPanel.buildPresets!()
+  const start = presets.enc_start_stream
+  assert.ok(start && start.type === 'simple')
+  if (start && start.type === 'simple') {
+    assert.ok(start.feedbacks.some((f) => f.feedbackId === 'stream_enabled'))
+  }
+})
