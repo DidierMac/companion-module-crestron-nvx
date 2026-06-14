@@ -1,10 +1,9 @@
-• Session 7 (2026-06-12) : GATE hardware FAIT ✅ + mergé sur develop. 3 NVX réels capturés exhaustivement (360 Rx/Tx + E30 Tx, fw 7.1.5259.00090), commit 0788ba6 → merge f260d12 (poussé origin)
-• Roadmap : GATE capture → v0.2 Encoder → v0.3 Decoder → v0.4 Audio/Vidéo → v0.5 Device-Ops → v1.0 (spec 2026-06-11 sur develop)
-• Tranché empiriquement : mode=DeviceSpecific.DeviceMode ; le MODÈLE (pas le mode) change le JSON ; sentinelle "UNSUPPORTED PROPERTY" ; contrat écriture POST testé (SetPartial, StatusId 0/1, tableaux par position, live vs reboot). Réf : docs/hardware-validation.md + mémoire api-findings
-• Branches : develop = socle 0.x avec gate+fixtures ; feature/v0.2-encoder créée depuis develop (branche) ; feature/capture-tooling conservée+poussée origin ; coquille feature/v0.2 + worktree 'log' SUPPRIMÉS
-• CONVENTION DEV (décision Didier) — Stratégie A : MONO-DOSSIER (repo root) + git switch entre versions. Plus de worktree (mémoire Claude indexée sur le dossier de lancement → 1 seul poste = 1 mémoire). Docker lancé depuis le root (volume companion-nvx_companion-data conservé). Pas de parallélisme Companion (dev en série)
+• Session 2026-06-14 (EN COURS sur feature/v0.2-encoder) : design v0.2 (brainstorm archi + spec 29c6249 + plan 57a04b3) puis exécution team-dev-exec SYNC. VAGUE 1 (Fondation) FAITE.
+• Roadmap : GATE capture ✅ → v0.2 Encoder (EN COURS) → v0.3 Decoder → v0.4 Audio/Vidéo → v0.5 Device-Ops → v1.0
+• Archi v0.2 (spec 29c6249) : panneau = 1 sous-système + gate(ctx) uniforme ; affichage par DeviceMode courant ; capacité PortConfig → action bascule seulement ; mode-change reporté v0.5. Détection dynamique des panneaux à la connexion.
+• VAGUE 1 committée (6 commits atomiques 3a7cd50→af87a0c) : capability.ts + panels/{types,registry,deviceInfo} + api.postSetPartial + doc DeviceCapabilities §6.2. 35 tests verts, build clean, code-review GO.
 
-▶ NEXT : spec v0.2 Encoder sur JSON vérifié → git switch feature/v0.2-encoder → 1er commit = généraliser poll() (cf. mémoire architecture-v0.2-foundations) → fixtures (depuis docs/hardware-validation/raw/) + code. Build/test : npm run build + docker compose up DEPUIS LE ROOT
-▶ FUTUR créneau labo : UAT v0.2 fonctionnel (set_stream_mode reboot, enable/disable_stream) — non testable hors device
-▶ Décision : capture-tooling = outillage/docs/fixtures, hors gate UAT module → mergé develop. Le feedback-delivery-gate reste pour les versions module (v0.2+)
-▶ Backlog inchangé : toggle HTTP/HTTPS ; re-login session expirée à valider en réel ; back-merge develop→main à v1.0
+▶ NEXT = VAGUE 2 (Encoder) : Tasks 6-8 du plan docs/superpowers/plans/2026-06-13-v0.2-encoder.md → src/panels/encoder.ts (gate role==Transmitter, readVariables StreamTransmit, actions name/multicast/start-stop, feedbacks). Reprendre via /team-dev-exec sync sur le plan.
+▶ PUIS VAGUE 3 = Tasks 9-11 : câblage main.ts (poll généralisé, NE PAS casser scheduleReconnect) + trim variables/feedbacks/actions + MAJ architecture.md. Réserve : re-setActionDefinitions à chaud = pattern SDK à confirmer en doc.
+▶ APRÈS code : UAT v0.2 au futur créneau labo (device requis : set_stream_mode reboot, enable/disable_stream). PAS de merge develop sans cet UAT (feedback-delivery-gate).
+▶ Le PLAN (57a04b3) = liste de tâches restantes, source de vérité pour reprendre après compact.
