@@ -91,6 +91,39 @@ test('every lab step SKIPs without a device (empty nvxPass)', async () => {
   }
 })
 
+test('baseline precedes the USE block and teardown is last', () => {
+  const ids = labSteps.map((s) => s.id)
+  assert.ok(ids.indexOf('BASELINE') < ids.indexOf('CAP'), 'BASELINE before CAP')
+  assert.equal(ids[ids.length - 1], 'TEARDOWN', 'TEARDOWN last')
+})
+
+test('BASELINE and TEARDOWN PASS with a device', async () => {
+  const baseline = labSteps.find((s) => s.id === 'BASELINE')!
+  const teardown = labSteps.find((s) => s.id === 'TEARDOWN')!
+  assert.equal((await baseline.run(ctx({}, 'realpass'))).status, 'PASS')
+  assert.equal((await teardown.run(ctx({}, 'realpass'))).status, 'PASS')
+})
+
+test('TEARDOWN FAILs (reports) when restore throws', async () => {
+  const teardown = labSteps.find((s) => s.id === 'TEARDOWN')!
+  const v = await teardown.run(
+    ctx(
+      {
+        oracle: {
+          readStream0: async () => ({}),
+          captureBaseline: async () => {},
+          restore: async () => {
+            throw new Error('device unreachable')
+          },
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'FAIL')
+  assert.match(String(v.evidence.note), /restore failed/i)
+})
+
 test('CFG-GOOD PASSes when status ok AND oracle reads a stream (with device)', async () => {
   const step = labSteps.find((s) => s.id === 'CFG-GOOD')!
   const v = await step.run(ctx({}, 'realpass'))

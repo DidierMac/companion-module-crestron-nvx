@@ -218,4 +218,55 @@ const authSteps: JourneyStep[] = [
   },
 ]
 
-export const labSteps: JourneyStep[] = [...authSteps, ...useSteps]
+const msg = (err: unknown): string => (err instanceof Error ? err.message : String(err))
+
+/** Capture the device's pre-USE state so TEARDOWN can restore it. */
+const baselineStep: JourneyStep = {
+  id: 'BASELINE',
+  title: 'capture device baseline (Streams[0])',
+  scope: 'lab',
+  run: async (ctx): Promise<Verdict> => {
+    if (noDevice(ctx)) return skip('BASELINE', 'baseline (no device)', 1, { note: 'NVX_PASS unset' })
+    try {
+      await ctx.oracle.captureBaseline()
+      return pass('BASELINE', 'baseline captured', 1, { note: 'stored for TEARDOWN restore' })
+    } catch (err) {
+      return fail('BASELINE', 'baseline capture failed', 1, { note: msg(err) })
+    }
+  },
+}
+
+/** Restore the device to baseline and disable the test connection (best-effort, reported). */
+const teardownStep: JourneyStep = {
+  id: 'TEARDOWN',
+  title: 'restore device + disable connection',
+  scope: 'lab',
+  run: async (ctx): Promise<Verdict> => {
+    if (noDevice(ctx)) return skip('TEARDOWN', 'teardown (no device)', 1, { note: 'NVX_PASS unset' })
+    const notes: string[] = []
+    let ok = true
+    try {
+      await ctx.oracle.restore()
+      notes.push('device restored')
+    } catch (err) {
+      ok = false
+      notes.push(`restore failed: ${msg(err)}`)
+    }
+    const connId = await ctx.http.findConnectionId(ctx.config.label)
+    if (connId) {
+      try {
+        await ctx.http.disable(connId)
+        notes.push('connection disabled')
+      } catch (err) {
+        ok = false
+        notes.push(`disable failed: ${msg(err)}`)
+      }
+    }
+    return ok
+      ? pass('TEARDOWN', 'device restored + connection disabled', 1, { note: notes.join('; ') })
+      : fail('TEARDOWN', 'teardown incomplete', 1, { note: notes.join('; ') })
+  },
+}
+
+// Journey order: auth gauntlet → baseline → USE (v0.2 encoder) → teardown.
+export const labSteps: JourneyStep[] = [...authSteps, baselineStep, ...useSteps, teardownStep]
