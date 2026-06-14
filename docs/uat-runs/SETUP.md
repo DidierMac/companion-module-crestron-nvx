@@ -19,15 +19,15 @@ It uses 4 tools — Companion REST, Companion logs (`docker logs`), the device R
   ```
 - **System Google Chrome** installed (the driver uses `channel: 'chrome'`).
 
-## 2. Create the test connection `nvx-uat`
+## 2. The test connection `nvx-uat` is auto-provisioned
 
-In Companion (http://localhost:8000) → **Connections** → **Add** the `Crestron: DM-NVX-…`
-module → set **Label** = `nvx-uat` → **Add**. The harness drives the config form itself;
-you only need the connection to exist with this label.
+You do **not** create it manually. At startup the harness deletes any existing `nvx-uat`
+connection and creates a fresh one ("repart à 0"); at exit it deletes it again, leaving a
+clean slate. Just make sure the module is loaded (step 1). The harness drives the config
+form itself (host, port, credentials) per step.
 
-- **Local run** (no device): host `192.0.2.1` (TEST-NET, unreachable) is fine — the local
-  steps set it themselves.
-- **Lab run**: point host at the real **Transmitter** device; put its password in `NVX_PASS`.
+- Pass `UAT_KEEP=1` to skip provisioning and reuse an existing `nvx-uat` as-is (useful when
+  you have laid out the USE buttons, whose mapping is tied to the connection id).
 
 ## 3. Environment variables
 
@@ -36,10 +36,30 @@ you only need the connection to exist with this label.
 | `COMPANION_URL` | `http://localhost:8000` | Companion web/REST base |
 | `COMPANION_CONTAINER` | `companion-nvx-companion-1` | container name for `docker logs` |
 | `UAT_LABEL` | `nvx-uat` | connection label under test |
-| `NVX_HOST` | `192.0.2.1` | device IP (real Transmitter for lab) |
+| `NVX_HOST` | `192.0.2.1` | device host as the MODULE reaches it (real Transmitter IP for lab) |
+| `NVX_PORT` | `443` | device HTTPS port (8443 for the local fake) |
 | `NVX_PASS` | *(empty)* | device password — **empty → all lab steps SKIP** |
+| `ORACLE_HOST` | *(= NVX_HOST)* | device host as the ORACLE (host process) reaches it; differs only for the fake |
 | `UAT_LAB` | *(unset)* | `1` → also run the lab steps |
+| `UAT_KEEP` | *(unset)* | `1` → skip connection provisioning/cleanup (reuse existing `nvx-uat`) |
 | `UAT_LAYOUT` | *(unset)* | JSON button map, overrides `scripts/uat/fixtures/layout.json` |
+
+## 4b. Run fully local against the fake device (no real device)
+
+`scripts/uat/fake-device/server.ts` replays the real captured JSON (a DM-NVX-360 Transmitter)
+and mirrors the auth + SetPartial contract, so the WHOLE journey runs locally.
+
+```bash
+# terminal 1 — start the fake (HTTPS :8443)
+FAKE_NVX_PASS=test123 npm run uat:fake-device
+
+# terminal 2 — run the journey against it (module → host.docker.internal, oracle → 127.0.0.1)
+UAT_LAB=1 NVX_HOST=host.docker.internal NVX_PORT=8443 ORACLE_HOST=127.0.0.1 NVX_PASS=test123 \
+  COMPANION_CONTAINER=companion-nvx-companion-1 npm run uat:journey
+```
+
+⚠️ The fake validates the harness wiring against our MODEL of the device, NOT the firmware —
+it does not replace the real-device gate. WRITE (USE) steps still need the USE buttons laid out.
 
 ## 4. Run
 

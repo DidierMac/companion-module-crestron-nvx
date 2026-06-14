@@ -66,6 +66,41 @@ export class CompanionUi {
     return false
   }
 
+  /**
+   * Create a connection for the crestron-nvx module with the given label (Add flow, verified
+   * Task 2.3): search → module row "Add" → modal Label (input[name=colFormLabel]) → "Add".
+   * Leaves the new connection's config editor open.
+   */
+  async createConnection(page: Page, label: string, moduleSearch = 'NVX'): Promise<void> {
+    await page.goto(`${this.base}/connections`, { waitUntil: 'domcontentloaded', timeout: 20000 })
+    await this.dismissOnboarding(page)
+    const search = page.getByPlaceholder(/search/i).first()
+    if (await search.isVisible().catch(() => false)) await search.fill(moduleSearch)
+    await page.getByRole('button', { name: 'Add', exact: true }).first().click()
+    const labelInput = page.locator('input[name="colFormLabel"]').first()
+    await labelInput.waitFor({ timeout: 10000 })
+    await labelInput.fill(label)
+    await page.getByRole('dialog').getByRole('button', { name: 'Add', exact: true }).click()
+    await page.getByText('Device IP / Hostname', { exact: true }).first().waitFor({ timeout: 10000 })
+  }
+
+  /**
+   * Delete a connection via its config editor: the danger "Delete" button opens a
+   * "Delete connection" modal whose primary button confirms (verified Task 5).
+   */
+  async deleteConnectionViaUi(page: Page, connectionId: string): Promise<void> {
+    await page.goto(`${this.base}/connections/${connectionId}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
+    await this.dismissOnboarding(page)
+    const del = page.getByRole('button', { name: /^delete$/i }).first()
+    await del.waitFor({ timeout: 10000 })
+    await del.click()
+    // The confirm modal renders async — wait for its primary button, then click it.
+    const confirm = page.locator('.modal.show .btn-primary').first()
+    await confirm.waitFor({ state: 'visible', timeout: 10000 })
+    await confirm.click()
+    await page.waitForURL(/\/connections\/?$/, { timeout: 10000 }).catch(() => {})
+  }
+
   /** Open a connection's config editor by deep-linking to /connections/<id>. */
   async openConnectionConfig(page: Page, connectionId: string): Promise<void> {
     await page.goto(`${this.base}/connections/${connectionId}`, {

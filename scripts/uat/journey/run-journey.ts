@@ -70,6 +70,30 @@ export function buildContext(cfg: JourneyConfig): JourneyContext {
   }
 }
 
+/** Delete any existing test connection, then create a fresh one — "repart à 0". */
+export async function ensureFreshConnection(ctx: JourneyContext): Promise<void> {
+  const existing = await ctx.http.findConnectionId(ctx.config.label)
+  const page = await ctx.ui.open()
+  try {
+    if (existing) await ctx.ui.deleteConnectionViaUi(page, existing)
+    await ctx.ui.createConnection(page, ctx.config.label)
+  } finally {
+    await ctx.ui.close()
+  }
+}
+
+/** Delete the test connection (exit cleanup), leaving a clean slate for the next run. */
+export async function removeConnection(ctx: JourneyContext): Promise<void> {
+  const id = await ctx.http.findConnectionId(ctx.config.label)
+  if (!id) return
+  const page = await ctx.ui.open()
+  try {
+    await ctx.ui.deleteConnectionViaUi(page, id)
+  } finally {
+    await ctx.ui.close()
+  }
+}
+
 export async function runJourney(steps: JourneyStep[], ctx: JourneyContext): Promise<Verdict[]> {
   const verdicts: Verdict[] = []
   for (const s of steps) {
@@ -91,12 +115,20 @@ export async function runJourney(steps: JourneyStep[], ctx: JourneyContext): Pro
 async function main(): Promise<void> {
   const cfg = loadJourneyConfig(process.env)
   const ctx = buildContext(cfg)
+  // Self-provision the test connection (delete-if-exists + create) unless UAT_KEEP=1.
+  const keep = process.env.UAT_KEEP === '1'
+  if (!keep) await ensureFreshConnection(ctx)
+
   const steps = process.env.UAT_LAB === '1' ? [...localSteps, ...labSteps] : localSteps
   const verdicts = await runJourney(steps, ctx)
   const startedAt = new Date().toISOString()
   const run: RunResult = { startedAt, version: process.env.UAT_VERSION ?? 'journey', verdicts }
   const dir = path.join('docs/uat-runs', `${startedAt.slice(0, 10)}-journey`)
   writeRun(dir, run)
+
+  // Exit cleanup: remove the test connection so the next run starts at zero (unless UAT_KEEP=1).
+  if (!keep) await removeConnection(ctx)
+
   const failed = verdicts.filter((v) => v.status === 'FAIL').length
   console.log(`UAT journey: ${verdicts.length} steps, ${failed} FAIL → ${dir}`)
   process.exitCode = failed > 0 ? 1 : 0
