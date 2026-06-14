@@ -8,3 +8,5 @@ dist/
 .playwright-mcp/
 /*.png
 docs/uat-runs/assets/
+# UAT run artifacts (generated)
+docs/uat-runs/*/
