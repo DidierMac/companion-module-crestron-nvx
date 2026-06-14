@@ -24,7 +24,7 @@ Le 1er run UAT sur device réel (2026-06-12) via l'agent `uat-runner` en mode au
 |---|---|---|---|
 | **0 — Logique** | `NvxApiClient` direct + GET device | A1/A2/A3 (auth-gauntlet, contrôle total des credentials) ; effet POST encodeur sur device (ENC-01/02/03) ; mapping variables sur JSON live (ENC-05 vs device) ; C2 (injoignable) ; C3 (logout) | ★★★ total |
 | **1 — Intégration Companion** | HTTP API (`/api/location/.../press`, `/api/variable/<label>/<name>/value`, `/api/connections/:id/status`) + **Satellite TCP 16622** (couleur feedback résolue, `KEY-STATE`) | CAP-01 (statut+variables au connect) ; ENC-06 (feedbacks couleur) ; B1–B3 (variables via Companion) ; ENC-07 (heartbeat) | ★★☆ haut |
-| **2 — UI config** | Playwright (librairie) | cas d'UI de config Companion (dropdown grisé, champ pré-rempli) — minoritaire | ★★☆ |
+| **2 — UI config** | Playwright (librairie) | **couverture complète du formulaire de config DU MODULE** dans Companion (cf. §5 bis) | ★★☆ |
 | **Fallback** | `uat-runner` LLM | `[HUMAN]` (C1 coupure physique) + tout cas `FAIL`/`AMBIGUOUS` remonté | n/a |
 
 **Frontière** : le Tier 0 teste la *logique du module* (rapide, court-circuite Companion) ; le Tier 1 prouve le *câblage réel* Companion→module→device (un POST encodeur peut marcher en Tier 0 mais être mal relié à un bouton — capté seulement en Tier 1).
@@ -128,6 +128,23 @@ docs/uat-runs/
 
 ---
 
+## 5 bis. Tier 2 — couverture complète du formulaire de config (Playwright)
+
+Périmètre = **le formulaire de configuration DU MODULE** (les 8 champs déclarés dans `src/config.ts:getConfigFields`), pas l'UI générique de Companion. Companion tourne **en local** (image `ghcr.io/bitfocus/companion/companion` présente sur la machine) — ce tier ne dépend **pas** du labo.
+
+| Cas | Vérifie |
+|---|---|
+| **UI-01** | Les 8 champs s'affichent avec type/label corrects : `info` (static-text), `host` (textinput), `port` (number), `username` (textinput), `password` (secret-text), `pollInterval` (number), `ignoreSelfSignedCert` (checkbox), `verbose` (checkbox). |
+| **UI-02** | `password` est un champ **secret masqué** (canal `secrets`, jamais rendu en clair) — non-régression du « Bug A » (cf. `sdk-companion`). |
+| **UI-03** | Bornes des `number` appliquées par l'UI : `port` ∈ [1, 65535], `pollInterval` ∈ [500, 30000]. |
+| **UI-04** | Valeurs par défaut pré-remplies : `port=443`, `username=admin`, `pollInterval=2000`, `ignoreSelfSignedCert` coché, `verbose` décoché. |
+| **UI-05** | Persistance : les valeurs sauvegardées sont re-pré-remplies à la ré-ouverture de la config. |
+| **UI-06** | Contrainte REX : config **non éditable quand l'instance est `disabled`** — documenter/vérifier le comportement (impacte la mise en scène UAT). |
+
+**Hors périmètre Tier 2** : le comportement générique de l'UI Companion (layout, navigation) — on teste **notre module**, pas Companion.
+
+---
+
 ## 6. Jalons d'implémentation
 
 | Vague | Contenu | Dépend de | Valeur |
@@ -156,6 +173,6 @@ Chaque vague = logiciel livrable et testable. **Vagues 1+2 délivrent l'essentie
 
 - **Reporting riche** (Allure, JUnit XML) : différé (Zéro Installation). `report.md` markdown suffit en v1.
 - **Auto-setup de l'instance Companion** : non supporté par l'API → exclu (setup opérateur unique à la place).
-- **Authentification de l'API HTTP Companion** : `COMPANION_API_KEY` prévu en option ; à confirmer selon la config du labo (réseau isolé → possiblement ouvert).
+- **Authentification de l'API HTTP Companion** : à vérifier en **local** (image Companion présente sur la machine — **non dépendant du labo**) en démarrant le conteneur au début de la Vague 3. `COMPANION_API_KEY` prévu en option si l'API exige une clé.
 - **Détail du protocole Satellite** (séquence `ADD-DEVICE`, navigation de pages, parsing `KEY-STATE`) : à figer au plan d'implémentation (Vague 3) ; le parser est unit-testable sur frames capturées.
-- **Cas Tier 2 exacts** (quels écrans d'UI config valent un test Playwright) : à préciser ; minoritaires, faible priorité.
+- **Cas Tier 2** : **résolus** — couverture complète du formulaire de config du module (UI-01..06, cf. §5 bis). « Tout tester » = tous nos champs de config + masquage secret + pièges REX.
