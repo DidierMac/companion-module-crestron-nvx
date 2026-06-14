@@ -1,12 +1,16 @@
 import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@companion-module/base'
-import type { JsonObject } from '@companion-module/base'
+import type { JsonObject, CompanionVariableValues } from '@companion-module/base'
 
 import { getConfigFields, missingCredential, type ModuleConfig, type ModuleSecrets } from './config.js'
 import { NvxApiClient, NvxAuthError } from './api.js'
 import { ModuleLogger } from './logger.js'
-import { setActionDefinitions } from './actions.js'
-import { setFeedbackDefinitions } from './feedbacks.js'
-import { variableDefinitions } from './variables.js'
+import { detectCapability, parseDeviceMode, type Capability, type DeviceRole } from './capability.js'
+import type { Panel, PanelContext } from './panels/types.js'
+import { activePanels, composeVariableDefinitions } from './panels/registry.js'
+import { deviceInfoPanel } from './panels/deviceInfo.js'
+import { encoderPanel } from './panels/encoder.js'
+import { connectionVariableDefinitions } from './variables.js'
+import { baseFeedbackDefinitions } from './feedbacks.js'
 
 class CrestronNvxInstance extends InstanceBase {
 	private api!: NvxApiClient
@@ -17,6 +21,12 @@ class CrestronNvxInstance extends InstanceBase {
 	private reconnectTimer: ReturnType<typeof setTimeout> | null = null
 	private destroyed = false
 	private logger!: ModuleLogger
+	private caps: Capability = { canEncode: false, canDecode: false, canSwitchMode: false }
+	private role: DeviceRole | null = null
+	private active: Panel[] = []
+	private state: CompanionVariableValues = {}
+	private feedbackIds: string[] = []
+	private readonly allPanels: Panel[] = [deviceInfoPanel, encoderPanel]
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -39,14 +49,13 @@ class CrestronNvxInstance extends InstanceBase {
 			this.logger.child('[HTTP]'),
 		)
 
-		setActionDefinitions(this)
-		setFeedbackDefinitions(this, () => this.connected)
-		this.setVariableDefinitions(variableDefinitions)
+		// Definitions are (re)composed once capability + role are known (see connect()).
+		// Register the connection-level baseline now so the UI has variables before first connect.
+		this.setVariableDefinitions(connectionVariableDefinitions)
 		this.setVariableValues({
 			connection_status: 'Disconnected',
-			device_name: '',
-			firmware_version: '',
 			ip_address: config.host,
+			device_role: '',
 		})
 
 		// Fire-and-forget : ne PAS bloquer init() sur le réseau, sinon Companion
@@ -104,6 +113,7 @@ class CrestronNvxInstance extends InstanceBase {
 			this.updateStatus(InstanceStatus.Ok)
 			connLog.info(`Connected to NVX at ${this.currentConfig.host}`)
 
+			await this.detectAndRegister()
 			await this.poll()
 			this.startPolling()
 		} catch (err) {
@@ -121,6 +131,28 @@ class CrestronNvxInstance extends InstanceBase {
 				this.scheduleReconnect()
 			}
 		}
+	}
+
+	/** Detect capability + role from the device and (re)register the active panels' definitions. */
+	private async detectAndRegister(): Promise<void> {
+		const connLog = this.logger.child('[CONN]')
+		this.caps = detectCapability(await this.api.get('/Device/DeviceCapabilities'))
+		this.role = parseDeviceMode(await this.api.get('/Device/DeviceSpecific'))
+		const ctx: PanelContext = { caps: this.caps, role: this.role }
+		this.active = activePanels(this.allPanels, ctx)
+		connLog.info(`Capability ${JSON.stringify(this.caps)} role=${this.role} → panels: ${this.active.map((p) => p.id).join(', ')}`)
+
+		this.setVariableDefinitions({ ...connectionVariableDefinitions, ...composeVariableDefinitions(this.active) })
+
+		let actions = {}
+		let feedbacks: Record<string, unknown> = baseFeedbackDefinitions(() => this.connected, () => this.role)
+		for (const p of this.active) {
+			actions = { ...actions, ...p.buildActions(this.api) }
+			feedbacks = { ...feedbacks, ...p.buildFeedbacks(() => this.state) }
+		}
+		this.feedbackIds = Object.keys(feedbacks)
+		this.setActionDefinitions(actions)
+		this.setFeedbackDefinitions(feedbacks as Parameters<this['setFeedbackDefinitions']>[0])
 	}
 
 	// ── Polling ────────────────────────────────────────────────────────────────
@@ -158,23 +190,26 @@ class CrestronNvxInstance extends InstanceBase {
 
 	private async poll(): Promise<void> {
 		try {
-			const info = await this.api.getDeviceInfo()
-			this.setVariableValues({
-				device_name: info.name,
-				firmware_version: info.firmware,
-				ip_address: this.currentConfig.host,
-				connection_status: 'Connected',
-			})
-			this.logger.child('[POLL]').debug(`DeviceInfo OK — ${info.name} fw ${info.firmware}`)
+			const next: CompanionVariableValues = {}
+			for (const panel of this.active) {
+				const json = await this.api.get(panel.endpoint)
+				Object.assign(next, panel.readVariables(json))
+			}
+			next.connection_status = 'Connected'
+			next.ip_address = this.currentConfig.host
+			next.device_role = this.role ?? ''
+			this.state = next
+			this.setVariableValues(next)
+			this.logger.child('[POLL]').debug(`Polled ${this.active.length} panel(s)`)
 			if (!this.connected) {
 				this.connected = true
 				this.updateStatus(InstanceStatus.Ok)
 			}
-			this.checkFeedbacks('connected')
+			if (this.feedbackIds.length > 0) this.checkFeedbacks(this.feedbackIds[0], ...this.feedbackIds.slice(1))
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err)
 			this.connected = false
-			this.checkFeedbacks('connected')
+			if (this.feedbackIds.length > 0) this.checkFeedbacks(this.feedbackIds[0], ...this.feedbackIds.slice(1))
 			this.stopPolling()
 			if (err instanceof NvxAuthError) {
 				this.updateStatus(InstanceStatus.AuthenticationFailure, msg)
