@@ -1,4 +1,4 @@
-• Session 2026-06-14 (très dense). DEUX chantiers. (1) v0.2 Encoder CODE COMPLET sur feature/v0.2-encoder (44 tests, revues GO) → attend UAT labo. (2) Harness UAT sur feature/uat-harness : REDESIGN parcours + 4 outils ; Wave 0 + Wave 1 + Wave 2 FAITES, parcours local VALIDÉ LIVE 3/3.
+• Session 2026-06-14/15 (très dense). CONSOLIDÉ : harness UAT + fake device + presets + matrice **fusionnés dans feature/v0.2-encoder** (fast-forward, uat-harness supprimée). Parcours complet 14/14 contre le fake. Branche v0.3-decoder créée depuis v0.2 → dev de la suite SANS labo (device-rare workflow). Stack : develop ← v0.2-encoder ← v0.3-decoder.
 • Roadmap : GATE capture ✅ → v0.2 Encoder (CODE FAIT, UAT à venir) → v0.3 Decoder → v0.4 Audio/Vidéo → v0.5 Device-Ops → v1.0
 • Harness — PARCOURS UTILISATEUR + 4 outils (REST Companion · logs docker · REST device=oracle · Chromium=Chrome système). Spec specs/2026-06-14-uat-harness-design.md (78a6dc6) ; plan plans/2026-06-14-uat-harness-journey.md (ff16f72).
 • Wave 1+2+3+4 FAITES (scripts/uat/) : harness « livrable », 87 tests unitaires verts. Parcours LOCAL 3/3 PASS LIVE (INSTALL, CFG-NOPASS→warning, CFG-UNREACHABLE→error). Parcours complet 14 steps ; dry-run UAT_LAB=1 sans device = 3 PASS / 11 SKIP / 0 FAIL.
@@ -14,7 +14,9 @@
 
 • ✅ 14/14 CONTRE LE FAKE (2026-06-15) : parcours complet PASS 14 / FAIL 0 / SKIP 0 (A1 : Didier a glissé les 4 presets Encoder + édité name=UAT-STREAM/mcast=239.200.0.1, run UAT_KEEP=1). Chaîne WRITE bouton→module→fake→oracle prouvée. Fix CFG-UNREACHABLE warm (poll 30s, regex élargie, 2658b06). 91 tests.
 
-▶ NEXT harness : RUN LAB réel (device) = SEULE validation restante (le fake teste le câblage, pas le firmware). Au labo : NVX_HOST=<ip> NVX_PORT=443 (pas d'ORACLE_HOST) vrai NVX_PASS. Si vert = UAT v0.2 → débloque merge develop.
+▶ STRATÉGIE (Didier) : développer v0.3→v0.5 hors-labo (chacun avec son fake construit depuis les RAW : .9 Receiver pour v0.3, audio .10 pour v0.4…). Au labo : switch v0.2→test→v0.3→test→… ; si tout OK, merge progressif du stack. Garde-fous : fake depuis RAW (pas inventé), marquer 🔜 ce qui n'est pas capturé, prévoir Transmitter+Receiver au labo.
+▶ NEXT immédiat : v0.3 Decoder (StreamReceive) — spec → plan → code. routing `set_source_url`, variables/feedbacks rx (cf. docs/functional-matrix.md). Fake Receiver depuis RAW .9.
+▶ Env chaud : fake Transmitter (bg) + nvx-uat (4 boutons USE) — à recycler/arrêter selon besoin.
 ▶ NOTE HYGIÈNE : presets + matrice = code/doc MODULE committés sur feature/uat-harness (à cherry-pick ligne v0.2 au merge).
 ▶ NEXT v0.2 = UAT au labo (device, mode Transmitter). Backlog : docs/VALIDATION.md.
 ▶ Env live : Companion compose `companion-nvx-companion-1` sur :8000 (3 instances NVX réelles + nvx-uat de test). playwright-core global+npm link, Chrome. ⚠️ NE PAS lancer un conteneur SÉPARÉ sur 8000 (incident Wave 0) — réutiliser le compose. 2 vulns npm high (playwright-core) à voir à froid.
