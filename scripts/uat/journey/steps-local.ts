@@ -10,8 +10,10 @@ import type { JourneyStep, JourneyContext } from './types.js'
  * Log timing is deterministic: mark() is stamped BEFORE restart(), so the cause is always
  * logged after the mark (no reliance on enable() being non-idempotent).
  */
-// The NVX timeout logs ~5s after a restart (measured Wave 2 Task 2.3); poll up to ~15s.
-const LOG_POLL_ATTEMPTS = 15
+// The NVX timeout logs ~5s after a restart (Wave 2 Task 2.3). In a "warm" run (a connection
+// switching from a reachable host to an unreachable one) the 10s device timeout + reconnect
+// latency can exceed 15s, so poll up to ~30s.
+const LOG_POLL_ATTEMPTS = 30
 const LOG_POLL_DELAY_MS = 1000
 
 async function configFailureStep(
@@ -101,7 +103,7 @@ export const localSteps: JourneyStep[] = [
         ctx,
         { host: '192.0.2.1', username: 'admin', password: 'whatever' },
         'error',
-        /timeout|nvx timeout|econn|connection fail/i,
+        /timeout|nvx timeout|econn|connection fail|unreach|refused|hang up|network error/i,
         'CFG-UNREACHABLE',
         'unreachable IP → ConnectionFailure',
       ),
