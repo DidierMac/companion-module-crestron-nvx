@@ -44,7 +44,7 @@ function coordinatesForRaw(value: string): ResolvedSource | null {
   const v = value.trim()
   if (!v) return null
   if (v.toLowerCase().startsWith('rtsp://')) return { SessionInitiation: 'ByReceiver', StreamLocation: v }
-  // bare IPv4 multicast (224.0.0.0 – 239.255.255.255)
+  // bare IPv4 with a multicast first octet (224–239); other octets unbounded — best effort
   if (/^(22[4-9]|23\d)\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v)) return { SessionInitiation: 'Multicast via RTSP', MulticastAddress: v }
   // otherwise treat as a URL location (best effort)
   return { SessionInitiation: 'ByReceiver', StreamLocation: v }

@@ -3,14 +3,11 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { discoveredList, resolveSource, type DiscoveredStream } from './discovery.js'
 
-const aux = (): Record<string, unknown> => ({
-  '/Device/DiscoveredStreams': JSON.parse(
-    readFileSync('docs/hardware-validation/raw/192.168.2.9/Device_DiscoveredStreams.json', 'utf8'),
-  ),
-})
+const raw = (): unknown =>
+  JSON.parse(readFileSync('docs/hardware-validation/raw/192.168.2.9/Device_DiscoveredStreams.json', 'utf8'))
 
 test('discoveredList normalizes the UUID-keyed dict to a sorted array', () => {
-  const list = discoveredList(aux()['/Device/DiscoveredStreams'])
+  const list = discoveredList(raw())
   assert.equal(list.length, 2)
   const names = list.map((s) => s.sessionName).sort()
   assert.deepEqual(names, ['DM-NVX-360-C442684E534B', 'DM-NVX-E30-00107FEA8A32'])
@@ -26,7 +23,7 @@ test('discoveredList tolerates sentinel/absent discovery → empty list', () => 
 })
 
 test('resolveSource by uniqueId prefers multicast (mode Multicast via RTSP)', () => {
-  const r = resolveSource('00000000-0000-4002-0059-e204080bff04', '', discoveredList(aux()['/Device/DiscoveredStreams']))
+  const r = resolveSource('00000000-0000-4002-0059-e204080bff04', '', discoveredList(raw()))
   assert.deepEqual(r, { SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.6' })
 })
 
@@ -39,7 +36,7 @@ test('resolveSource falls back to URL when entry has no multicast', () => {
 })
 
 test('resolveSource custom: match a discovered SessionName → its coordinates', () => {
-  const r = resolveSource('custom', 'DM-NVX-360-C442684E534B', discoveredList(aux()['/Device/DiscoveredStreams']))
+  const r = resolveSource('custom', 'DM-NVX-360-C442684E534B', discoveredList(raw()))
   assert.deepEqual(r, { SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4' })
 })
 
@@ -56,4 +53,9 @@ test('resolveSource custom: unmatched value that looks multicast → multicast s
 test('resolveSource returns null when nothing resolvable', () => {
   assert.equal(resolveSource('custom', '', []), null)
   assert.equal(resolveSource('unknown-id', '', []), null)
+})
+
+test('resolveSource custom: matched name with no coordinates → null', () => {
+  const list: DiscoveredStream[] = [{ uniqueId: 'u1', sessionName: 'Empty', rtspUri: '', multicastAddress: '' }]
+  assert.equal(resolveSource('custom', 'Empty', list), null)
 })
