@@ -15,7 +15,8 @@
 • ✅ 14/14 CONTRE LE FAKE (2026-06-15) : parcours complet PASS 14 / FAIL 0 / SKIP 0 (A1 : Didier a glissé les 4 presets Encoder + édité name=UAT-STREAM/mcast=239.200.0.1, run UAT_KEEP=1). Chaîne WRITE bouton→module→fake→oracle prouvée. Fix CFG-UNREACHABLE warm (poll 30s, regex élargie, 2658b06). 91 tests.
 
 ▶ STRATÉGIE (Didier) : développer v0.3→v0.5 hors-labo (chacun avec son fake construit depuis les RAW : .9 Receiver pour v0.3, audio .10 pour v0.4…). Au labo : switch v0.2→test→v0.3→test→… ; si tout OK, merge progressif du stack. Garde-fous : fake depuis RAW (pas inventé), marquer 🔜 ce qui n'est pas capturé, prévoir Transmitter+Receiver au labo.
-▶ NEXT immédiat : v0.3 Decoder (StreamReceive) — spec → plan → code. routing `set_source_url`, variables/feedbacks rx (cf. docs/functional-matrix.md). Fake Receiver depuis RAW .9.
+▶ NEXT immédiat : v0.3 Decoder — SPEC ÉCRITE ✅ (specs/2026-06-15-v0.3-decoder-design.md, 472a72d). Périmètre FULL (URL+multicast+discovery), routing gouverné par SessionInitiation (confirmé doc Crestron 7.3.5), contrat Panel généralisé multi-endpoint (option a). En attente relecture Didier → puis writing-plans → code + fake Receiver (RAW .9).
+▶ BACKLOG À RÉFLÉCHIR (Didier 15/06) : les hors-périmètre du §9 spec v0.3 qui ne sont récupérés par AUCUNE version planifiée → mode `ByTransmitter` (push) + sélection stream secondaire `Streams[1..3]`. Décider explicitement (implémenter plus tard / ticket / abandon assumé), ne pas laisser tomber en silence. (mode toggle→v0.5, audio→v0.4 sont déjà couverts.)
 ▶ Env chaud : fake Transmitter (bg) + nvx-uat (4 boutons USE) — à recycler/arrêter selon besoin.
 ▶ NOTE HYGIÈNE : presets + matrice = code/doc MODULE committés sur feature/uat-harness (à cherry-pick ligne v0.2 au merge).
 ▶ NEXT v0.2 = UAT au labo (device, mode Transmitter). Backlog : docs/VALIDATION.md.
