@@ -3,6 +3,9 @@ dist/
 *.js.map
 .DS_Store
 .env
+.env.local
+**/.env.local
+*.env.local
 .claude/settings.local.json
 .claude/worktrees/
 .playwright-mcp/
