@@ -176,4 +176,49 @@ export const decoderPanel: Panel = {
       callback: () => state().rx_processing === true,
     },
   }),
+  buildPresets: () => ({
+    section: {
+      id: 'decoder',
+      name: 'Decoder',
+      description: 'Ready-to-use buttons for the decoder (StreamReceive) stream.',
+      definitions: ['dec_start_rx', 'dec_stop_rx', 'dec_set_source_url', 'dec_set_source_multicast', 'dec_connect_stream'],
+    },
+    presets: {
+      dec_start_rx: {
+        type: 'simple',
+        name: 'Start reception',
+        style: { text: 'Start\nRX', size: 'auto', color: WHITE, bgcolor: BLACK },
+        steps: [{ down: [{ actionId: 'enable_stream', options: {} }], up: [] }],
+        feedbacks: [{ feedbackId: 'rx_receiving', options: {}, style: { bgcolor: GREEN, color: WHITE } }],
+      },
+      dec_stop_rx: {
+        type: 'simple',
+        name: 'Stop reception',
+        style: { text: 'Stop\nRX', size: 'auto', color: WHITE, bgcolor: DARKRED },
+        steps: [{ down: [{ actionId: 'disable_stream', options: {} }], up: [] }],
+        feedbacks: [],
+      },
+      dec_set_source_url: {
+        type: 'simple',
+        name: 'Set source URL',
+        style: { text: 'Set\nURL', size: 'auto', color: WHITE, bgcolor: BLUE },
+        steps: [{ down: [{ actionId: 'set_source_url', options: { url: '' } }], up: [] }],
+        feedbacks: [],
+      },
+      dec_set_source_multicast: {
+        type: 'simple',
+        name: 'Set source multicast',
+        style: { text: 'Set\nMcast', size: 'auto', color: WHITE, bgcolor: BLUE },
+        steps: [{ down: [{ actionId: 'set_source_multicast', options: { address: '239.1.1.1' } }], up: [] }],
+        feedbacks: [],
+      },
+      dec_connect_stream: {
+        type: 'simple',
+        name: 'Connect to stream',
+        style: { text: 'Connect\nStream', size: 'auto', color: WHITE, bgcolor: BLUE },
+        steps: [{ down: [{ actionId: 'connect_to_stream', options: { stream: 'custom', custom: '' } }], up: [] }],
+        feedbacks: [],
+      },
+    },
+  }),
 }

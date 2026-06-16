@@ -169,3 +169,23 @@ test('rx_processing feedback reflects the polled flag', () => {
   const fb = decoderPanel.buildFeedbacks(() => ({ rx_processing: true }))
   assert.equal(def(fb.rx_processing).callback(fbEv('rx_processing', {}), {} as never), true)
 })
+
+test('decoder presets reference only real action ids, under the Decoder section', () => {
+  const { section, presets } = decoderPanel.buildPresets!()
+  const actionIds = new Set(Object.keys(decoderPanel.buildActions({} as never)))
+  assert.equal(section.name, 'Decoder')
+  const ids = Object.keys(presets).sort()
+  assert.deepEqual(ids, ['dec_connect_stream', 'dec_set_source_multicast', 'dec_set_source_url', 'dec_start_rx', 'dec_stop_rx'])
+  assert.deepEqual([...section.definitions].map(String).sort(), ids)
+  for (const p of Object.values(presets)) {
+    if (!p || p.type !== 'simple') continue
+    for (const step of p.steps) for (const a of step.down) assert.ok(actionIds.has(String(a.actionId)), `unknown actionId ${String(a.actionId)}`)
+  }
+})
+
+test('decoder start preset carries the rx_receiving feedback', () => {
+  const { presets } = decoderPanel.buildPresets!()
+  const start = presets.dec_start_rx
+  assert.ok(start && start.type === 'simple')
+  if (start && start.type === 'simple') assert.ok(start.feedbacks.some((f) => f.feedbackId === 'rx_receiving'))
+})
