@@ -98,13 +98,13 @@ test('set_source_multicast POSTs Multicast via RTSP + MulticastAddress', async (
   })
 })
 
-test('dec_enable_stream POSTs Start:true, dec_disable_stream POSTs Stop:true', async () => {
+test('dec_enable_stream POSTs {Start:true,Stop:false}, dec_disable_stream POSTs {Start:false,Stop:true}', async () => {
   const { calls, api } = fakeApi()
   const actions = decoderPanel.buildActions(api, helpers({ rx_processing: false }, undefined))
   await def(actions.dec_enable_stream).callback(ev('dec_enable_stream', {}), ctxVars)
   await def(actions.dec_disable_stream).callback(ev('dec_disable_stream', {}), ctxVars)
-  assert.deepEqual(calls[0], { Device: { StreamReceive: { Streams: [{ Start: true }] } } })
-  assert.deepEqual(calls[1], { Device: { StreamReceive: { Streams: [{ Stop: true }] } } })
+  assert.deepEqual(calls[0], { Device: { StreamReceive: { Streams: [{ Start: true, Stop: false }] } } })
+  assert.deepEqual(calls[1], { Device: { StreamReceive: { Streams: [{ Start: false, Stop: true }] } } })
 })
 
 test('Processing guard: no POST is sent while rx_processing is true', async () => {

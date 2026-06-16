@@ -120,12 +120,12 @@ export const decoderPanel: Panel = {
       dec_enable_stream: {
         name: 'Decoder: start reception',
         options: [],
-        callback: async () => { await post({ Start: true }) },
+        callback: async () => { await post({ Start: true, Stop: false }) },
       },
       dec_disable_stream: {
         name: 'Decoder: stop reception',
         options: [],
-        callback: async () => { await post({ Stop: true }) },
+        callback: async () => { await post({ Start: false, Stop: true }) },
       },
     }
   },
