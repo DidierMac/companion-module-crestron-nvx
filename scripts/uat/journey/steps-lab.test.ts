@@ -24,8 +24,11 @@ function ctx(over: Partial<JourneyContext> = {}, nvxPass = ''): JourneyContext {
     logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
     oracle: {
       readStream0: async () => ({ RtspSessionName: 'X' }),
+      readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
       captureBaseline: async () => {},
+      captureBaselineRx: async () => {},
       restore: async () => {},
+      restoreRx: async () => {},
     } as never,
     ui: {
       open: async () => ({}),
@@ -139,12 +142,106 @@ test('CFG-GOOD FAILs when the oracle cannot read a stream', async () => {
           readStream0: async () => {
             throw new Error('no session')
           },
+          readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
           captureBaseline: async () => {},
+          captureBaselineRx: async () => {},
           restore: async () => {},
+          restoreRx: async () => {},
         } as never,
       },
       'realpass',
     ),
   )
   assert.equal(v.status, 'FAIL')
+})
+
+// ── Decoder steps ─────────────────────────────────────────────────────────────
+
+test('lab steps include the decoder USE ids', () => {
+  const ids = labSteps.map((s) => s.id)
+  for (const id of ['DEC-CAP', 'BASELINE-RX', 'DEC-VARS', 'DEC-SOURCE-URL', 'DEC-SOURCE-MCAST', 'DEC-CONNECT', 'DEC-ENABLE', 'DEC-DISABLE', 'TEARDOWN-RX'])
+    assert.ok(ids.includes(id), `missing ${id}`)
+})
+
+test('decoder steps come after encoder USE block and before TEARDOWN', () => {
+  const ids = labSteps.map((s) => s.id)
+  assert.ok(ids.indexOf('ENC-DISABLE') < ids.indexOf('DEC-CAP'), 'DEC-CAP after ENC-DISABLE')
+  assert.ok(ids.indexOf('TEARDOWN-RX') < ids.indexOf('TEARDOWN'), 'TEARDOWN-RX before TEARDOWN')
+})
+
+test('DEC-CAP SKIPs (not FAILs) when device is a Transmitter', async () => {
+  const step = labSteps.find((s) => s.id === 'DEC-CAP')!
+  const v = await step.run(
+    ctx(
+      {
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'ok' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => 'Transmitter',
+          press: async () => {},
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'SKIP')
+})
+
+test('DEC-CAP PASSes when device_role is Receiver', async () => {
+  const step = labSteps.find((s) => s.id === 'DEC-CAP')!
+  const v = await step.run(
+    ctx(
+      {
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'ok' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => 'Receiver',
+          press: async () => {},
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'PASS')
+})
+
+test('a DEC WRITE step SKIPs when its button is not mapped (device present, no layout)', async () => {
+  const step = labSteps.find((s) => s.id === 'DEC-SOURCE-URL')!
+  const v = await step.run(ctx({}, 'realpass'))
+  assert.equal(v.status, 'SKIP')
+  assert.match(String(v.evidence.note), /layout|SETUP/i)
+})
+
+test('TEARDOWN-RX PASSes with a device', async () => {
+  const step = labSteps.find((s) => s.id === 'TEARDOWN-RX')!
+  assert.equal((await step.run(ctx({}, 'realpass'))).status, 'PASS')
+})
+
+test('TEARDOWN-RX FAILs when restoreRx throws', async () => {
+  const step = labSteps.find((s) => s.id === 'TEARDOWN-RX')!
+  const v = await step.run(
+    ctx(
+      {
+        oracle: {
+          readStream0: async () => ({ RtspSessionName: 'X' }),
+          readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
+          captureBaseline: async () => {},
+          captureBaselineRx: async () => {},
+          restore: async () => {},
+          restoreRx: async () => {
+            throw new Error('decoder unreachable')
+          },
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'FAIL')
+  assert.match(String(v.evidence.note), /decoder restore failed/i)
 })
