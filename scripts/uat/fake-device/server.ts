@@ -45,8 +45,8 @@ function loadSubsystem(name: string): Json {
 // Mutable StreamTransmit state (SetPartial writes land here; GET reflects them).
 const streamTransmit = loadSubsystem('StreamTransmit')
 
-// Mutable StreamReceive state — loaded only if the RAW profile contains it (Receiver profiles).
-// Transmitter profiles (.10) won't have Device_StreamReceive.json → stays null, no crash.
+// Mutable StreamReceive state for the Receiver profile. Loaded if the RAW exposes it
+// (try/catch: a pure encoder like the E30 .11 has none → stays null).
 let streamReceive: Json | null = null
 try { streamReceive = loadSubsystem('StreamReceive') } catch { streamReceive = null }
 
