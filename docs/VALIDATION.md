@@ -15,7 +15,7 @@
 - [ ] **CAP-01** — détection capability/role au connect → activation du panneau encoder (`device_role=Transmitter` + actions/variables/feedbacks exposés).
 - [ ] **ENC-01** — `set_stream_name` → `RtspSessionName` changé **réellement** (cross-check GET device). *Seul POST testé end-to-end au gate.*
 - [ ] **ENC-02** — `set_multicast_address` → **POST INFÉRÉ** (jamais validé en écriture au gate). Le run doit **confirmer ou infirmer**.
-- [ ] **ENC-03** — `enable_stream`/`disable_stream` → **POST INFÉRÉ** (`Start`/`Stop`). Confirmer/infirmer la transition `Status`.
+- [ ] **ENC-03** — `enable_stream`/`disable_stream` → **POST double-flag** (`{Start:true, Stop:false}` / `{Start:false, Stop:true}`). Confirmer/infirmer (1) la transition `Status` et (2) la sûreté du double-flag pour éviter le latch `Stop` observé au labo 2026-06-16.
 - [ ] **ENC-05** — variables encoder (`stream_name`/`multicast_address`/`encoder_url`/`stream_enabled`) = état réel device.
 - [ ] **ENC-06** — feedbacks `is_encoder` / `stream_enabled` / `stream_name_matches` (dont le cas faux pour `stream_name_matches`).
 - [ ] **ENC-07** — non-régression v0.1 : heartbeat (Phase B complète) + `scheduleReconnect` (un C1) intacts après la migration `poll()`.
