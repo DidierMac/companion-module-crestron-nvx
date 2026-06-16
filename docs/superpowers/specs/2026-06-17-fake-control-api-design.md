@@ -74,6 +74,21 @@ utile que pour une future gestion du déchiffrement (il poserait en plus `Discov
 - **Intégration (labo/fake, Playwright)** : journey avec steps par scénario → les 3 états RX exercés de bout en bout (control → press → oracle). Non automatisable en CI (Tier 2), cohérent avec le harnais.
 - **Non-régression** : journeys/tests existants sans appel de contrôle → comportement inchangé (défaut `decoding`).
 
+## Limitations connues (implémentation 2026-06-17)
+
+- **Scénario TX accepté mais inerte** : `POST /_control/scenario` avec `role:'tx'` est validé et stocké
+  (`currentTxScenario`), mais **jamais appliqué** au StreamTransmit du fake. Raison : l'encodeur est **binaire**
+  (`tx_enabled = Status === 'Stream started'`), et son Start/Stop pose déjà le `Status` — le scénario TX
+  `stopped`/`streaming` est donc redondant avec les commandes existantes. Décision (Didier, 2026-06-17) :
+  laisser accepté-mais-inerte. À câbler seulement si un futur besoin TX non-binaire apparaît.
+- **`decoding` pose un compteur de paquets fixe** : `scenarioToReceiveState('decoding')` retourne
+  `NumVideoPacketsRcvd: 1` (constante), là où l'ancien bloc figé incrémentait à chaque Start. Sans impact
+  fonctionnel (seul le prédicat journey `NumVideoPacketsRcvd > 0` le lit ; aucun feedback ne l'utilise).
+  Conséquence de la pureté de `scenarios.ts` (pas d'état entre appels).
+- **Handler HTTP non couvert en unitaire** : la robustesse du handler `/_control/scenario` (JSON invalide→400,
+  inconnu→400, état non corrompu) est vérifiée au niveau des fonctions pures, pas du handler lui-même
+  (nécessiterait de lever le serveur HTTPS). Test d'intégration optionnel en backlog.
+
 ## Questions ouvertes / hors scope
 
 - Couplage orchestré A (TX flux → route RX → RX décode) : couche optionnelle future sur la même API.

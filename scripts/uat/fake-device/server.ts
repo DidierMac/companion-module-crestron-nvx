@@ -15,6 +15,7 @@ import { readFileSync, existsSync, mkdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { scenarioToReceiveState, scenarioToTransmitState } from './scenarios.js'
 
 const PORT = Number(process.env.FAKE_NVX_PORT ?? 8443)
 const PASSWORD = process.env.FAKE_NVX_PASS ?? 'fake-pass'
@@ -42,6 +43,10 @@ function loadSubsystem(name: string): Json {
   return JSON.parse(readFileSync(path.join(RAW_DIR, `Device_${name}.json`), 'utf8')) as Json
 }
 
+// Current RX/TX scenarios — set via POST /_control/scenario. Defaults preserve non-regression.
+let currentRxScenario = 'decoding'
+let currentTxScenario = 'stopped'
+
 // Mutable StreamTransmit state (SetPartial writes land here; GET reflects them).
 const streamTransmit = loadSubsystem('StreamTransmit')
 
@@ -56,22 +61,18 @@ function receiveStream0(): Json | null {
   return Array.isArray(streams) && streams.length > 0 ? (streams[0] as Json) : null
 }
 
-/** Apply a CresNext StreamReceive SetPartial body to a target Streams[0] object. Exported for tests. */
-export function applyReceiveSetPartial(body: Json, target: Json): void {
+/** Apply a CresNext StreamReceive SetPartial body to a target Streams[0] object. Exported for tests.
+ *  @param scenario — RX scenario to apply on Start:true (default 'decoding' = non-regression). */
+export function applyReceiveSetPartial(body: Json, target: Json, scenario = 'decoding'): void {
   const sr = (body.Device as Json | undefined)?.StreamReceive as Json | undefined
   const streams = sr?.Streams
   if (!Array.isArray(streams)) return
-  // MODEL of decode, not firmware: a real device may negotiate 4K without decoding (CodecReady:false). Here Start⇒decoding so the journey can prove rx_receiving.
   for (const props of streams as Json[]) {
     if (!props || Object.keys(props).length === 0) continue
     for (const [k, v] of Object.entries(props)) {
       if (k === 'Start' && v === true) {
-        target.Status = 'Stream started'
-        target.CodecReady = true
-        target.HorizontalResolution = 3840
-        target.VerticalResolution = 2160
-        target.FramesPerSecond = 30
-        target.NumVideoPacketsRcvd = Number(target.NumVideoPacketsRcvd ?? 0) + 1
+        // MODEL of decode, not firmware: apply the named scenario (default='decoding' preserves non-regression).
+        Object.assign(target, scenarioToReceiveState(scenario))
       } else if (k === 'Stop' && v === true) {
         target.Status = 'Stream Stopped'
         target.CodecReady = false
@@ -156,6 +157,28 @@ const handler = (req: IncomingMessage, res: import('node:http').ServerResponse) 
       return res.end('bye')
     }
 
+    // ── Control API: POST /_control/scenario — set current RX/TX scenario (no auth required) ──
+    if (sub === '/_control/scenario' && method === 'POST') {
+      try {
+        const parsed = JSON.parse(body) as { role?: string; scenario?: string }
+        const scenario = parsed.scenario ?? ''
+        const role = parsed.role ?? 'rx'
+        // Validate — scenarioToReceiveState/Transmit throw on unknown name.
+        if (role === 'tx') {
+          scenarioToTransmitState(scenario)
+          currentTxScenario = scenario
+        } else {
+          scenarioToReceiveState(scenario)
+          currentRxScenario = scenario
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        return res.end(JSON.stringify({ ok: true, scenario }))
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        return res.end(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }))
+      }
+    }
+
     // ── Writes: POST /Device SetPartial → route by subsystem ──
     if (sub === '/Device' && method === 'POST') {
       try {
@@ -163,7 +186,7 @@ const handler = (req: IncomingMessage, res: import('node:http').ServerResponse) 
         const dev = parsed.Device as Json | undefined
         if (dev?.StreamReceive && streamReceive) {
           const t = receiveStream0()
-          if (t) applyReceiveSetPartial(parsed, t)
+          if (t) applyReceiveSetPartial(parsed, t, currentRxScenario)
         } else {
           applySetPartial(parsed)
         }
