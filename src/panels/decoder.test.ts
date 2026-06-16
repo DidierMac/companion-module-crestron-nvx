@@ -138,3 +138,34 @@ test('connect_to_stream (custom free-text, variable-resolved) routes by URL', as
     Device: { StreamReceive: { Streams: [{ SessionInitiation: 'ByReceiver', StreamLocation: 'rtsp://10.1.2.3:554/live.sdp' }] } },
   })
 })
+
+const fbEv = (id: string, options: Record<string, unknown>) =>
+  ({ feedbackId: id, options, controlId: 'c', id: 'i', type: 'boolean' }) as never
+
+test('rx_receiving: true when status is not Stopped and not processing', () => {
+  const on = decoderPanel.buildFeedbacks(() => ({ rx_status: 'Stream started', rx_processing: false }))
+  const off = decoderPanel.buildFeedbacks(() => ({ rx_status: 'Stream Stopped', rx_processing: false }))
+  const proc = decoderPanel.buildFeedbacks(() => ({ rx_status: 'Stream started', rx_processing: true }))
+  assert.equal(def(on.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), true)
+  assert.equal(def(off.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), false)
+  assert.equal(def(proc.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), false)
+})
+
+test('rx_source_matches compares by url, multicast or name', () => {
+  const fb = decoderPanel.buildFeedbacks(() => ({
+    rx_source_url: 'rtsp://10.0.0.5:554/live.sdp',
+    rx_multicast_address: '239.5.5.5',
+    rx_stream_name: 'STUDIO',
+  }))
+  const m = (value: string, by: string) =>
+    def(fb.rx_source_matches).callback(fbEv('rx_source_matches', { value, by }), {} as never)
+  assert.equal(m('rtsp://10.0.0.5:554/live.sdp', 'url'), true)
+  assert.equal(m('239.5.5.5', 'multicast'), true)
+  assert.equal(m('STUDIO', 'name'), true)
+  assert.equal(m('OTHER', 'name'), false)
+})
+
+test('rx_processing feedback reflects the polled flag', () => {
+  const fb = decoderPanel.buildFeedbacks(() => ({ rx_processing: true }))
+  assert.equal(def(fb.rx_processing).callback(fbEv('rx_processing', {}), {} as never), true)
+})

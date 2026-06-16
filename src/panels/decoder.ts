@@ -129,5 +129,51 @@ export const decoderPanel: Panel = {
       },
     }
   },
-  buildFeedbacks: () => ({}),
+  buildFeedbacks: (state) => ({
+    rx_receiving: {
+      type: 'boolean',
+      name: 'Decoder: receiving',
+      description: 'Active while the decoder is receiving a stream (status not Stopped, not transitioning)',
+      defaultStyle: { bgcolor: GREEN, color: WHITE },
+      options: [],
+      // Heuristic until the active Status string is confirmed at lab (spec §7-#1).
+      callback: () => state().rx_status !== 'Stream Stopped' && state().rx_status !== '' && state().rx_processing !== true,
+    },
+    rx_source_matches: {
+      type: 'boolean',
+      name: 'Decoder: source matches',
+      description: 'Active when the current source equals the given value',
+      defaultStyle: { bgcolor: combineRgb(0, 102, 204), color: WHITE },
+      options: [
+        { type: 'textinput', id: 'value', label: 'Value', default: '', useVariables: true },
+        {
+          type: 'dropdown',
+          id: 'by',
+          label: 'Compare by',
+          default: 'name',
+          choices: [
+            { id: 'name', label: 'Stream name' },
+            { id: 'url', label: 'Source URL' },
+            { id: 'multicast', label: 'Multicast address' },
+          ],
+        },
+      ],
+      callback: (fb) => {
+        const value = String(fb.options.value ?? '')
+        const by = String(fb.options.by ?? 'name')
+        const s = state()
+        if (by === 'url') return s.rx_source_url === value
+        if (by === 'multicast') return s.rx_multicast_address === value
+        return s.rx_stream_name === value
+      },
+    },
+    rx_processing: {
+      type: 'boolean',
+      name: 'Decoder: processing (transition)',
+      description: 'Active while the device is transitioning (commands should wait)',
+      defaultStyle: { bgcolor: combineRgb(153, 102, 0), color: WHITE },
+      options: [],
+      callback: () => state().rx_processing === true,
+    },
+  }),
 }
