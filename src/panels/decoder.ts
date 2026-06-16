@@ -4,11 +4,11 @@ import { subsystemObject } from '../capability.js'
 import { discoveredList, resolveSource } from './discovery.js'
 
 // Colour constants used by feedbacks/presets (Tasks 5-6); defined here to mirror encoder.ts style.
-export const WHITE = combineRgb(255, 255, 255)
-export const GREEN = combineRgb(0, 170, 0)
-export const BLUE = combineRgb(0, 51, 102)
-export const DARKRED = combineRgb(102, 0, 0)
-export const BLACK = combineRgb(0, 0, 0)
+const WHITE = combineRgb(255, 255, 255)
+const GREEN = combineRgb(0, 170, 0)
+const BLUE = combineRgb(0, 51, 102)
+const DARKRED = combineRgb(102, 0, 0)
+const BLACK = combineRgb(0, 0, 0)
 
 /** First stream of StreamReceive (the primary stream, position 0). Sentinel-safe. */
 function stream0(json: unknown): Record<string, unknown> | null {
