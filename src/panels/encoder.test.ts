@@ -26,18 +26,18 @@ test('encoder gate: active only in Transmitter mode', () => {
 
 test('encoder.readVariables on an ACTIVE transmitter (.10)', () => {
   const v = encoderPanel.readVariables(load('192.168.2.10'))
-  assert.equal(v.stream_name, 'DM-NVX-360-C442684E534B')
-  assert.equal(v.multicast_address, '239.1.1.4')
-  assert.equal(v.encoder_url, 'rtsp://192.168.2.10:554/live.sdp')
-  assert.equal(v.stream_enabled, true)
-  assert.equal(v.stream_processing, false) // Processing===false at rest (verified in fixture .10)
+  assert.equal(v.tx_stream_name, 'DM-NVX-360-C442684E534B')
+  assert.equal(v.tx_multicast_address, '239.1.1.4')
+  assert.equal(v.tx_stream_url, 'rtsp://192.168.2.10:554/live.sdp')
+  assert.equal(v.tx_enabled, true)
+  assert.equal(v.tx_processing, false) // Processing===false at rest (verified in fixture .10)
 })
 
 test('encoder.readVariables on an idle stream (.9, Stream Stopped)', () => {
   const v = encoderPanel.readVariables(load('192.168.2.9'))
-  assert.equal(v.stream_enabled, false)
-  assert.equal(v.multicast_address, '')
-  assert.equal(v.stream_processing, false) // Processing===false at rest (verified in fixture .9)
+  assert.equal(v.tx_enabled, false)
+  assert.equal(v.tx_multicast_address, '')
+  assert.equal(v.tx_processing, false) // Processing===false at rest (verified in fixture .9)
 })
 
 test('streamTransmitBody addresses Streams[0] by position, leaves others empty', () => {
@@ -53,7 +53,7 @@ function fakeApi(): { calls: unknown[]; api: NvxApiClient } {
 }
 
 const fakeHelpers = (processing: boolean) => ({
-  state: () => ({ stream_processing: processing }),
+  state: () => ({ tx_processing: processing }),
   aux: () => ({}),
 })
 
@@ -97,7 +97,7 @@ test('enc_enable_stream drops POST when Processing===true (device in transition)
 })
 
 test('stream_enabled feedback reflects the latest polled state', () => {
-  const fb = encoderPanel.buildFeedbacks(() => ({ stream_enabled: true }))
+  const fb = encoderPanel.buildFeedbacks(() => ({ tx_enabled: true }))
   const on = def(fb.stream_enabled).callback(
     { feedbackId: 'stream_enabled', options: {}, controlId: 'c', id: 'i', type: 'boolean' } as never,
     {} as never,
@@ -106,7 +106,7 @@ test('stream_enabled feedback reflects the latest polled state', () => {
 })
 
 test('stream_name_matches compares the option to the polled stream_name', () => {
-  const fb = encoderPanel.buildFeedbacks(() => ({ stream_name: 'STUDIO-A' }))
+  const fb = encoderPanel.buildFeedbacks(() => ({ tx_stream_name: 'STUDIO-A' }))
   const make = (name: string) =>
     def(fb.stream_name_matches).callback(
       { feedbackId: 'stream_name_matches', options: { name }, controlId: 'c', id: 'i', type: 'boolean' } as never,
@@ -127,7 +127,7 @@ test('set_multicast_address action POSTs MulticastAddress on Streams[0]', async 
 })
 
 test('stream_processing feedback is active when stream_processing===true', () => {
-  const fbOn = encoderPanel.buildFeedbacks(() => ({ stream_processing: true }))
+  const fbOn = encoderPanel.buildFeedbacks(() => ({ tx_processing: true }))
   const on = def(fbOn.stream_processing).callback(
     { feedbackId: 'stream_processing', options: {}, controlId: 'c', id: 'i', type: 'boolean' } as never,
     {} as never,
@@ -136,7 +136,7 @@ test('stream_processing feedback is active when stream_processing===true', () =>
 })
 
 test('stream_processing feedback is inactive when stream_processing===false', () => {
-  const fbOff = encoderPanel.buildFeedbacks(() => ({ stream_processing: false }))
+  const fbOff = encoderPanel.buildFeedbacks(() => ({ tx_processing: false }))
   const off = def(fbOff.stream_processing).callback(
     { feedbackId: 'stream_processing', options: {}, controlId: 'c', id: 'i', type: 'boolean' } as never,
     {} as never,

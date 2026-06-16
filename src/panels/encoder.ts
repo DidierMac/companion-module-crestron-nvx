@@ -30,24 +30,24 @@ export const encoderPanel: Panel = {
   endpoint: '/Device/StreamTransmit',
   gate: (ctx) => ctx.role === 'Transmitter',
   variableDefinitions: {
-    stream_name: { name: 'Encoder: stream name' },
-    multicast_address: { name: 'Encoder: multicast address' },
-    encoder_url: { name: 'Encoder: stream URL' },
-    stream_enabled: { name: 'Encoder: stream enabled' },
-    stream_processing: { name: 'Encoder: processing (transition)' },
+    tx_stream_name: { name: 'Encoder: stream name' },
+    tx_multicast_address: { name: 'Encoder: multicast address' },
+    tx_stream_url: { name: 'Encoder: stream URL' },
+    tx_enabled: { name: 'Encoder: stream enabled' },
+    tx_processing: { name: 'Encoder: processing (transition)' },
   },
   readVariables(json) {
     const s = stream0(json)
     return {
-      stream_name: str(s?.RtspSessionName),
-      multicast_address: str(s?.MulticastAddress),
-      encoder_url: str(s?.StreamLocation),
-      stream_enabled: str(s?.Status) === 'Stream started',
-      stream_processing: s?.Processing === true,
+      tx_stream_name: str(s?.RtspSessionName),
+      tx_multicast_address: str(s?.MulticastAddress),
+      tx_stream_url: str(s?.StreamLocation),
+      tx_enabled: str(s?.Status) === 'Stream started',
+      tx_processing: s?.Processing === true,
     }
   },
   buildActions: (api, helpers) => {
-    const isProcessing = (): boolean => helpers?.state().stream_processing === true
+    const isProcessing = (): boolean => helpers?.state().tx_processing === true
     const post = async (props: Record<string, unknown>): Promise<void> => {
       if (isProcessing()) return // device in transition — drop write until Processing===false
       await api.postSetPartial(streamTransmitBody(0, props))
@@ -92,7 +92,7 @@ export const encoderPanel: Panel = {
       description: 'Active when the encoder stream is started',
       defaultStyle: { bgcolor: GREEN, color: WHITE },
       options: [],
-      callback: () => state().stream_enabled === true,
+      callback: () => state().tx_enabled === true,
     },
     stream_name_matches: {
       type: 'boolean',
@@ -101,7 +101,7 @@ export const encoderPanel: Panel = {
       defaultStyle: { bgcolor: combineRgb(0, 102, 204), color: WHITE },
       // useVariables: allows $(module:var) tokens in the name field (SDK v2)
       options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '', useVariables: true }],
-      callback: (fb) => state().stream_name === String(fb.options.name ?? ''),
+      callback: (fb) => state().tx_stream_name === String(fb.options.name ?? ''),
     },
     stream_processing: {
       type: 'boolean',
@@ -109,7 +109,7 @@ export const encoderPanel: Panel = {
       description: 'Active while the device is transitioning (commands should wait)',
       defaultStyle: { bgcolor: combineRgb(153, 102, 0), color: WHITE },
       options: [],
-      callback: () => state().stream_processing === true,
+      callback: () => state().tx_processing === true,
     },
   }),
   buildPresets: () => ({

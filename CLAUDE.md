@@ -77,8 +77,8 @@ companion-module-crestron-nvx/
 - Appareil connecté
 
 ### Variables Companion
-`$(crestron-nvx:stream_mode)`, `$(crestron-nvx:stream_url)`, `$(crestron-nvx:stream_name)`,
-`$(crestron-nvx:multicast_address)`, `$(crestron-nvx:video_source)`, `$(crestron-nvx:video_source_name)`,
+`$(crestron-nvx:stream_mode)`, `$(crestron-nvx:stream_url)`, `$(crestron-nvx:tx_stream_name)`,
+`$(crestron-nvx:tx_multicast_address)`, `$(crestron-nvx:video_source)`, `$(crestron-nvx:video_source_name)`,
 `$(crestron-nvx:audio_muted)`, `$(crestron-nvx:audio_volume)`,
 `$(crestron-nvx:hdmi_input_signal)`, `$(crestron-nvx:hdmi_output_signal)`,
 `$(crestron-nvx:device_name)`, `$(crestron-nvx:firmware_version)`,

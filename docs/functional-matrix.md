@@ -29,10 +29,10 @@ les versions v0.2 → v0.5. Validée avec Didier (2026-06-14).
 
 | Actions | Feedbacks | Variables |
 |---|---|---|
-| `set_stream_name(name)` → `RtspSessionName` | `stream_enabled` (live → vert) | `stream_name` |
-| `set_multicast_address(address)` → `MulticastAddress` | `stream_name_matches(name)` | `multicast_address` |
-| `enable_stream` → `Start` | | `encoder_url` |
-| `disable_stream` → `Stop` | | `stream_enabled` |
+| `set_stream_name(name)` → `RtspSessionName` | `stream_enabled` (live → vert) | `tx_stream_name` |
+| `set_multicast_address(address)` → `MulticastAddress` | `stream_name_matches(name)` | `tx_multicast_address` |
+| `enable_stream` → `Start` | | `tx_stream_url` |
+| `disable_stream` → `Stop` | | `tx_enabled` |
 
 **Presets livrés** ✅ : section « Encoder » — `Start stream` (porte le feedback `stream_enabled`),
 `Stop stream`, `Set stream name`, `Set multicast address`.

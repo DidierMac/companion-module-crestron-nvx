@@ -147,11 +147,11 @@ const useSteps: JourneyStep[] = [
       if (noDevice(ctx)) return skip('ENC-VARS', 'variables (no device)', 1, { note: 'NVX_PASS unset' })
       const s = await ctx.oracle.readStream0()
       const checks: Record<string, [string, string]> = {
-        // wait for the panel to have polled at least once (stream_name populated), then read all
-        stream_name: [await readVar(ctx, 'stream_name', (v) => v !== ''), str(s.RtspSessionName)],
-        multicast_address: [await readVar(ctx, 'multicast_address'), str(s.MulticastAddress)],
-        encoder_url: [await readVar(ctx, 'encoder_url'), str(s.StreamLocation)],
-        stream_enabled: [await readVar(ctx, 'stream_enabled'), String(str(s.Status) === 'Stream started')],
+        // wait for the panel to have polled at least once (tx_stream_name populated), then read all
+        tx_stream_name: [await readVar(ctx, 'tx_stream_name', (v) => v !== ''), str(s.RtspSessionName)],
+        tx_multicast_address: [await readVar(ctx, 'tx_multicast_address'), str(s.MulticastAddress)],
+        tx_stream_url: [await readVar(ctx, 'tx_stream_url'), str(s.StreamLocation)],
+        tx_enabled: [await readVar(ctx, 'tx_enabled'), String(str(s.Status) === 'Stream started')],
       }
       const mismatches = Object.entries(checks).filter(([, [a, b]]) => a !== b)
       return mismatches.length === 0
@@ -168,11 +168,11 @@ const useSteps: JourneyStep[] = [
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip('ENC-FEEDBACKS', 'feedbacks (no device)', 1, { note: 'NVX_PASS unset' })
       // Satellite colour check deferred (spec §8); validate the variable that drives the feedback.
-      const varVal = await readVar(ctx, 'stream_enabled', (v) => v !== '')
+      const varVal = await readVar(ctx, 'tx_enabled', (v) => v !== '')
       const s = await ctx.oracle.readStream0()
       const deviceVal = String(str(s.Status) === 'Stream started')
       return varVal === deviceVal
-        ? pass('ENC-FEEDBACKS', 'feedback source matches device', 1, { note: `stream_enabled=${varVal}` })
+        ? pass('ENC-FEEDBACKS', 'feedback source matches device', 1, { note: `tx_enabled=${varVal}` })
         : fail('ENC-FEEDBACKS', 'feedback source mismatch', 1, { expected: deviceVal, observed: varVal })
     },
   },
