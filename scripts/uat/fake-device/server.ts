@@ -61,12 +61,27 @@ export function applyReceiveSetPartial(body: Json, target: Json): void {
   const sr = (body.Device as Json | undefined)?.StreamReceive as Json | undefined
   const streams = sr?.Streams
   if (!Array.isArray(streams)) return
+  // MODEL of decode, not firmware: a real device may negotiate 4K without decoding (CodecReady:false). Here Start⇒decoding so the journey can prove rx_receiving.
   for (const props of streams as Json[]) {
     if (!props || Object.keys(props).length === 0) continue
     for (const [k, v] of Object.entries(props)) {
-      if (k === 'Start' && v === true) target.Status = 'Stream started'
-      else if (k === 'Stop' && v === true) target.Status = 'Stream Stopped'
-      else target[k] = v
+      if (k === 'Start' && v === true) {
+        target.Status = 'Stream started'
+        target.CodecReady = true
+        target.HorizontalResolution = 3840
+        target.VerticalResolution = 2160
+        target.FramesPerSecond = 30
+        target.NumVideoPacketsRcvd = Number(target.NumVideoPacketsRcvd ?? 0) + 1
+      } else if (k === 'Stop' && v === true) {
+        target.Status = 'Stream Stopped'
+        target.CodecReady = false
+        target.HorizontalResolution = 0
+        target.VerticalResolution = 0
+        target.FramesPerSecond = 0
+        target.NumVideoPacketsRcvd = 0
+      } else {
+        target[k] = v
+      }
     }
   }
 }

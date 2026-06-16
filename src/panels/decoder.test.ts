@@ -59,6 +59,9 @@ test('decoder.readVariables on idle receiver (.9, Stream Stopped, empty source)'
   assert.equal(v.rx_processing, false)
   assert.equal(v.rx_discovered_count, 2)
   assert.equal(v.rx_stream_name, '')
+  assert.equal(v.rx_codec_ready, false)
+  assert.equal(v.rx_video_packets, 0)
+  assert.equal(v.rx_armed, false)
 })
 
 test('decoder.readVariables reverse-looks-up the stream name from discovery', () => {
@@ -142,13 +145,60 @@ test('connect_to_stream (custom free-text, variable-resolved) routes by URL', as
 const fbEv = (id: string, options: Record<string, unknown>) =>
   ({ feedbackId: id, options, controlId: 'c', id: 'i', type: 'boolean' }) as never
 
-test('rx_receiving: true when status is not Stopped and not processing', () => {
-  const on = decoderPanel.buildFeedbacks(() => ({ rx_status: 'Stream started', rx_processing: false }))
-  const off = decoderPanel.buildFeedbacks(() => ({ rx_status: 'Stream Stopped', rx_processing: false }))
-  const proc = decoderPanel.buildFeedbacks(() => ({ rx_status: 'Stream started', rx_processing: true }))
-  assert.equal(def(on.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), true)
-  assert.equal(def(off.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), false)
-  assert.equal(def(proc.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), false)
+test('rx feedbacks: three visual states (off / negotiating / decoding)', () => {
+  // State: repos — aucun signal (rx_armed:false, rx_codec_ready:false)
+  const fbOff = decoderPanel.buildFeedbacks(() => ({ rx_armed: false, rx_codec_ready: false }))
+  assert.ok(fbOff.rx_negotiating, 'rx_negotiating feedback must be defined')
+  assert.equal(def(fbOff.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), false)
+  assert.equal(def(fbOff.rx_negotiating).callback(fbEv('rx_negotiating', {}), {} as never), false)
+
+  // State: négocie-sans-décoder (rx_armed:true, rx_codec_ready:false)
+  const fbNeg = decoderPanel.buildFeedbacks(() => ({ rx_armed: true, rx_codec_ready: false }))
+  assert.equal(def(fbNeg.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), false)
+  assert.equal(def(fbNeg.rx_negotiating).callback(fbEv('rx_negotiating', {}), {} as never), true)
+
+  // State: décode (rx_codec_ready:true)
+  const fbDec = decoderPanel.buildFeedbacks(() => ({ rx_armed: true, rx_codec_ready: true }))
+  assert.equal(def(fbDec.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), true)
+  assert.equal(def(fbDec.rx_negotiating).callback(fbEv('rx_negotiating', {}), {} as never), false)
+
+  // Exclusion mutuelle : aucun état ne rend les deux true simultanément
+  for (const state of [
+    { rx_armed: false, rx_codec_ready: false },
+    { rx_armed: true,  rx_codec_ready: false },
+    { rx_armed: true,  rx_codec_ready: true  },
+  ]) {
+    const fb = decoderPanel.buildFeedbacks(() => state)
+    const receiving = def(fb.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never)
+    const negotiating = def(fb.rx_negotiating).callback(fbEv('rx_negotiating', {}), {} as never)
+    assert.ok(!(receiving && negotiating), `rx_receiving and rx_negotiating must not both be true (state: ${JSON.stringify(state)})`)
+  }
+})
+
+test('rx_receiving requires CodecReady — video packets alone are not enough (design lock)', () => {
+  // Verrouille la décision de design : CodecReady seul fait foi pour rx_receiving.
+  // Des paquets vidéo sans codec ready = état transitoire (chiffrement, négociation RTSP en cours).
+  // rx_receiving doit rester false ; rx_negotiating doit être true (rx_armed=true implicite ici).
+  const fb = decoderPanel.buildFeedbacks(() => ({ rx_armed: true, rx_codec_ready: false, rx_video_packets: 100 }))
+  assert.equal(def(fb.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), false)
+  assert.equal(def(fb.rx_negotiating).callback(fbEv('rx_negotiating', {}), {} as never), true)
+})
+
+test('real fixture 2026-06-16: negotiating-without-decoding (4K, CodecReady:false)', () => {
+  // Capture labo : résolution 4K négociée mais CodecReady=false → état négociation-sans-décodage.
+  // Preuve exécutable du bug labo (rx_receiving était true alors qu'aucune image ne défilait).
+  const v = decoderPanel.readVariables(loadRx('2026-06-16-rx-with-flux'), {})
+  assert.equal(v.rx_armed, true,         'rx_armed must be true (HRes=3840 > 0)')
+  assert.equal(v.rx_codec_ready, false,  'rx_codec_ready must be false (CodecReady=false in fixture)')
+  assert.equal(v.rx_resolution, '3840x2160')
+  // Feedbacks pour cet état : rx_negotiating=true, rx_receiving=false
+  const fb = decoderPanel.buildFeedbacks(() => ({
+    rx_armed: v.rx_armed,
+    rx_codec_ready: v.rx_codec_ready,
+  }))
+  assert.ok(fb.rx_negotiating, 'rx_negotiating feedback must be defined')
+  assert.equal(def(fb.rx_receiving).callback(fbEv('rx_receiving', {}), {} as never), false)
+  assert.equal(def(fb.rx_negotiating).callback(fbEv('rx_negotiating', {}), {} as never), true)
 })
 
 test('rx_source_matches compares by url, multicast or name', () => {
@@ -183,9 +233,12 @@ test('decoder presets reference only real action ids, under the Decoder section'
   }
 })
 
-test('decoder start preset carries the rx_receiving feedback', () => {
+test('decoder start preset carries both rx_receiving and rx_negotiating feedbacks', () => {
   const { presets } = decoderPanel.buildPresets!()
   const start = presets.dec_start_rx
   assert.ok(start && start.type === 'simple')
-  if (start && start.type === 'simple') assert.ok(start.feedbacks.some((f) => f.feedbackId === 'rx_receiving'))
+  if (start && start.type === 'simple') {
+    assert.ok(start.feedbacks.some((f) => f.feedbackId === 'rx_receiving'),   'preset must include rx_receiving feedback')
+    assert.ok(start.feedbacks.some((f) => f.feedbackId === 'rx_negotiating'), 'preset must include rx_negotiating feedback')
+  }
 })

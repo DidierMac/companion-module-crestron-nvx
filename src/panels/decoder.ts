@@ -6,6 +6,7 @@ import { discoveredList, resolveSource } from './discovery.js'
 // Colour constants used by feedbacks/presets (Tasks 5-6); defined here to mirror encoder.ts style.
 const WHITE = combineRgb(255, 255, 255)
 const GREEN = combineRgb(0, 170, 0)
+const AMBER = combineRgb(255, 140, 0)
 const BLUE = combineRgb(0, 51, 102)
 const DARKRED = combineRgb(102, 0, 0)
 const BLACK = combineRgb(0, 0, 0)
@@ -43,6 +44,9 @@ export const decoderPanel: Panel = {
     rx_stream_name: { name: 'Decoder: source stream name' },
     rx_discovered_count: { name: 'Decoder: discovered stream count' },
     rx_discovered_names: { name: 'Decoder: discovered stream names' },
+    rx_codec_ready: { name: 'Decoder: codec ready (decoding)' },
+    rx_video_packets: { name: 'Decoder: video packets received' },
+    rx_armed: { name: 'Decoder: armed (session negotiated)' },
   },
   readVariables(primary, auxMap) {
     const s = stream0(primary)
@@ -57,6 +61,9 @@ export const decoderPanel: Panel = {
       rx_status: str(s?.Status),
       rx_resolution: `${num(s?.HorizontalResolution)}x${num(s?.VerticalResolution)}`,
       rx_processing: s?.Processing === true,
+      rx_codec_ready: s?.CodecReady === true,
+      rx_video_packets: num(s?.NumVideoPacketsRcvd),
+      rx_armed: num(s?.HorizontalResolution) > 0 || num(s?.VerticalResolution) > 0,
       rx_stream_name: match?.sessionName ?? '',
       rx_discovered_count: list.length,
       rx_discovered_names: list.map((d) => d.sessionName).join(', '),
@@ -133,11 +140,20 @@ export const decoderPanel: Panel = {
     rx_receiving: {
       type: 'boolean',
       name: 'Decoder: receiving',
-      description: 'Active while the decoder is receiving a stream (status not Stopped, not transitioning)',
+      description: 'Active while the decoder is actually decoding (CodecReady), not merely armed.',
       defaultStyle: { bgcolor: GREEN, color: WHITE },
       options: [],
-      // Heuristic until the active Status string is confirmed at lab (spec §7-#1).
-      callback: () => state().rx_status !== 'Stream Stopped' && state().rx_status !== '' && state().rx_processing !== true,
+      // Real decode signal: CodecReady===true (lab 2026-06-16: resolution can populate while CodecReady:false).
+      callback: () => state().rx_codec_ready === true,
+    },
+    rx_negotiating: {
+      type: 'boolean',
+      name: 'Decoder: negotiating',
+      description: 'Active when the session is negotiated (resolution populated) but not yet decoding — e.g. encrypted source, source not pushing video, or idle source.',
+      defaultStyle: { bgcolor: AMBER, color: WHITE },
+      options: [],
+      // Mutually exclusive with rx_receiving by construction (codec_ready !== true).
+      callback: () => state().rx_armed === true && state().rx_codec_ready !== true,
     },
     rx_source_matches: {
       type: 'boolean',
@@ -189,7 +205,10 @@ export const decoderPanel: Panel = {
         name: 'Start reception',
         style: { text: 'Start\nRX', size: 'auto', color: WHITE, bgcolor: BLACK },
         steps: [{ down: [{ actionId: 'dec_enable_stream', options: {} }], up: [] }],
-        feedbacks: [{ feedbackId: 'rx_receiving', options: {}, style: { bgcolor: GREEN, color: WHITE } }],
+        feedbacks: [
+          { feedbackId: 'rx_negotiating', options: {}, style: { bgcolor: AMBER, color: WHITE } },
+          { feedbackId: 'rx_receiving', options: {}, style: { bgcolor: GREEN, color: WHITE } },
+        ],
       },
       dec_stop_rx: {
         type: 'simple',
