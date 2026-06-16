@@ -67,13 +67,13 @@ test('set_stream_name action POSTs RtspSessionName on Streams[0]', async () => {
   assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ RtspSessionName: 'STUDIO-A' }] } } })
 })
 
-test('enc_enable_stream POSTs Start:true, enc_disable_stream POSTs Stop:true', async () => {
+test('enc_enable_stream POSTs {Start:true,Stop:false}, enc_disable_stream POSTs {Stop:true,Start:false}', async () => {
   const { calls, api } = fakeApi()
   const actions = encoderPanel.buildActions(api, fakeHelpers(false))
   await def(actions.enc_enable_stream).callback({ actionId: 'enc_enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
   await def(actions.enc_disable_stream).callback({ actionId: 'enc_disable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
-  assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ Start: true }] } } })
-  assert.deepEqual(calls[1], { Device: { StreamTransmit: { Streams: [{ Stop: true }] } } })
+  assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ Start: true, Stop: false }] } } })
+  assert.deepEqual(calls[1], { Device: { StreamTransmit: { Streams: [{ Stop: true, Start: false }] } } })
 })
 
 test('set_stream_name drops POST when Processing===true (device in transition)', async () => {

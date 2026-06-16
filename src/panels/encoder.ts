@@ -73,14 +73,14 @@ export const encoderPanel: Panel = {
         name: 'Encoder: start stream',
         options: [],
         callback: async () => {
-          await post({ Start: true })
+          await post({ Start: true, Stop: false })
         },
       },
       enc_disable_stream: {
         name: 'Encoder: stop stream',
         options: [],
         callback: async () => {
-          await post({ Stop: true })
+          await post({ Start: false, Stop: true })
         },
       },
     }
