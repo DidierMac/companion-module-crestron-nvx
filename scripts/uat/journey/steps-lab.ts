@@ -294,6 +294,7 @@ const decoderUseSteps: JourneyStep[] = [
     (s) => str(s.SessionInitiation) === 'Multicast via RTSP' && str(s.MulticastAddress) === UAT_RX_MULTICAST,
     { SessionInitiation: 'Multicast via RTSP', MulticastAddress: UAT_RX_MULTICAST },
   ),
+  // NOTE: connect-by-name resolves to the same multicast as DEC-SOURCE-MCAST → shared terminal state by design (assertion can't distinguish the two paths at device level).
   writeStepRx(
     'DEC-CONNECT',
     'connect to discovered stream by name → device',

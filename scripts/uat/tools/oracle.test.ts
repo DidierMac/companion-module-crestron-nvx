@@ -122,6 +122,32 @@ test('captureBaselineRx then restoreRx re-posts SessionInitiation + state', asyn
   assert.deepEqual(posted[1], { Device: { StreamReceive: { Streams: [{ Stop: true }] } } })
 })
 
+test('captureBaselineRx then restoreRx ByReceiver branch re-posts URL + Start', async () => {
+  const posted: unknown[] = []
+  const client = {
+    login: async () => {},
+    logout: async () => {},
+    get: async () => ({
+      Device: {
+        StreamReceive: {
+          Streams: [{ SessionInitiation: 'ByReceiver', StreamLocation: 'rtsp://10.0.0.9:554/live.sdp', Status: 'Stream started' }],
+        },
+      },
+    }),
+    postSetPartial: async (b: unknown) => {
+      posted.push(b)
+      return 0
+    },
+  } as unknown as NvxApiClient
+  const o = new Oracle(() => client)
+  await o.captureBaselineRx()
+  await o.restoreRx()
+  // First post restores session initiation + stream URL (ByReceiver path)
+  assert.deepEqual(posted[0], { Device: { StreamReceive: { Streams: [{ SessionInitiation: 'ByReceiver', StreamLocation: 'rtsp://10.0.0.9:554/live.sdp' }] } } })
+  // Second post restores active state (baseline Status was 'Stream started' → Start: true)
+  assert.deepEqual(posted[1], { Device: { StreamReceive: { Streams: [{ Start: true }] } } })
+})
+
 test('restoreRx is a no-op without a baselineRx', async () => {
   const posted: unknown[] = []
   const client = {
