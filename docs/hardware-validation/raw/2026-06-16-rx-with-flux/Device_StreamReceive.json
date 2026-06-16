@@ -1,0 +1,234 @@
+{
+  "Device": {
+    "StreamReceive": {
+      "Streams": [
+        {
+          "AspectRatio": "16:9",
+          "AudioChannels": 0,
+          "AudioFormat": "NoAudio",
+          "AudioMode": "Manual",
+          "Bitrate": 0,
+          "Buffer": 1000,
+          "CodecReady": false,
+          "ElapsedSeconds": 0,
+          "FramesPerSecond": 30,
+          "HdcpTransmitterMode": "Always",
+          "HorizontalResolution": 3840,
+          "InitiatorAddress": "",
+          "IsAutomaticInitiationEnabled": true,
+          "IsPasswordProtectionEnabled": true,
+          "IsStatisticsEnabled": false,
+          "MulticastAddress": "239.1.1.6",
+          "NumAudioPacketsDropped": 0,
+          "NumAudioPacketsRcvd": 0,
+          "NumVideoPacketsDropped": 0,
+          "NumVideoPacketsRcvd": 0,
+          "Password": "",
+          "Pause": false,
+          "Processing": false,
+          "RtpAudioPort": 49172,
+          "RtpVideoPort": 49170,
+          "RtspPort": 554,
+          "SessionInitiation": "ByReceiver",
+          "Start": true,
+          "Status": "Stream started",
+          "Stop": false,
+          "StreamLocation": "rtsp://192.168.2.11:554/live.sdp",
+          "StreamProfile": "High",
+          "StreamTrustedCertifyingAuthorities": {
+            "Certificates": [
+              {
+                "Name": "SecureTrust CA",
+                "Trusted": true,
+                "Uid": "0CF08E5C0816A5AD427FF0EB271859D0"
+              }
+            ],
+            "DontTrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            },
+            "TrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            }
+          },
+          "StreamType": "Primary",
+          "TcpMode": "Auto",
+          "TransportMode": "MPEG2TSRTP",
+          "TsPort": 4570,
+          "Username": "",
+          "VerticalResolution": 2160,
+          "VideoFormat": "Pixel",
+          "Volume": 0
+        },
+        {
+          "AudioChannels": 2,
+          "AudioFormat": "Lpcm",
+          "AudioMode": "Manual",
+          "Bitrate": 750,
+          "Buffer": 1000,
+          "CodecReady": false,
+          "ElapsedSeconds": 0,
+          "FramesPerSecond": 0,
+          "HdcpTransmitterMode": "Always",
+          "HorizontalResolution": 0,
+          "InitiatorAddress": "",
+          "IsAutomaticInitiationEnabled": true,
+          "IsPasswordProtectionEnabled": true,
+          "IsStatisticsEnabled": false,
+          "MulticastAddress": "",
+          "NumAudioPacketsDropped": 0,
+          "NumAudioPacketsRcvd": 0,
+          "NumVideoPacketsDropped": 0,
+          "NumVideoPacketsRcvd": 0,
+          "Password": "",
+          "Pause": false,
+          "Processing": false,
+          "RtpAudioPort": 49172,
+          "RtpVideoPort": 49170,
+          "RtspPort": 554,
+          "SessionInitiation": "Multicast via RTSP",
+          "Start": false,
+          "Status": "Stream Stopped",
+          "Stop": false,
+          "StreamLocation": "",
+          "StreamProfile": "High",
+          "StreamTrustedCertifyingAuthorities": {
+            "Certificates": [
+              {
+                "Name": "SecureTrust CA",
+                "Trusted": true,
+                "Uid": "0CF08E5C0816A5AD427FF0EB271859D0"
+              }
+            ],
+            "DontTrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            },
+            "TrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            }
+          },
+          "StreamType": "Primary",
+          "TcpMode": "Auto",
+          "TransportMode": "MPEG2TSRTP",
+          "TsPort": 4570,
+          "Username": "",
+          "VerticalResolution": 0,
+          "VideoFormat": "J2000",
+          "Volume": 0
+        },
+        {
+          "AudioChannels": 2,
+          "AudioFormat": "Lpcm",
+          "AudioMode": "Manual",
+          "Bitrate": 0,
+          "Buffer": 1000,
+          "CodecReady": false,
+          "ElapsedSeconds": 0,
+          "FramesPerSecond": 0,
+          "HdcpTransmitterMode": "FollowInput",
+          "HorizontalResolution": 0,
+          "InitiatorAddress": "",
+          "IsAutomaticInitiationEnabled": true,
+          "IsPasswordProtectionEnabled": true,
+          "IsStatisticsEnabled": false,
+          "MulticastAddress": "",
+          "NumAudioPacketsDropped": 0,
+          "NumAudioPacketsRcvd": 0,
+          "NumVideoPacketsDropped": 0,
+          "NumVideoPacketsRcvd": 0,
+          "Password": "",
+          "Pause": false,
+          "Processing": false,
+          "RtpAudioPort": 40002,
+          "RtpVideoPort": 40000,
+          "RtspPort": 554,
+          "SessionInitiation": "ByReceiver",
+          "Start": false,
+          "Status": "Stream Stopped",
+          "Stop": false,
+          "StreamLocation": "",
+          "StreamProfile": "High",
+          "StreamTrustedCertifyingAuthorities": {
+            "Certificates": [
+              {
+                "Name": "SecureTrust CA",
+                "Trusted": true,
+                "Uid": "0CF08E5C0816A5AD427FF0EB271859D0"
+              }
+            ],
+            "DontTrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            },
+            "TrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            }
+          },
+          "StreamType": "Primary",
+          "TcpMode": "Auto",
+          "TransportMode": "RTP",
+          "TsPort": 4570,
+          "Username": "",
+          "VerticalResolution": 0,
+          "VideoFormat": "J2000",
+          "Volume": 0
+        },
+        {
+          "AudioChannels": 2,
+          "AudioFormat": "Lpcm",
+          "AudioMode": "Manual",
+          "Bitrate": 0,
+          "Buffer": 1000,
+          "CodecReady": false,
+          "ElapsedSeconds": 0,
+          "FramesPerSecond": 0,
+          "HdcpTransmitterMode": "FollowInput",
+          "HorizontalResolution": 0,
+          "InitiatorAddress": "",
+          "IsAutomaticInitiationEnabled": true,
+          "IsPasswordProtectionEnabled": true,
+          "IsStatisticsEnabled": false,
+          "MulticastAddress": "",
+          "NumAudioPacketsDropped": 0,
+          "NumAudioPacketsRcvd": 0,
+          "NumVideoPacketsDropped": 0,
+          "NumVideoPacketsRcvd": 0,
+          "Password": "",
+          "Pause": false,
+          "Processing": false,
+          "RtpAudioPort": 40002,
+          "RtpVideoPort": 40000,
+          "RtspPort": 554,
+          "SessionInitiation": "ByReceiver",
+          "Start": false,
+          "Status": "Stream Stopped",
+          "Stop": false,
+          "StreamLocation": "",
+          "StreamProfile": "High",
+          "StreamTrustedCertifyingAuthorities": {
+            "Certificates": [
+              {
+                "Name": "SecureTrust CA",
+                "Trusted": true,
+                "Uid": "0CF08E5C0816A5AD427FF0EB271859D0"
+              }
+            ],
+            "DontTrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            },
+            "TrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            }
+          },
+          "StreamType": "Primary",
+          "TcpMode": "Auto",
+          "TransportMode": "RTP",
+          "TsPort": 4570,
+          "Username": "",
+          "VerticalResolution": 0,
+          "VideoFormat": "J2000",
+          "Volume": 0
+        }
+      ],
+      "Version": "2.0.1"
+    }
+  }
+}

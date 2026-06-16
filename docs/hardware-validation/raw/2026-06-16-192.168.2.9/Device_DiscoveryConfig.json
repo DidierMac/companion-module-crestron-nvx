@@ -1,0 +1,12 @@
+{
+  "Device": {
+    "DiscoveryConfig": {
+      "DiscoveryAgent": true,
+      "EnableDiscoverer": true,
+      "Password": "",
+      "Ttl": "5",
+      "Username": "",
+      "Version": "2.0.1"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "Device": {
+    "BackgroundImage": {
+      "Outputs": {
+        "Output1": {
+          "DetailedMessage": "Image invalid",
+          "DisplayWaitTimeInSeconds": 5,
+          "HostBackgroundImage": "Local",
+          "ImageDisplayMode": 0,
+          "IsEnabled": false,
+          "Local": {
+            "ImageName": "",
+            "PreviewImage": ""
+          },
+          "RemoteServer": {
+            "DeleteImage": false,
+            "DownloadStatus": "",
+            "IsRefreshImageEnabled": false,
+            "PreviewImage": "",
+            "RefreshRateInMinutes": 60,
+            "ServerPath": ""
+          },
+          "StatusCode": 123,
+          "StatusMessage": "NA"
+        }
+      },
+      "Version": "2.0.0"
+    }
+  }
+}

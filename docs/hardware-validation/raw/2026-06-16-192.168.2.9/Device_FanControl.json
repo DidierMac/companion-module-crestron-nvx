@@ -1,0 +1,13 @@
+{
+  "Device": {
+    "FanControl": {
+      "Fans": {
+        "Fan1": {
+          "FanMode": "Auto",
+          "FanStatus": "FullOn"
+        }
+      },
+      "Version": "2.0.0"
+    }
+  }
+}

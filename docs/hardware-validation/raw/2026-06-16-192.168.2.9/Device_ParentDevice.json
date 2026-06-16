@@ -1,0 +1,9 @@
+{
+  "Device": {
+    "ParentDevice": {
+      "SerialNumber": "",
+      "SlotInParent": "",
+      "Version": "2.0.0"
+    }
+  }
+}
