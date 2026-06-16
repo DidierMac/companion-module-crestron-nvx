@@ -14,6 +14,7 @@ import type { IncomingMessage } from 'node:http'
 import { readFileSync, existsSync, mkdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 const PORT = Number(process.env.FAKE_NVX_PORT ?? 8443)
 const PASSWORD = process.env.FAKE_NVX_PASS ?? 'fake-pass'
@@ -44,6 +45,32 @@ function loadSubsystem(name: string): Json {
 // Mutable StreamTransmit state (SetPartial writes land here; GET reflects them).
 const streamTransmit = loadSubsystem('StreamTransmit')
 
+// Mutable StreamReceive state — loaded only if the RAW profile contains it (Receiver profiles).
+// Transmitter profiles (.10) won't have Device_StreamReceive.json → stays null, no crash.
+let streamReceive: Json | null = null
+try { streamReceive = loadSubsystem('StreamReceive') } catch { streamReceive = null }
+
+function receiveStream0(): Json | null {
+  const sr = (streamReceive?.Device as Json | undefined)?.StreamReceive as Json | undefined
+  const streams = sr?.Streams
+  return Array.isArray(streams) && streams.length > 0 ? (streams[0] as Json) : null
+}
+
+/** Apply a CresNext StreamReceive SetPartial body to a target Streams[0] object. Exported for tests. */
+export function applyReceiveSetPartial(body: Json, target: Json): void {
+  const sr = (body.Device as Json | undefined)?.StreamReceive as Json | undefined
+  const streams = sr?.Streams
+  if (!Array.isArray(streams)) return
+  for (const props of streams as Json[]) {
+    if (!props || Object.keys(props).length === 0) continue
+    for (const [k, v] of Object.entries(props)) {
+      if (k === 'Start' && v === true) target.Status = 'Stream started'
+      else if (k === 'Stop' && v === true) target.Status = 'Stream Stopped'
+      else target[k] = v
+    }
+  }
+}
+
 function stream0(): Json {
   const dev = streamTransmit.Device as Json
   const st = dev.StreamTransmit as Json
@@ -70,6 +97,7 @@ function applySetPartial(body: Json): void {
 
 function serveSubsystem(sub: string): Json | null {
   if (sub === 'StreamTransmit') return streamTransmit
+  if (sub === 'StreamReceive' && streamReceive) return streamReceive
   try {
     return loadSubsystem(sub)
   } catch {
@@ -85,9 +113,7 @@ function readBody(req: IncomingMessage): Promise<string> {
   })
 }
 
-const { key, cert } = ensureCert()
-
-const server = https.createServer({ key, cert }, (req, res) => {
+const handler = (req: IncomingMessage, res: import('node:http').ServerResponse) => {
   void (async () => {
     const url = req.url ?? ''
     const method = req.method ?? 'GET'
@@ -115,10 +141,17 @@ const server = https.createServer({ key, cert }, (req, res) => {
       return res.end('bye')
     }
 
-    // ── Writes: POST /Device SetPartial → StatusId 0 ──
+    // ── Writes: POST /Device SetPartial → route by subsystem ──
     if (sub === '/Device' && method === 'POST') {
       try {
-        applySetPartial(JSON.parse(body) as Json)
+        const parsed = JSON.parse(body) as Json
+        const dev = parsed.Device as Json | undefined
+        if (dev?.StreamReceive && streamReceive) {
+          const t = receiveStream0()
+          if (t) applyReceiveSetPartial(parsed, t)
+        } else {
+          applySetPartial(parsed)
+        }
       } catch {
         /* ignore malformed */
       }
@@ -145,8 +178,14 @@ const server = https.createServer({ key, cert }, (req, res) => {
     res.writeHead(404)
     res.end('not found')
   })()
-})
+}
 
-server.listen(PORT, () => {
-  console.log(`fake NVX (DM-NVX-360 Transmitter) on https://0.0.0.0:${PORT} — auth password via FAKE_NVX_PASS`)
-})
+function start(): void {
+  const { key, cert } = ensureCert()
+  const server = https.createServer({ key, cert }, handler)
+  server.listen(PORT, () => {
+    console.log(`fake NVX on https://0.0.0.0:${PORT} — RAW=${RAW_DIR} — auth password via FAKE_NVX_PASS`)
+  })
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) start()
