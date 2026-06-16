@@ -30,12 +30,14 @@ test('encoder.readVariables on an ACTIVE transmitter (.10)', () => {
   assert.equal(v.multicast_address, '239.1.1.4')
   assert.equal(v.encoder_url, 'rtsp://192.168.2.10:554/live.sdp')
   assert.equal(v.stream_enabled, true)
+  assert.equal(v.stream_processing, false) // Processing===false at rest (verified in fixture .10)
 })
 
 test('encoder.readVariables on an idle stream (.9, Stream Stopped)', () => {
   const v = encoderPanel.readVariables(load('192.168.2.9'))
   assert.equal(v.stream_enabled, false)
   assert.equal(v.multicast_address, '')
+  assert.equal(v.stream_processing, false) // Processing===false at rest (verified in fixture .9)
 })
 
 test('streamTransmitBody addresses Streams[0] by position, leaves others empty', () => {
@@ -50,9 +52,14 @@ function fakeApi(): { calls: unknown[]; api: NvxApiClient } {
   return { calls, api }
 }
 
+const fakeHelpers = (processing: boolean) => ({
+  state: () => ({ stream_processing: processing }),
+  aux: () => ({}),
+})
+
 test('set_stream_name action POSTs RtspSessionName on Streams[0]', async () => {
   const { calls, api } = fakeApi()
-  const actions = encoderPanel.buildActions(api)
+  const actions = encoderPanel.buildActions(api, fakeHelpers(false))
   await def(actions.set_stream_name).callback(
     { actionId: 'set_stream_name', options: { name: 'STUDIO-A' }, controlId: 'c', surfaceId: undefined, id: 'i' } as never,
     {} as never,
@@ -62,11 +69,31 @@ test('set_stream_name action POSTs RtspSessionName on Streams[0]', async () => {
 
 test('enable_stream POSTs Start:true, disable_stream POSTs Stop:true', async () => {
   const { calls, api } = fakeApi()
-  const actions = encoderPanel.buildActions(api)
+  const actions = encoderPanel.buildActions(api, fakeHelpers(false))
   await def(actions.enable_stream).callback({ actionId: 'enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
   await def(actions.disable_stream).callback({ actionId: 'disable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
   assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ Start: true }] } } })
   assert.deepEqual(calls[1], { Device: { StreamTransmit: { Streams: [{ Stop: true }] } } })
+})
+
+test('set_stream_name drops POST when Processing===true (device in transition)', async () => {
+  const { calls, api } = fakeApi()
+  const actions = encoderPanel.buildActions(api, fakeHelpers(true))
+  await def(actions.set_stream_name).callback(
+    { actionId: 'set_stream_name', options: { name: 'STUDIO-A' }, controlId: 'c', surfaceId: undefined, id: 'i' } as never,
+    {} as never,
+  )
+  assert.equal(calls.length, 0)
+})
+
+test('enable_stream drops POST when Processing===true (device in transition)', async () => {
+  const { calls, api } = fakeApi()
+  const actions = encoderPanel.buildActions(api, fakeHelpers(true))
+  await def(actions.enable_stream).callback(
+    { actionId: 'enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never,
+    {} as never,
+  )
+  assert.equal(calls.length, 0)
 })
 
 test('stream_enabled feedback reflects the latest polled state', () => {
@@ -91,12 +118,30 @@ test('stream_name_matches compares the option to the polled stream_name', () => 
 
 test('set_multicast_address action POSTs MulticastAddress on Streams[0]', async () => {
   const { calls, api } = fakeApi()
-  const actions = encoderPanel.buildActions(api)
+  const actions = encoderPanel.buildActions(api, fakeHelpers(false))
   await def(actions.set_multicast_address).callback(
     { actionId: 'set_multicast_address', options: { address: '239.1.1.9' }, controlId: 'c', surfaceId: undefined, id: 'i' } as never,
     {} as never,
   )
   assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ MulticastAddress: '239.1.1.9' }] } } })
+})
+
+test('stream_processing feedback is active when stream_processing===true', () => {
+  const fbOn = encoderPanel.buildFeedbacks(() => ({ stream_processing: true }))
+  const on = def(fbOn.stream_processing).callback(
+    { feedbackId: 'stream_processing', options: {}, controlId: 'c', id: 'i', type: 'boolean' } as never,
+    {} as never,
+  )
+  assert.equal(on, true)
+})
+
+test('stream_processing feedback is inactive when stream_processing===false', () => {
+  const fbOff = encoderPanel.buildFeedbacks(() => ({ stream_processing: false }))
+  const off = def(fbOff.stream_processing).callback(
+    { feedbackId: 'stream_processing', options: {}, controlId: 'c', id: 'i', type: 'boolean' } as never,
+    {} as never,
+  )
+  assert.equal(off, false)
 })
 
 test('encoder presets reference only real action ids and live under the Encoder section', () => {

@@ -34,6 +34,7 @@ export const encoderPanel: Panel = {
     multicast_address: { name: 'Encoder: multicast address' },
     encoder_url: { name: 'Encoder: stream URL' },
     stream_enabled: { name: 'Encoder: stream enabled' },
+    stream_processing: { name: 'Encoder: processing (transition)' },
   },
   readVariables(json) {
     const s = stream0(json)
@@ -42,38 +43,46 @@ export const encoderPanel: Panel = {
       multicast_address: str(s?.MulticastAddress),
       encoder_url: str(s?.StreamLocation),
       stream_enabled: str(s?.Status) === 'Stream started',
+      stream_processing: s?.Processing === true,
     }
   },
-  buildActions: (api) => ({
-    set_stream_name: {
-      name: 'Encoder: set stream name',
-      options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '' }],
-      callback: async (ev) => {
-        await api.postSetPartial(streamTransmitBody(0, { RtspSessionName: String(ev.options.name ?? '') }))
+  buildActions: (api, helpers) => {
+    const isProcessing = (): boolean => helpers?.state().stream_processing === true
+    const post = async (props: Record<string, unknown>): Promise<void> => {
+      if (isProcessing()) return // device in transition — drop write until Processing===false
+      await api.postSetPartial(streamTransmitBody(0, props))
+    }
+    return {
+      set_stream_name: {
+        name: 'Encoder: set stream name',
+        options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '' }],
+        callback: async (ev) => {
+          await post({ RtspSessionName: String(ev.options.name ?? '') })
+        },
       },
-    },
-    set_multicast_address: {
-      name: 'Encoder: set multicast address',
-      options: [{ type: 'textinput', id: 'address', label: 'Multicast address', default: '239.1.1.1' }],
-      callback: async (ev) => {
-        await api.postSetPartial(streamTransmitBody(0, { MulticastAddress: String(ev.options.address ?? '') }))
+      set_multicast_address: {
+        name: 'Encoder: set multicast address',
+        options: [{ type: 'textinput', id: 'address', label: 'Multicast address', default: '239.1.1.1' }],
+        callback: async (ev) => {
+          await post({ MulticastAddress: String(ev.options.address ?? '') })
+        },
       },
-    },
-    enable_stream: {
-      name: 'Encoder: start stream',
-      options: [],
-      callback: async () => {
-        await api.postSetPartial(streamTransmitBody(0, { Start: true }))
+      enable_stream: {
+        name: 'Encoder: start stream',
+        options: [],
+        callback: async () => {
+          await post({ Start: true })
+        },
       },
-    },
-    disable_stream: {
-      name: 'Encoder: stop stream',
-      options: [],
-      callback: async () => {
-        await api.postSetPartial(streamTransmitBody(0, { Stop: true }))
+      disable_stream: {
+        name: 'Encoder: stop stream',
+        options: [],
+        callback: async () => {
+          await post({ Stop: true })
+        },
       },
-    },
-  }),
+    }
+  },
   buildFeedbacks: (state) => ({
     stream_enabled: {
       type: 'boolean',
@@ -90,6 +99,14 @@ export const encoderPanel: Panel = {
       defaultStyle: { bgcolor: combineRgb(0, 102, 204), color: WHITE },
       options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '' }],
       callback: (fb) => state().stream_name === String(fb.options.name ?? ''),
+    },
+    stream_processing: {
+      type: 'boolean',
+      name: 'Encoder: processing (transition)',
+      description: 'Active while the device is transitioning (commands should wait)',
+      defaultStyle: { bgcolor: combineRgb(153, 102, 0), color: WHITE },
+      options: [],
+      callback: () => state().stream_processing === true,
     },
   }),
   buildPresets: () => ({
