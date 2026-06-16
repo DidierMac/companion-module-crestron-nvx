@@ -67,11 +67,11 @@ test('set_stream_name action POSTs RtspSessionName on Streams[0]', async () => {
   assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ RtspSessionName: 'STUDIO-A' }] } } })
 })
 
-test('enable_stream POSTs Start:true, disable_stream POSTs Stop:true', async () => {
+test('enc_enable_stream POSTs Start:true, enc_disable_stream POSTs Stop:true', async () => {
   const { calls, api } = fakeApi()
   const actions = encoderPanel.buildActions(api, fakeHelpers(false))
-  await def(actions.enable_stream).callback({ actionId: 'enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
-  await def(actions.disable_stream).callback({ actionId: 'disable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
+  await def(actions.enc_enable_stream).callback({ actionId: 'enc_enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
+  await def(actions.enc_disable_stream).callback({ actionId: 'enc_disable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never, {} as never)
   assert.deepEqual(calls[0], { Device: { StreamTransmit: { Streams: [{ Start: true }] } } })
   assert.deepEqual(calls[1], { Device: { StreamTransmit: { Streams: [{ Stop: true }] } } })
 })
@@ -86,11 +86,11 @@ test('set_stream_name drops POST when Processing===true (device in transition)',
   assert.equal(calls.length, 0)
 })
 
-test('enable_stream drops POST when Processing===true (device in transition)', async () => {
+test('enc_enable_stream drops POST when Processing===true (device in transition)', async () => {
   const { calls, api } = fakeApi()
   const actions = encoderPanel.buildActions(api, fakeHelpers(true))
-  await def(actions.enable_stream).callback(
-    { actionId: 'enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never,
+  await def(actions.enc_enable_stream).callback(
+    { actionId: 'enc_enable_stream', options: {}, controlId: 'c', surfaceId: undefined, id: 'i' } as never,
     {} as never,
   )
   assert.equal(calls.length, 0)

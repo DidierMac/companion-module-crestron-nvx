@@ -69,14 +69,14 @@ export const encoderPanel: Panel = {
           await post({ MulticastAddress: String(ev.options.address ?? '') })
         },
       },
-      enable_stream: {
+      enc_enable_stream: {
         name: 'Encoder: start stream',
         options: [],
         callback: async () => {
           await post({ Start: true })
         },
       },
-      disable_stream: {
+      enc_disable_stream: {
         name: 'Encoder: stop stream',
         options: [],
         callback: async () => {
@@ -124,7 +124,7 @@ export const encoderPanel: Panel = {
         type: 'simple',
         name: 'Start stream',
         style: { text: 'Start\nStream', size: 'auto', color: WHITE, bgcolor: BLACK },
-        steps: [{ down: [{ actionId: 'enable_stream', options: {} }], up: [] }],
+        steps: [{ down: [{ actionId: 'enc_enable_stream', options: {} }], up: [] }],
         // turns green while the stream is started
         feedbacks: [{ feedbackId: 'stream_enabled', options: {}, style: { bgcolor: GREEN, color: WHITE } }],
       },
@@ -132,7 +132,7 @@ export const encoderPanel: Panel = {
         type: 'simple',
         name: 'Stop stream',
         style: { text: 'Stop\nStream', size: 'auto', color: WHITE, bgcolor: DARKRED },
-        steps: [{ down: [{ actionId: 'disable_stream', options: {} }], up: [] }],
+        steps: [{ down: [{ actionId: 'enc_disable_stream', options: {} }], up: [] }],
         feedbacks: [],
       },
       enc_set_stream_name: {

@@ -178,8 +178,8 @@ const useSteps: JourneyStep[] = [
   },
   writeStep('ENC-NAME', 'set stream name → device', 'set_stream_name', (s) => str(s.RtspSessionName) === UAT_STREAM_NAME, { RtspSessionName: UAT_STREAM_NAME }),
   writeStep('ENC-MULTICAST', 'set multicast address → device', 'set_multicast_address', (s) => str(s.MulticastAddress) === UAT_MULTICAST, { MulticastAddress: UAT_MULTICAST }),
-  writeStep('ENC-ENABLE', 'start stream → device', 'enable_stream', (s) => str(s.Status) === 'Stream started', { Status: 'Stream started' }),
-  writeStep('ENC-DISABLE', 'stop stream → device', 'disable_stream', (s) => str(s.Status) !== 'Stream started', { Status: 'not started' }),
+  writeStep('ENC-ENABLE', 'start stream → device', 'enc_enable_stream', (s) => str(s.Status) === 'Stream started', { Status: 'Stream started' }),
+  writeStep('ENC-DISABLE', 'stop stream → device', 'enc_disable_stream', (s) => str(s.Status) !== 'Stream started', { Status: 'not started' }),
 ]
 
 const authSteps: JourneyStep[] = [

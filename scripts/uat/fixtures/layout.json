@@ -2,6 +2,6 @@
   "_comment": "Button locations (page/row/col) for the encoder WRITE (USE) steps. Each button must be created in Companion at SETUP time, targeting the nvx-uat connection's action with the test value (see docs/uat-runs/SETUP.md). Keys = module action ids. Override at runtime with UAT_LAYOUT (JSON). An action whose button is absent here → its step SKIPs.",
   "set_stream_name": { "page": 1, "row": 0, "col": 0 },
   "set_multicast_address": { "page": 1, "row": 0, "col": 1 },
-  "enable_stream": { "page": 1, "row": 0, "col": 2 },
-  "disable_stream": { "page": 1, "row": 0, "col": 3 }
+  "enc_enable_stream": { "page": 1, "row": 0, "col": 2 },
+  "enc_disable_stream": { "page": 1, "row": 0, "col": 3 }
 }
