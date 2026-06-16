@@ -25,6 +25,8 @@ class CrestronNvxInstance extends InstanceBase {
 	private role: DeviceRole | null = null
 	private active: Panel[] = []
 	private state: CompanionVariableValues = {}
+	/** Latest raw JSON of each active panel's auxiliary endpoints, keyed by panel id. */
+	private panelAux: Record<string, Record<string, unknown>> = {}
 	private readonly allPanels: Panel[] = [deviceInfoPanel, encoderPanel]
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -142,11 +144,15 @@ class CrestronNvxInstance extends InstanceBase {
 		connLog.info(`Capability ${JSON.stringify(this.caps)} role=${this.role} → panels: ${this.active.map((p) => p.id).join(', ')}`)
 
 		this.setVariableDefinitions({ ...connectionVariableDefinitions, ...composeVariableDefinitions(this.active) })
+		this.registerDefinitions()
+	}
 
+	/** (Re)compose and push action/feedback/preset definitions for the active panels. */
+	private registerDefinitions(): void {
 		let actions: CompanionActionDefinitions = {}
 		let feedbacks: CompanionFeedbackDefinitions = baseFeedbackDefinitions(() => this.connected, () => this.role)
 		for (const p of this.active) {
-			actions = { ...actions, ...p.buildActions(this.api) }
+			actions = { ...actions, ...p.buildActions(this.api, { state: () => this.state, aux: () => this.panelAux[p.id] ?? {} }) }
 			feedbacks = { ...feedbacks, ...p.buildFeedbacks(() => this.state) }
 		}
 		this.setActionDefinitions(actions)
@@ -192,8 +198,13 @@ class CrestronNvxInstance extends InstanceBase {
 		try {
 			const next: CompanionVariableValues = {}
 			for (const panel of this.active) {
-				const json = await this.api.get(panel.endpoint)
-				Object.assign(next, panel.readVariables(json))
+				const primary = await this.api.get(panel.endpoint)
+				const auxMap: Record<string, unknown> = {}
+				for (const ep of panel.auxEndpoints ?? []) {
+					auxMap[ep] = await this.api.get(ep)
+				}
+				this.panelAux[panel.id] = auxMap
+				Object.assign(next, panel.readVariables(primary, auxMap))
 			}
 			next.connection_status = 'Connected'
 			next.ip_address = this.currentConfig.host
