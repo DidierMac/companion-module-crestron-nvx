@@ -102,6 +102,7 @@ export const decoderPanel: Panel = {
             id: 'stream',
             label: 'Discovered stream',
             default: 'custom',
+            disableAutoExpression: true,
             choices: [
               ...list().map((s) => ({ id: s.uniqueId, label: s.sessionName })),
               { id: 'custom', label: 'Custom (name / URL / multicast — supports variables)' },

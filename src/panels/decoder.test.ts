@@ -233,6 +233,18 @@ test('decoder presets reference only real action ids, under the Decoder section'
   }
 })
 
+test('connect_to_stream: stream dropdown has disableAutoExpression (so isVisibleExpression on custom resolves)', () => {
+  // Sans disableAutoExpression:true sur l'option dropdown 'stream', l'expression
+  // '$(options:stream) == "custom"' ne peut pas être évaluée par le SDK — le champ
+  // 'custom' reste donc toujours visible quelle que soit la valeur du dropdown.
+  const actions = decoderPanel.buildActions({} as never)
+  const opts = def(actions.connect_to_stream).options as unknown as Array<Record<string, unknown>>
+  const streamOpt = opts.find((o) => o['id'] === 'stream')
+  assert.ok(streamOpt, 'option id:stream must exist on connect_to_stream')
+  assert.equal(streamOpt['disableAutoExpression'], true,
+    'stream dropdown must carry disableAutoExpression:true so that isVisibleExpression on the custom field resolves')
+})
+
 test('decoder start preset carries both rx_receiving and rx_negotiating feedbacks', () => {
   const { presets } = decoderPanel.buildPresets!()
   const start = presets.dec_start_rx
