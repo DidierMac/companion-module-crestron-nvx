@@ -104,6 +104,41 @@ async function pollOracle(
   return { ok: false, snapshot }
 }
 
+/**
+ * A WRITE step targeting StreamReceive with a prior scenario switch:
+ * 1. setRxScenario(scenario) on the fake device (before pressing the button).
+ * 2. press the action button.
+ * 3. poll StreamReceive oracle until pred holds.
+ * SKIPs cleanly when the button is not mapped (same behaviour as writeStepRx).
+ */
+function writeStepRxWithScenario(
+  id: string,
+  title: string,
+  actionKey: string,
+  scenario: string,
+  pred: (s: Record<string, unknown>) => boolean,
+  expected: unknown,
+): JourneyStep {
+  return {
+    id,
+    title,
+    scope: 'lab',
+    run: async (ctx): Promise<Verdict> => {
+      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
+      const loc = ctx.config.layout?.[actionKey]
+      if (!loc)
+        return skip(id, `${title} (button unmapped)`, 1, { note: `button '${actionKey}' not in layout — see SETUP` })
+      // Set scenario BEFORE pressing — the fake applies it on the next Start command.
+      await ctx.oracle.setRxScenario(scenario)
+      await ctx.http.press(loc.page, loc.row, loc.col)
+      const r = await pollOracleRx(ctx, pred)
+      return r.ok
+        ? pass(id, title, 1, { deviceJson: r.snapshot, note: 'device changed as expected' })
+        : fail(id, title, 1, { expected, observed: r.snapshot })
+    },
+  }
+}
+
 /** Poll StreamReceive (oracle) until `pred(Streams[0])` holds, returning the last snapshot. */
 async function pollOracleRx(
   ctx: JourneyContext,
@@ -301,6 +336,22 @@ const decoderUseSteps: JourneyStep[] = [
     'connect_to_stream',
     (s) => str(s.SessionInitiation) === 'Multicast via RTSP' && str(s.MulticastAddress) === UAT_RX_MULTICAST,
     { SessionInitiation: 'Multicast via RTSP', MulticastAddress: UAT_RX_MULTICAST, note: `resolved from name '${UAT_RX_CONNECT_NAME}'` },
+  ),
+  writeStepRxWithScenario(
+    'DEC-NEGOTIATING',
+    'start reception (negotiating scenario) → CodecReady false, resolution populated',
+    'dec_enable_stream',
+    'negotiating',
+    (s) => Number(s.HorizontalResolution) > 0 && s.CodecReady === false,
+    { HorizontalResolution: '>0', CodecReady: false },
+  ),
+  writeStepRxWithScenario(
+    'DEC-DECODING',
+    'start reception (decoding scenario) → CodecReady true',
+    'dec_enable_stream',
+    'decoding',
+    (s) => s.CodecReady === true,
+    { CodecReady: true },
   ),
   writeStepRx(
     'DEC-ENABLE',

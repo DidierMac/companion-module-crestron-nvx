@@ -55,6 +55,18 @@ export class Oracle {
     await c.postSetPartial(streamTransmitBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
   }
 
+  /**
+   * POST /_control/scenario to the fake device (no auth required by that route).
+   * Uses the oracle's client factory so certs are handled identically to reads.
+   * No-op if the target is a real device (the route doesn't exist → the call throws,
+   * which is intentional: callers should guard with a fake-only flag or let it FAIL).
+   */
+  async setRxScenario(scenario: string): Promise<void> {
+    const c = this.clientFactory()
+    await c.login()
+    await c.post('/_control/scenario', { role: 'rx', scenario })
+  }
+
   /** Restore StreamReceive source/state captured at baselineRx. No-op if no baselineRx. */
   async restoreRx(): Promise<void> {
     if (!this.baselineRx) return
