@@ -55,14 +55,16 @@ export const encoderPanel: Panel = {
     return {
       set_stream_name: {
         name: 'Encoder: set stream name',
-        options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '' }],
+        // useVariables: Companion resolves $(module:var) tokens before the callback fires (SDK v2)
+        options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '', useVariables: true }],
         callback: async (ev) => {
           await post({ RtspSessionName: String(ev.options.name ?? '') })
         },
       },
       set_multicast_address: {
         name: 'Encoder: set multicast address',
-        options: [{ type: 'textinput', id: 'address', label: 'Multicast address', default: '239.1.1.1' }],
+        // useVariables: allows $(module:var) tokens in the address field (SDK v2)
+        options: [{ type: 'textinput', id: 'address', label: 'Multicast address', default: '239.1.1.1', useVariables: true }],
         callback: async (ev) => {
           await post({ MulticastAddress: String(ev.options.address ?? '') })
         },
@@ -97,7 +99,8 @@ export const encoderPanel: Panel = {
       name: 'Encoder: stream name matches',
       description: 'Active when the encoder stream name equals the given value',
       defaultStyle: { bgcolor: combineRgb(0, 102, 204), color: WHITE },
-      options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '' }],
+      // useVariables: allows $(module:var) tokens in the name field (SDK v2)
+      options: [{ type: 'textinput', id: 'name', label: 'Stream name', default: '', useVariables: true }],
       callback: (fb) => state().stream_name === String(fb.options.name ?? ''),
     },
     stream_processing: {
