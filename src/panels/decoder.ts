@@ -117,12 +117,12 @@ export const decoderPanel: Panel = {
           await post(resolved as unknown as Record<string, unknown>)
         },
       },
-      enable_stream: {
+      dec_enable_stream: {
         name: 'Decoder: start reception',
         options: [],
         callback: async () => { await post({ Start: true }) },
       },
-      disable_stream: {
+      dec_disable_stream: {
         name: 'Decoder: stop reception',
         options: [],
         callback: async () => { await post({ Stop: true }) },
@@ -188,14 +188,14 @@ export const decoderPanel: Panel = {
         type: 'simple',
         name: 'Start reception',
         style: { text: 'Start\nRX', size: 'auto', color: WHITE, bgcolor: BLACK },
-        steps: [{ down: [{ actionId: 'enable_stream', options: {} }], up: [] }],
+        steps: [{ down: [{ actionId: 'dec_enable_stream', options: {} }], up: [] }],
         feedbacks: [{ feedbackId: 'rx_receiving', options: {}, style: { bgcolor: GREEN, color: WHITE } }],
       },
       dec_stop_rx: {
         type: 'simple',
         name: 'Stop reception',
         style: { text: 'Stop\nRX', size: 'auto', color: WHITE, bgcolor: DARKRED },
-        steps: [{ down: [{ actionId: 'disable_stream', options: {} }], up: [] }],
+        steps: [{ down: [{ actionId: 'dec_disable_stream', options: {} }], up: [] }],
         feedbacks: [],
       },
       dec_set_source_url: {

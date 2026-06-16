@@ -305,14 +305,14 @@ const decoderUseSteps: JourneyStep[] = [
   writeStepRx(
     'DEC-ENABLE',
     'start reception → device',
-    'enable_stream',
+    'dec_enable_stream',
     (s) => str(s.Status) !== 'Stream Stopped',
     { Status: 'not stopped' },
   ),
   writeStepRx(
     'DEC-DISABLE',
     'stop reception → device',
-    'disable_stream',
+    'dec_disable_stream',
     (s) => str(s.Status) === 'Stream Stopped',
     { Status: 'Stream Stopped' },
   ),

@@ -98,11 +98,11 @@ test('set_source_multicast POSTs Multicast via RTSP + MulticastAddress', async (
   })
 })
 
-test('enable_stream POSTs Start:true, disable_stream POSTs Stop:true', async () => {
+test('dec_enable_stream POSTs Start:true, dec_disable_stream POSTs Stop:true', async () => {
   const { calls, api } = fakeApi()
   const actions = decoderPanel.buildActions(api, helpers({ rx_processing: false }, undefined))
-  await def(actions.enable_stream).callback(ev('enable_stream', {}), ctxVars)
-  await def(actions.disable_stream).callback(ev('disable_stream', {}), ctxVars)
+  await def(actions.dec_enable_stream).callback(ev('dec_enable_stream', {}), ctxVars)
+  await def(actions.dec_disable_stream).callback(ev('dec_disable_stream', {}), ctxVars)
   assert.deepEqual(calls[0], { Device: { StreamReceive: { Streams: [{ Start: true }] } } })
   assert.deepEqual(calls[1], { Device: { StreamReceive: { Streams: [{ Stop: true }] } } })
 })
@@ -110,7 +110,7 @@ test('enable_stream POSTs Start:true, disable_stream POSTs Stop:true', async () 
 test('Processing guard: no POST is sent while rx_processing is true', async () => {
   const { calls, api } = fakeApi()
   const actions = decoderPanel.buildActions(api, helpers({ rx_processing: true }, undefined))
-  await def(actions.enable_stream).callback(ev('enable_stream', {}), ctxVars)
+  await def(actions.dec_enable_stream).callback(ev('dec_enable_stream', {}), ctxVars)
   assert.equal(calls.length, 0)
 })
 
