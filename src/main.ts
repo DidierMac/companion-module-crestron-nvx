@@ -9,6 +9,7 @@ import type { Panel, PanelContext } from './panels/types.js'
 import { activePanels, composeVariableDefinitions, composePresets } from './panels/registry.js'
 import { deviceInfoPanel } from './panels/deviceInfo.js'
 import { encoderPanel } from './panels/encoder.js'
+import { decoderPanel } from './panels/decoder.js'
 import { connectionVariableDefinitions } from './variables.js'
 import { baseFeedbackDefinitions } from './feedbacks.js'
 
@@ -27,7 +28,9 @@ class CrestronNvxInstance extends InstanceBase {
 	private state: CompanionVariableValues = {}
 	/** Latest raw JSON of each active panel's auxiliary endpoints, keyed by panel id. */
 	private panelAux: Record<string, Record<string, unknown>> = {}
-	private readonly allPanels: Panel[] = [deviceInfoPanel, encoderPanel]
+	/** Signature of the last discovered-stream set; a change triggers action re-registration. */
+	private discoveryKey = ''
+	private readonly allPanels: Panel[] = [deviceInfoPanel, encoderPanel, decoderPanel]
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -210,6 +213,12 @@ class CrestronNvxInstance extends InstanceBase {
 			next.ip_address = this.currentConfig.host
 			next.device_role = this.role ?? ''
 			this.state = next
+			// Refresh action dropdowns (connect_to_stream) when the discovered-stream set changes (spec §4.4).
+			const key = String(next.rx_discovered_names ?? '')
+			if (key !== this.discoveryKey) {
+				this.discoveryKey = key
+				this.registerDefinitions()
+			}
 			this.setVariableValues(next)
 			this.logger.child('[POLL]').debug(`Polled ${this.active.length} panel(s)`)
 			if (!this.connected) {
