@@ -9,6 +9,7 @@ import { CompanionLogs } from '../tools/companion-logs.js'
 import { Oracle } from '../tools/oracle.js'
 import { CompanionUi } from '../tools/chromium.js'
 import { makeClient } from '../tiers/tier0-logic.js'
+import { ensureConnection } from '../tools/ensure-connection.js'
 import { localSteps } from './steps-local.js'
 import { labSteps } from './steps-lab.js'
 import type { JourneyContext, JourneyConfig, JourneyStep, ButtonRef } from './types.js'
@@ -115,9 +116,28 @@ export async function runJourney(steps: JourneyStep[], ctx: JourneyContext): Pro
 async function main(): Promise<void> {
   const cfg = loadJourneyConfig(process.env)
   const ctx = buildContext(cfg)
+
+  const provision = process.env.UAT_PROVISION === '1'
   // Self-provision the test connection (delete-if-exists + create) unless UAT_KEEP=1.
-  const keep = process.env.UAT_KEEP === '1'
-  if (!keep) await ensureFreshConnection(ctx)
+  // UAT_PROVISION=1 → idempotent ensure (no delete) + implicit keep=true.
+  let keep = process.env.UAT_KEEP === '1'
+  if (provision) {
+    keep = true
+    const page = await ctx.ui.open()
+    try {
+      console.log(`[provision] ${cfg.label}: provisioning connection…`)
+      await ensureConnection(
+        { http: ctx.http, ui: ctx.ui, page },
+        cfg.label,
+        { host: cfg.nvxHost, port: cfg.nvxPort, username: 'admin', password: cfg.nvxPass },
+      )
+      console.log(`[provision] ${cfg.label}: done`)
+    } finally {
+      await ctx.ui.close()
+    }
+  } else if (!keep) {
+    await ensureFreshConnection(ctx)
+  }
 
   const steps = process.env.UAT_LAB === '1' ? [...localSteps, ...labSteps] : localSteps
   const verdicts = await runJourney(steps, ctx)
