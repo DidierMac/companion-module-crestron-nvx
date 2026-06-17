@@ -213,8 +213,156 @@ Phase C — Disruptif & teardown : drop device → injoignable → destroy   (en
 - **Lockout** : 0 (C1 coupe le **réseau/alim device**, pas d'échec d'auth).
 - **Postcondition** : reconnecté, encoder actif.
 
-## v0.3 — Decoder (StreamReceive) 🔲 à compléter
+## v0.3 — Decoder (StreamReceive) ✅ (livrée — à valider au labo)
+
+> Cas figés au **même format** que v0.1/v0.2. v0.3 = **lire + écrire le décodeur** (`StreamReceive`) : routing par URL (unicast RTSP), par multicast, et par découverte (connect-by-name), + start/stop de la réception. Chemins JSON ancrés sur `docs/hardware-validation.md` §7 + captures `raw/192.168.2.9/` (Receiver) ; contrat fonctionnel : `docs/superpowers/specs/2026-06-15-v0.3-decoder-design.md`.
+>
+> **Périmètre exact du code v0.3** (source `src/panels/decoder.ts`) :
+> - **Actions** (toutes ciblent **`Streams[0]` par position** via `streamReceiveBody(0, …)`, enveloppe `{"Device":{"StreamReceive":{"Streams":[{…}]}}}`, et passent par le helper `post()` qui **abandonne proprement si `Processing===true`**, spec §6) :
+>   - `set_source_url` → `{SessionInitiation:'ByReceiver', StreamLocation:<url>}` (unicast RTSP)
+>   - `set_source_multicast` → `{SessionInitiation:'Multicast via RTSP', MulticastAddress:<addr>}`
+>   - `connect_to_stream` → résout l'entrée découverte (préfère `MulticastAddress`, repli `RtspUri`/ByReceiver) ou une valeur Custom (expression) ; écrit mode + coordonnée atomiquement
+>   - `dec_enable_stream` → `{Start:true, Stop:false}`
+>   - `dec_disable_stream` → `{Start:false, Stop:true}`
+>   - (champs texte en `useVariables:true` → résolus par Companion **avant** le callback)
+> - **Variables** (lecture sentinelle-safe de `StreamReceive.Streams[0]` + `DiscoveredStreams`) : `rx_source_url` (=`StreamLocation`), `rx_multicast_address` (=`MulticastAddress`), `rx_session_initiation` (=`SessionInitiation`), `rx_status` (=`Status`), `rx_resolution` (=`HxV`), `rx_processing` (=`Processing` bool), `rx_codec_ready` (=`CodecReady` bool), `rx_video_packets` (=`NumVideoPacketsRcvd`), `rx_armed` (=résolution > 0), `rx_stream_name` (reverse-lookup source courante ↔ `DiscoveredStreams.SessionName`), `rx_discovered_count`, `rx_discovered_names`.
+> - **Feedbacks** : `rx_receiving` (= `rx_codec_ready === true` — décodage réel, **pas** « armé »), `rx_negotiating` (= `rx_armed && !rx_codec_ready` — session négociée mais pas de décodage, ex. source chiffrée/idle), `rx_source_matches(value, by∈{name,url,multicast})`, `rx_processing` (transition). Le feedback connexion `is_decoder` (`feedbacks.ts`, niveau connexion) reste actif aussi.
+
+> ⚠️ **Écart spec → code (à connaître pour juger)** : la spec §4.3 décrivait `rx_receiving` via une heuristique sur la **chaîne `Status`** (hypothèse labo #1). **Le code livré a tranché autrement** : `rx_receiving` s'appuie sur `CodecReady` (signal de décodage réel) et un feedback `rx_negotiating` a été ajouté pour distinguer « armé mais ne décode pas » (labo 2026-06-16 : la résolution peut se peupler avec `CodecReady:false` — ex. source chiffrée). Juger contre le **code réel** (`CodecReady`), pas contre la chaîne `Status` de la spec.
+
+### Précondition de toute la phase Decoder (mode Receiver)
+
+> ⚠️ Le device doit être en mode **Receiver** AVANT de commencer la phase. Le module v0.3 **ne sait PAS basculer le mode** (action de mode = v0.5). Le réglage se fait via l'**UI native du device**. Confirmer côté device que `DeviceMode == "Receiver"` avant DEC-CAP. Si le device est en `Transmitter`, le panneau decoder ne s'active pas (gate `role === 'Receiver'`) et tous les DEC-* sont `[-]` non testables — **non-régression, pas FAIL** (symétrique à la précondition Encoder ; le harness rapporte alors un `SKIP`, pas un `FAIL`).
+
+> 🔒 **Budget lockout** : toute la phase Decoder tourne sur la **session déjà active** établie en A3 (bon login). **0 login supplémentaire → 0 échec d'auth → 0 lockout consommé.** Ne PAS Disable→Enable pendant la phase (sauf DEC-CAP / DEC-07 qui peuvent exiger un ré-init **propre** = bon login, qui ne consomme pas de budget d'échec).
+
+#### DEC-CAP · détection role=Receiver → panneau decoder activé `[AUTO]`
+- **Précondition** : device confirmé en mode **Receiver** (UI native). Instance configurée host/user/password **valides**. Ré-init propre (Disable→Enable) pour un connect frais.
+- **Action** : activer l'instance ; laisser le connect aboutir (vert) ; ouvrir les onglets Variables, Actions, Feedbacks.
+- **Attendu** : au connect, le module détecte `role=Receiver` et **active le panneau decoder**. `device_role == "Receiver"` ; les **actions** `set_source_url`, `set_source_multicast`, `connect_to_stream`, `dec_enable_stream`, `dec_disable_stream` apparaissent ; les **variables** `rx_*` existent ; les **feedbacks** `rx_receiving`, `rx_negotiating`, `rx_source_matches`, `rx_processing` sont proposables.
+- **PASS si** : `$(crestron-nvx:device_role)` = `Receiver` **ET** les 5 actions decoder sont listées **ET** les variables `rx_status`/`rx_source_url`/`rx_multicast_address`/`rx_session_initiation` (au minimum) existent **ET** les feedbacks `rx_receiving`/`rx_negotiating`/`rx_source_matches` sont proposables.
+- **Pièges** : ❌ Faux positif si `device_role` est une valeur **en cache** d'un run précédent — croiser avec l'état réel du device (mode `Receiver` confirmé côté device + log `[CONN] … role=Receiver → panels: deviceInfo, decoder` **frais**). ❌ Si le device était en `Transmitter`, le panneau decoder est correctement **absent** : non-régression, pas FAIL (corriger le mode device, rejouer). ⚠️ La détection a lieu **à chaque (re)connexion** : un changement de mode device n'est pris en compte qu'après reconnexion.
+- **Harness** : couvert par `DEC-CAP` (`readVar('device_role') === 'Receiver'` → PASS ; sinon SKIP).
+- **Lockout** : 0 (réutilise / ré-ouvre une session par **bon** login).
+- **Postcondition** : connecté, panneau decoder actif. Conserver la session pour la suite.
+
+#### BASELINE-RX · capture de l'état initial du stream reçu (pour restauration) `[AUTO]`
+- **Précondition** : depuis DEC-CAP (connecté, Receiver).
+- **Action** : `[AUTO]` lire et **mémoriser** `StreamReceive.Streams[0]` côté device (`SessionInitiation`, `StreamLocation`, `MulticastAddress`, `Start`/`Stop`/`Status`) avant toute écriture, pour pouvoir restaurer en TEARDOWN-RX.
+- **Attendu** : snapshot capturé sans erreur.
+- **PASS si** : la lecture `GET /Device/StreamReceive` aboutit et le baseline est stocké.
+- **Pièges** : ⚠️ **Obligatoire avant tout DEC-SOURCE-*/DEC-ENABLE** — sinon impossible de prouver une restauration propre. Relever aussi l'état au repos attendu (`Status == "Stream Stopped"` sur un décodeur inactif, fixture `.9`).
+- **Harness** : couvert par `BASELINE-RX` (`oracle.captureBaselineRx()`).
+- **Lockout** : 0.
+- **Postcondition** : baseline en mémoire ; device inchangé (lecture seule).
+
+#### DEC-VARS · variables `rx_*` == vérité terrain device `[HUMAN]`
+- **Précondition** : depuis BASELINE-RX, stream dans un état connu et **stable** (ne plus le modifier).
+- **Action** : `[HUMAN]`/GET lire `GET /Device/StreamReceive` côté device (vérité terrain) ; `[AUTO]` lire les variables Companion.
+- **Attendu** : `rx_status == Streams[0].Status` ; `rx_source_url == Streams[0].StreamLocation` ; `rx_multicast_address == Streams[0].MulticastAddress` ; `rx_session_initiation == Streams[0].SessionInitiation`.
+- **PASS si** : les 4 variables **égalent** (pas « non vides » — **égales**) les valeurs lues côté device sur `Streams[0]`.
+- **Pièges** : ❌ Anti-faux-positif (§18) : une variable peuplée ne prouve rien — comparer **valeur à valeur** avec le GET device. ⚠️ Sur un décodeur au repos sans source réglée, `rx_source_url`/`rx_multicast_address` **vides (`""`)** sont **corrects**, pas un bug. ⚠️ Lire `Streams[0]` (position), jamais un autre index. ⚠️ Laisser passer ≥ 1 intervalle de poll après tout changement avant de comparer.
+- **Harness** : couvert par `DEC-VARS` (oracle = `GET /Device/StreamReceive`, compare les 4 → `4/4 match` au run 2026-06-17#01-Rx).
+- **Lockout** : 0.
+- **Postcondition** : inchangé (lecture seule).
+
+#### DEC-01 · set_source_url → mode `ByReceiver` + `StreamLocation` réellement écrits `[HUMAN]`
+- **Précondition** : depuis DEC-VARS (connecté). URL témoin, ex. `rtsp://192.168.2.10:554/live.sdp`.
+- **Action** : `[AUTO]` déclencher `set_source_url` avec `url = rtsp://192.168.2.10:554/live.sdp`. Puis `[HUMAN]`/GET relire le device.
+- **Attendu** : POST `{"Device":{"StreamReceive":{"Streams":[{"SessionInitiation":"ByReceiver","StreamLocation":"rtsp://192.168.2.10:554/live.sdp"}]}}}` sur `Streams[0]`.
+- **PASS si** : `GET /Device/StreamReceive` device → `Streams[0].SessionInitiation == "ByReceiver"` **ET** `Streams[0].StreamLocation == "rtsp://192.168.2.10:554/live.sdp"` **ET** `StatusId 0` loggé **ET** `rx_source_url`/`rx_session_initiation` reflètent ces valeurs au poll suivant.
+- **Pièges** : ❌ Anti-faux-positif : croiser le **device**, pas seulement la variable. ⚠️ Le mode + la coordonnée sont écrits **atomiquement** dans le même POST — vérifier **les deux** champs (un seul des deux = FAIL). ⚠️ La chaîne `SessionInitiation` écrite est la **valeur observée device** (`"ByReceiver"`) ; spec §7 #2 — confirmer que le device l'accepte/normalise. ⚠️ `Streams[0]` par position.
+- **Harness** : couvert par `DEC-SOURCE-URL` (oracle attend `SessionInitiation==ByReceiver && StreamLocation==rtsp://192.168.2.10:554/live.sdp`).
+- **Lockout** : 0.
+- **Postcondition** : restaurer la source initiale (BASELINE-RX) en TEARDOWN-RX.
+
+#### DEC-02 · set_source_multicast → mode `Multicast via RTSP` + `MulticastAddress` réellement écrits `[HUMAN]`
+- **Précondition** : depuis DEC-01 (connecté). Adresse témoin, ex. `239.1.1.4`.
+- **Action** : `[AUTO]` déclencher `set_source_multicast` avec `address = 239.1.1.4`. Puis `[HUMAN]`/GET relire le device.
+- **Attendu** : POST `{"Device":{"StreamReceive":{"Streams":[{"SessionInitiation":"Multicast via RTSP","MulticastAddress":"239.1.1.4"}]}}}` sur `Streams[0]`.
+- **PASS si** : device → `Streams[0].SessionInitiation == "Multicast via RTSP"` **ET** `Streams[0].MulticastAddress == "239.1.1.4"` **ET** `StatusId 0` **ET** `rx_multicast_address`/`rx_session_initiation` reflètent au poll suivant.
+- **Pièges** : ⚠️ Mode + coordonnée atomiques — vérifier les **deux**. ⚠️ Chaîne `"Multicast via RTSP"` (valeur device, spec §7 #2). ⚠️ `Streams[0]` par position. ❌ Croiser le device.
+- **Harness** : couvert par `DEC-SOURCE-MCAST`.
+- **Lockout** : 0.
+- **Postcondition** : restaurer la source initiale en TEARDOWN-RX.
+
+#### DEC-03 · connect_to_stream (connect-by-name) → résolution découverte écrite sur le device `[HUMAN]`
+- **Précondition** : depuis DEC-02 (connecté). Au moins un stream visible dans `DiscoveredStreams` (vérifier `rx_discovered_count > 0`). Stream témoin connu, ex. nom `DM-NVX-360-C442684E534B` (fixture `.9` → résout en Multicast `239.1.1.4`).
+- **Action** : `[AUTO]` déclencher `connect_to_stream` en sélectionnant le stream découvert (dropdown). Puis `[HUMAN]`/GET relire le device.
+- **Attendu** : le module **résout** l'entrée découverte (préférence multicast) et POST le couple mode + coordonnée correspondant — ici `{"SessionInitiation":"Multicast via RTSP","MulticastAddress":"239.1.1.4"}` sur `Streams[0]`.
+- **PASS si** : device → `Streams[0].SessionInitiation == "Multicast via RTSP"` **ET** `Streams[0].MulticastAddress == "239.1.1.4"` **ET** `StatusId 0` **ET** au poll suivant `rx_stream_name` (reverse-lookup) == le nom du stream choisi.
+- **Pièges** : ⚠️ **L'état terminal device est identique à DEC-02** quand le stream résout vers le même multicast — l'assertion device **ne distingue pas** les deux chemins. La preuve **propre à DEC-03** est le **reverse-lookup `rx_stream_name`**. ⚠️ `connect_to_stream` a aussi un mode **Custom** (texte libre `useVariables:true`) : tester au moins une fois la **résolution Custom** comme cas complémentaire `[AUTO]`. ❌ Croiser le device. ⚠️ Si la liste découverte change entre deux polls, le dropdown est re-`setActionDefinitions()` (full-replace) — re-sélectionner.
+- **Harness** : couvert par `DEC-CONNECT` (connect-by-name → même multicast que DEC-SOURCE-MCAST ; **état terminal partagé par design**).
+- **Lockout** : 0.
+- **Postcondition** : restaurer la source initiale en TEARDOWN-RX.
+
+#### DEC-04 · enable_stream / disable_stream → réception démarrée/arrêtée côté device `[HUMAN]`
+- **Précondition** : depuis DEC-03 (connecté, source réglée vers une **source réellement émettrice** — voir piège « flux réel »). Relever l'état initial (`Status`/`CodecReady`) avant de perturber.
+- **Action** : `[AUTO]` déclencher `dec_enable_stream`, attendre, relire device + variables ; puis `[AUTO]` `dec_disable_stream`, attendre, relire.
+- **Attendu** : `dec_enable_stream` POST `{… "Streams":[{"Start":true,"Stop":false}]}` → la réception démarre (`Streams[0].CodecReady == true` si la source émet réellement, ou `NumVideoPacketsRcvd > 0`) ; `dec_disable_stream` POST `{… "Streams":[{"Start":false,"Stop":true}]}` → `Streams[0].CodecReady == false`. **Les deux flags ensemble** à chaque commande (posture défensive — latch `Stop` observé au labo 2026-06-16, symétrique de l'encodeur ENC-03). `StatusId 0` aux deux POST.
+- **PASS si** : on **observe la transition** `CodecReady false → true` (enable, **avec un flux émetteur réel**) **puis** `true → false` (disable) — les **deux** transitions — **ET** le feedback `rx_receiving` suit (`false→true→false`) **ET** `StatusId 0` aux deux POST.
+- **Pièges** : ❌ **Preuve par la transition, pas l'état final** (§19). ⚠️ **`rx_receiving` ne s'allume qu'avec un décodage réel** (`CodecReady===true`), **pas** à la simple négociation : si la source ne pousse pas de vidéo / source chiffrée / idle → `rx_armed` mais `CodecReady:false` → c'est **`rx_negotiating`** (ambre) qui s'allume. Ne pas conclure FAIL si l'absence de décodage vient de la source (labo 2026-06-16 : 4K négocié mais 0 décode = chiffrement présumé). ⚠️ Double-flag `{Start,Stop}` ensemble — **à confirmer au labo**. ⚠️ Laisser ≥ 1 poll avant de lire les variables.
+- **Harness** : couvert par `DEC-ENABLE` (`CodecReady===true || NumVideoPacketsRcvd>0`) et `DEC-DISABLE` (`CodecReady===false`) — **vert contre le fake**, mais **dépend d'un flux émetteur réel contre le matériel**.
+- **Lockout** : 0.
+- **Postcondition** : réception remise dans son état initial.
+
+#### DEC-05 · feedbacks decoder corrects sur boutons (`rx_receiving` / `rx_negotiating` / `rx_source_matches`) `[AUTO]`
+- **Précondition** : depuis DEC-04. Préparer des boutons avec : feedback `is_decoder`, `rx_receiving`, `rx_negotiating`, `rx_source_matches` (option `by` = `multicast`, `value` = la source réelle courante relevée en DEC-VARS).
+- **Action** : `[AUTO]` observer les boutons ; basculer l'état de réception (réutiliser DEC-04) et re-observer ; pour `rx_source_matches`, poser une fois la **bonne** valeur, une fois une **fausse**.
+- **Attendu** : `is_decoder` actif (role=Receiver) ; `rx_receiving` actif **ssi** `CodecReady==true` ; `rx_negotiating` actif **ssi** `rx_armed && !CodecReady` (mutuellement exclusif de `rx_receiving`) ; `rx_source_matches` actif **ssi** `value == source courante` (selon `by`).
+- **PASS si** : `is_decoder` **actif** ; `rx_receiving`/`rx_negotiating` reflètent l'état réel **avec transition observée** ; `rx_source_matches` actif sur la bonne valeur **et** inactif sur la fausse (les deux cas).
+- **Pièges** : ⚠️ Les feedbacks lisent l'état du **dernier poll** (`state()` closure) : laisser passer un poll après un changement. ❌ Ne pas tester `rx_source_matches` que sur la bonne valeur — le cas **faux** prouve la discrimination. ⚠️ `rx_receiving` et `rx_negotiating` sont **exclusifs** : si **les deux** sont actifs ou **aucun** alors que la source décode → incohérence (FAIL, remonter). ⚠️ `is_decoder` est niveau connexion (dépend de `device_role`), pas du panneau.
+- **Harness** : la **valeur source** des feedbacks est validée indirectement par `DEC-VARS`. La **couleur réelle du bouton** (rendu satellite) n'est **pas** vérifiée par le harness (spec §8 — différé). → vérification couleur = `[HUMAN]`/Playwright manuelle ce créneau.
+- **Lockout** : 0.
+- **Postcondition** : inchangé.
+
+#### TEARDOWN-RX · restaurer le décodeur à son baseline `[AUTO]`
+- **Précondition** : tous les DEC-* terminés ; baseline capturé en BASELINE-RX.
+- **Action** : `[AUTO]` ré-appliquer le snapshot `StreamReceive.Streams[0]` capturé en BASELINE-RX (source + état Start/Stop d'origine).
+- **Attendu** : `Streams[0]` revient à l'état pré-test.
+- **PASS si** : un `GET /Device/StreamReceive` montre `Streams[0]` == baseline.
+- **Pièges** : ⚠️ À exécuter **même si un DEC-* a échoué** (best-effort) — ne pas laisser le décodeur pointé sur une source de test. ⚠️ Ne pas confondre avec le TEARDOWN global (qui restaure aussi l'encodeur et **désactive** la connexion) : TEARDOWN-RX restaure **seulement** StreamReceive.
+- **Harness** : couvert par `TEARDOWN-RX` (`oracle.restoreRx()`), puis le `TEARDOWN` global restaure le device et désactive la connexion.
+- **Lockout** : 0.
+- **Postcondition** : décodeur restauré.
+
+#### DEC-07 · Non-régression v0.1 + v0.2 — heartbeat, reconnexion, encodeur intacts `[AUTO]`/`[HUMAN]`
+- **Précondition** : connecté en mode Receiver (le poll multi-endpoint v0.3 inclut `deviceInfo` toujours-actif + `decoder` + son aux `DiscoveredStreams`).
+- **Action** : **rejouer toute la Phase B** (B1→B5) sur la session active, puis rejouer un cas type **C1** (CONN-DROP) `[HUMAN]`. Vérifier qu'au reconnect, `detectAndRegister()` recompose le panneau decoder.
+- **Attendu** : Phase B intégralement verte ; coupure device → `connection_status` déconnecté → reconnexion auto au retour, **panneau decoder re-actif**.
+- **PASS si** : B1–B5 **tous PASS** (`device_name`/`firmware_version` = vérité terrain device) **ET** transition vert→rouge→vert observée **ET** après reconnexion les actions/variables `rx_*` sont de nouveau présentes.
+- **Pièges** : ❌ Régression silencieuse du multi-endpoint : si l'aux `DiscoveredStreams` est absent/sentinelle, le dropdown `connect_to_stream` doit **dégrader proprement** (vide) et `rx_stream_name` rester non résolu — **sans crash ni perte du heartbeat**. ⚠️ `scheduleReconnect` → `detectAndRegister()` re-tourne : re-vérifier le panneau decoder. ⏱️ Reconnexion : attendre (retry à 10 s). ⚠️ Si le device est un Transmitter, c'est la Phase Encoder v0.2 qu'il faut jouer, pas celle-ci.
+- **Harness** : non-régression auth/connexion couverte par les steps tier-1 (`INSTALL`, `CFG-NOPASS`, `CFG-UNREACHABLE`, `CFG-WRONGPASS`, `CFG-GOOD`) ; **CONN-DROP (C1) reste `[HUMAN]`**.
+- **Lockout** : 0 (C1 coupe réseau/alim ; `CFG-WRONGPASS` consomme l'unique échec, réinit par `CFG-GOOD`).
+- **Postcondition** : reconnecté, decoder actif.
+
+---
+
+> ### 🧪 « Flux réel » vs « fake-only » — distinction de couverture (à lire avant le créneau labo)
+>
+> Le harness labo (`scripts/uat/journey/steps-lab.ts`) est passé **vert (18 PASS / 0 FAIL / 7 SKIP)** au run `docs/uat-runs/2026-06-17#01-Rx/` — mais **contre le fake device**, dont le décodage est scénarisé. Distinguer :
+>
+> | Step harness | Testable contre le **matériel réel** ? | Condition |
+> |---|---|---|
+> | `DEC-CAP`, `BASELINE-RX`, `DEC-VARS` | ✅ oui | device en Receiver, session A3 |
+> | `DEC-SOURCE-URL`, `DEC-SOURCE-MCAST`, `DEC-CONNECT` (DEC-01/02/03) | ✅ oui | écriture pure de config sur `Streams[0]` |
+> | `DEC-NEGOTIATING`, `DEC-DECODING` | ⚠️ **fake-only** | s'appuient sur `oracle.setRxScenario(...)` (= `POST /_control/scenario` du fake). Contre le réel, **aucun équivalent** : il faut un **vrai encodeur TX qui émet** vers ce décodeur. À reproduire manuellement avec une source réelle. |
+> | `DEC-ENABLE`, `DEC-DISABLE` (DEC-04) | ⚠️ **partiellement** | le POST Start/Stop est réel et vérifiable ; mais la preuve de décodage (`CodecReady===true`) **exige un flux émetteur réel**. Sans source : au mieux `rx_negotiating`, pas `rx_receiving`. |
+> | `TEARDOWN-RX`, `TEARDOWN` | ✅ oui | restauration via oracle |
+>
+> **Conséquence pour le créneau labo** : prévoir **un encodeur NVX réel émettant** (ex. `.10` en Transmitter) vers le décodeur sous test, sinon DEC-04/negotiating/decoding ne sont que partiellement prouvables.
+
+> ### ⚠️ Zones prévues par la spec/le code mais NON couvertes par le harness (à combler `[HUMAN]`)
+>
+> - **Couleur réelle des feedbacks** : le harness valide la **variable source**, pas le **rendu satellite** (spec §8, différé). → vérification visuelle `[HUMAN]`/Playwright.
+> - **`connect_to_stream` mode Custom** : le harness teste `DEC-CONNECT` **par nom découvert** uniquement ; la **résolution Custom** n'est pas couverte. → DEC-03 piège « Custom ».
+> - **Distinction set-multicast vs connect-by-name** : état terminal partagé par design ; seul le **reverse-lookup `rx_stream_name`** distingue le chemin découverte — à vérifier en DEC-03.
+> - **`StatusId` des POST decoder** : garde `Processing` + lecture `StatusId` (spec §6) dans le code mais non assertées par step → vérifier dans les logs `[HUMAN]`.
+> - **Hypothèses spec §7 à confirmer empiriquement** : chaînes `SessionInitiation` en écriture (#2), timing `Processing` (#3), `Start`/`Stop` RX (#4).
+
 ## v0.4 — Audio & Vidéo I/O 🔲 à compléter
+
+> Caractérisation labo (audio décodeur) à mener AVANT d'écrire les cas formels. Faits documentés (doc officielle Crestron) : volume = `AudioVideoInputOutput.Outputs[0].Ports[0].Audio.Volume`, **gain entier -100..100, 0 = unité** ; mute = `…Audio.Mute` (booléen) **documenté en firmware 7.3.5 — À CONFIRMER sur le 7.1.5259 du labo**. À MESURER au labo : effet réel du chemin, loi d'échelle (dB vs linéaire), débit POST max (pour `MIN_STEP_MS` du fade). Protocole détaillé : `docs/superpowers/specs/2026-06-17-v0.4-audio-design.md` § Protocole labo. Les cas UAT formels seront écrits APRÈS la fenêtre labo, ancrés sur le comportement réel observé.
 ## v0.5 — Device Operations & Mode 🔲 à compléter
 
 > Déplacé ici depuis v0.2 (la bascule de mode n'existe PAS dans le code v0.2 — reboot non testé empiriquement, cf. spec §5 et `hardware-validation.md` §6/§8) :
