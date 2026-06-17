@@ -245,3 +245,98 @@ test('TEARDOWN-RX FAILs when restoreRx throws', async () => {
   assert.equal(v.status, 'FAIL')
   assert.match(String(v.evidence.note), /decoder restore failed/i)
 })
+
+// ── CFG-WRONGPASS / CFG-GOOD propagate nvxUser ────────────────────────────────
+
+test('CFG-WRONGPASS passes ctx.config.nvxUser (not "admin") to fillConfig', async () => {
+  const step = labSteps.find((s) => s.id === 'CFG-WRONGPASS')!
+  const captured: { username?: string }[] = []
+  const v = await step.run(
+    ctx(
+      {
+        config: {
+          companionUrl: 'http://x:8000',
+          container: 'c',
+          label: 'nvx-uat',
+          nvxHost: '192.0.2.1',
+          nvxPort: 443,
+          nvxUser: 'didier',
+          nvxPass: 'realpass',
+        },
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'warning', level: 'Warning', message: '' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => '',
+          press: async () => {},
+        } as never,
+        logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+        ui: {
+          open: async () => ({}),
+          close: async () => {},
+          moduleAvailable: async () => true,
+          openConnectionConfig: async () => {},
+          fillConfig: async (_page: unknown, fields: { username?: string }) => {
+            captured.push(fields)
+          },
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.ok(captured.length > 0, 'fillConfig was not called')
+  assert.equal(captured[0].username, 'didier', `expected 'didier', received '${captured[0].username}'`)
+  assert.equal(v.status, 'PASS')
+})
+
+test('CFG-GOOD passes ctx.config.nvxUser (not "admin") to fillConfig', async () => {
+  const step = labSteps.find((s) => s.id === 'CFG-GOOD')!
+  const captured: { username?: string }[] = []
+  await step.run(
+    ctx(
+      {
+        config: {
+          companionUrl: 'http://x:8000',
+          container: 'c',
+          label: 'nvx-uat',
+          nvxHost: '192.0.2.1',
+          nvxPort: 443,
+          nvxUser: 'didier',
+          nvxPass: 'realpass',
+        },
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'good', level: 'OK', message: '' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => '',
+          press: async () => {},
+        } as never,
+        logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+        oracle: {
+          readStream0: async () => ({ RtspSessionName: 'X' }),
+          readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
+          captureBaseline: async () => {},
+          captureBaselineRx: async () => {},
+          restore: async () => {},
+          restoreRx: async () => {},
+        } as never,
+        ui: {
+          open: async () => ({}),
+          close: async () => {},
+          moduleAvailable: async () => true,
+          openConnectionConfig: async () => {},
+          fillConfig: async (_page: unknown, fields: { username?: string }) => {
+            captured.push(fields)
+          },
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.ok(captured.length > 0, 'fillConfig was not called')
+  assert.equal(captured[0].username, 'didier', `expected 'didier', received '${captured[0].username}'`)
+})

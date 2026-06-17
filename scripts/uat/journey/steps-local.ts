@@ -87,7 +87,7 @@ export const localSteps: JourneyStep[] = [
     run: (ctx) =>
       configFailureStep(
         ctx,
-        { host: ctx.config.nvxHost, username: 'admin', password: '' },
+        { host: ctx.config.nvxHost, username: ctx.config.nvxUser, password: '' },
         'warning', // BadConfig → warning (confirm live in Task 2.3)
         /no password|bad ?config|missing|credential/i,
         'CFG-NOPASS',
@@ -101,7 +101,7 @@ export const localSteps: JourneyStep[] = [
     run: (ctx) =>
       configFailureStep(
         ctx,
-        { host: '192.0.2.1', username: 'admin', password: 'whatever' },
+        { host: '192.0.2.1', username: ctx.config.nvxUser, password: 'whatever' },
         'error',
         /timeout|nvx timeout|econn|connection fail|unreach|refused|hang up|network error/i,
         'CFG-UNREACHABLE',

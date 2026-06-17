@@ -397,7 +397,7 @@ const authSteps: JourneyStep[] = [
       if (!connId) return fail('CFG-WRONGPASS', 'wrong password', 1, { note: `connection '${ctx.config.label}' not found` })
 
       await ctx.http.enable(connId) // idempotent — a prior TEARDOWN may have disabled it
-      await setConfig(ctx, connId, { host: ctx.config.nvxHost, port: ctx.config.nvxPort, username: 'admin', password: WRONG_PASSWORD })
+      await setConfig(ctx, connId, { host: ctx.config.nvxHost, port: ctx.config.nvxPort, username: ctx.config.nvxUser, password: WRONG_PASSWORD })
       const m = ctx.logs.mark()
       await ctx.http.restart(connId)
       const logged = await pollLog(ctx, m, /401|403|auth|unauthor|forbidden|credential/i)
@@ -421,7 +421,7 @@ const authSteps: JourneyStep[] = [
       if (!connId) return fail('CFG-GOOD', 'good password', 1, { note: `connection '${ctx.config.label}' not found` })
 
       await ctx.http.enable(connId) // idempotent — a prior TEARDOWN may have disabled it
-      await setConfig(ctx, connId, { host: ctx.config.nvxHost, port: ctx.config.nvxPort, username: 'admin', password: ctx.config.nvxPass })
+      await setConfig(ctx, connId, { host: ctx.config.nvxHost, port: ctx.config.nvxPort, username: ctx.config.nvxUser, password: ctx.config.nvxPass })
       await ctx.http.restart(connId)
       // REST category for a healthy connection is 'good' (the UI label is "OK") — verified live.
       const category = await pollStatusCategory(ctx, connId, 'good')

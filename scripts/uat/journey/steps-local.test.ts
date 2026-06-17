@@ -69,3 +69,81 @@ test('a config step FAILs cleanly when the connection is absent', async () => {
   assert.equal(v.status, 'FAIL')
   assert.match(String(v.evidence.note), /not found/i)
 })
+
+// ── CFG-NOPASS / CFG-UNREACHABLE propagate nvxUser ───────────────────────────
+
+test('CFG-NOPASS passes ctx.config.nvxUser (not "admin") to fillConfig', async () => {
+  const step = localSteps.find((s) => s.id === 'CFG-NOPASS')!
+  const captured: { username?: string }[] = []
+  const v = await step.run(
+    ctx({
+      config: {
+        companionUrl: 'http://x:8000',
+        container: 'c',
+        label: 'nvx-uat',
+        nvxHost: '192.0.2.1',
+        nvxPort: 443,
+        nvxUser: 'didier',
+        nvxPass: '',
+      },
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'warning', level: 'Warning', message: '' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+      } as never,
+      logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+      ui: {
+        open: async () => ({}),
+        close: async () => {},
+        moduleAvailable: async () => true,
+        openConnectionConfig: async () => {},
+        fillConfig: async (_page: unknown, fields: { username?: string }) => {
+          captured.push(fields)
+        },
+      } as never,
+    }),
+  )
+  assert.ok(captured.length > 0, 'fillConfig was not called')
+  assert.equal(captured[0].username, 'didier', `expected 'didier', received '${captured[0].username}'`)
+  assert.equal(v.status, 'PASS')
+})
+
+test('CFG-UNREACHABLE passes ctx.config.nvxUser (not "admin") to fillConfig', async () => {
+  const step = localSteps.find((s) => s.id === 'CFG-UNREACHABLE')!
+  const captured: { username?: string }[] = []
+  const v = await step.run(
+    ctx({
+      config: {
+        companionUrl: 'http://x:8000',
+        container: 'c',
+        label: 'nvx-uat',
+        nvxHost: '192.0.2.1',
+        nvxPort: 443,
+        nvxUser: 'didier',
+        nvxPass: '',
+      },
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'error', level: 'Connection Failure', message: 'NVX timeout' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+      } as never,
+      logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+      ui: {
+        open: async () => ({}),
+        close: async () => {},
+        moduleAvailable: async () => true,
+        openConnectionConfig: async () => {},
+        fillConfig: async (_page: unknown, fields: { username?: string }) => {
+          captured.push(fields)
+        },
+      } as never,
+    }),
+  )
+  assert.ok(captured.length > 0, 'fillConfig was not called')
+  assert.equal(captured[0].username, 'didier', `expected 'didier', received '${captured[0].username}'`)
+  assert.equal(v.status, 'PASS')
+})
