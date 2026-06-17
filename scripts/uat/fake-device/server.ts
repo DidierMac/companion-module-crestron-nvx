@@ -168,8 +168,12 @@ const handler = (req: IncomingMessage, res: import('node:http').ServerResponse) 
           scenarioToTransmitState(scenario)
           currentTxScenario = scenario
         } else {
-          scenarioToReceiveState(scenario)
+          const rxState = scenarioToReceiveState(scenario)
           currentRxScenario = scenario
+          // Apply immediately to the live StreamReceive state so the oracle sees it
+          // without waiting for a subsequent Start command (needed when stream is already started).
+          const t = receiveStream0()
+          if (t) Object.assign(t, rxState)
         }
         res.writeHead(200, { 'Content-Type': 'application/json' })
         return res.end(JSON.stringify({ ok: true, scenario }))

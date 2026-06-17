@@ -56,6 +56,9 @@ utile que pour une future gestion du déchiffrement (il poserait en plus `Discov
 - scénario `decoding` + Start → vert ; scénario `negotiating` + Start → ambre ; scénario `idle` + Start → repos.
 - **Stop** → reset (idle) quel que soit le scénario.
 - Aucun appel de contrôle → scénario par défaut = `decoding` (= comportement figé actuel, non-régression).
+- **Le scénario est aussi appliqué immédiatement à `POST /_control/scenario`** (pas seulement au prochain Start),
+  pour rester déterministe quand le stream est déjà démarré (un 2ᵉ press n'est alors pas requis). Validé en
+  intégration 2026-06-17 : DEC-NEGOTIATING (ambre) et DEC-DECODING (vert) passent via les steps scénarisés.
 
 ## Carte d'implémentation
 
