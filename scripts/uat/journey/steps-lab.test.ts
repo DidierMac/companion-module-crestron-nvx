@@ -515,3 +515,45 @@ test('TEARDOWN reports "no baseline" honestly when restore() signals no baseline
     `TEARDOWN claimed "device restored" but no baseline was captured. note="${v.evidence.note}"`,
   )
 })
+
+// ── Task 7: decoder actionKeys must be present in the default layout fixture ──
+
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+function loadLayout(): Record<string, unknown> {
+  const fixturePath = path.join(__dirname, '../fixtures/layout.json')
+  return JSON.parse(readFileSync(fixturePath, 'utf8')) as Record<string, unknown>
+}
+
+const DECODER_ACTION_KEYS = [
+  'set_source_url',
+  'set_source_multicast',
+  'connect_to_stream',
+  'dec_enable_stream',
+  'dec_disable_stream',
+] as const
+
+test('default layout fixture maps every decoder actionKey (no SKIP-silent on Receiver)', () => {
+  const layout = loadLayout()
+  for (const key of DECODER_ACTION_KEYS) {
+    const loc = layout[key]
+    assert.ok(loc !== undefined, `layout.json is missing decoder key '${key}' → DEC steps SKIP silently (button not found)`)
+  }
+})
+
+test('default layout fixture decoder buttons have no coordinate collision with encoder buttons', () => {
+  const layout = loadLayout()
+  const seen = new Map<string, string>()
+  for (const [key, loc] of Object.entries(layout)) {
+    if (key.startsWith('_')) continue
+    const { page, row, col } = loc as { page: number; row: number; col: number }
+    const coord = `${page}:${row}:${col}`
+    const prior = seen.get(coord)
+    assert.ok(!prior, `Coordinate collision at ${coord} between '${prior}' and '${key}'`)
+    seen.set(coord, key)
+  }
+})

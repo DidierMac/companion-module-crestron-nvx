@@ -49,6 +49,7 @@ the config form itself (Chromium UI automation).
 | `UAT_LABEL` | `nvx-uat` | connection label under test |
 | `NVX_HOST` | `192.0.2.1` | device host as the MODULE reaches it (real Transmitter IP for lab) |
 | `NVX_PORT` | `443` | device HTTPS port (8443 for the local fake) |
+| `NVX_USER` | `admin` | device username — passed to the config form and fillConfig calls |
 | `NVX_PASS` | *(empty)* | device password — **empty → all lab steps SKIP** |
 | `ORACLE_HOST` | *(= NVX_HOST)* | device host as the ORACLE (host process) reaches it; differs only for the fake |
 | `UAT_LAB` | *(unset)* | `1` → also run the lab steps |
@@ -96,10 +97,6 @@ then **keeps it across multiple runs** — buttons and collections survive betwe
 This is safe to run repeatedly because `ensureConnection()` is idempotent: it never deletes,
 only creates if absent or realigns if present (host/port/credentials via env vars).
 
-**Caveat M1** (hardcoded username): the auto-provisioning sets username `admin` in code.
-If your lab device uses a different account, this flag will fail — file an issue to parameterize it
-(it's a straightforward diff; currently `admin` works for the fake and real DM-NVX-360).
-
 **Scenario 2: Clean-slate runs, buttons created in each run** — omit the flag:
 
 ```bash
@@ -133,12 +130,14 @@ Report is written to `docs/uat-runs/<date>-journey/` (`report.md` + `escalation.
 Verdicts: **PASS / FAIL / AMBIGUOUS / HUMAN / SKIP** (SKIP = lab step without a device —
 never a false PASS).
 
-## 5. Encoder action buttons (lab only — for the WRITE steps) — MANUAL CREATION
+## 5. Action buttons (lab only — for the WRITE steps) — MANUAL CREATION
 
 The encoder actions (`set_stream_name`, `set_multicast_address`, `enc_enable_stream`,
-`enc_disable_stream`) are exposed **only once the module detects role = Transmitter** (a real
-device must be connected — `CFG-GOOD` does this earlier in the journey). So lay the buttons
-out **at the lab**, after `CFG-GOOD` connects.
+`enc_disable_stream`) are exposed **only once the module detects role = Transmitter**. The decoder
+actions (`set_source_url`, `set_source_multicast`, `connect_to_stream`, `dec_enable_stream`,
+`dec_disable_stream`) are exposed **only once the module detects role = Receiver**. A real device
+must be connected (`CFG-GOOD` does this earlier in the journey). Lay the buttons out **at the lab**,
+after `CFG-GOOD` connects.
 
 **⚠️ Button creation is NOT automatically provisioned.** (No clean API; Companion stores buttons
 in its internal SQLite — no bulk import or programmatic assignment.) The auto-provisioning
@@ -150,12 +149,24 @@ On the **Buttons** page, create one button per action at the coordinates in
 `scripts/uat/fixtures/layout.json` (page/row/col), each targeting the `nvx-uat` connection's
 action. Configure the value-bearing ones to the test values the steps assert:
 
+**Encoder buttons (Transmitter device — row 0)**
+
 | Action button | Coords (default) | Configure value |
 |---------------|------------------|-----------------|
 | `set_stream_name` | page 1, row 0, col 0 | Stream name = `UAT-STREAM` |
 | `set_multicast_address` | page 1, row 0, col 1 | Address = `239.200.0.1` |
 | `enc_enable_stream` | page 1, row 0, col 2 | *(no option)* |
 | `enc_disable_stream` | page 1, row 0, col 3 | *(no option)* |
+
+**Decoder buttons (Receiver device — row 1)**
+
+| Action button | Coords (default) | Configure value |
+|---------------|------------------|-----------------|
+| `set_source_url` | page 1, row 1, col 0 | Source URL = `rtsp://192.168.2.10:554/live.sdp` |
+| `set_source_multicast` | page 1, row 1, col 1 | Multicast address = `239.1.1.4` |
+| `connect_to_stream` | page 1, row 1, col 2 | Stream name = `DM-NVX-360-C442684E534B` |
+| `dec_enable_stream` | page 1, row 1, col 3 | *(no option)* |
+| `dec_disable_stream` | page 1, row 1, col 4 | *(no option)* |
 
 A WRITE step whose button is missing from the layout **SKIPs** (does not FAIL) — the harness
 stays runnable while only partially provisioned.
