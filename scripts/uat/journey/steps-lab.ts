@@ -211,10 +211,7 @@ const useSteps: JourneyStep[] = [
       const role = await readVar(ctx, 'device_role', (v) => v === 'Transmitter')
       return role === 'Transmitter'
         ? pass('CAP', 'encoder panel active (role=Transmitter)', 1, { note: `device_role=${role}` })
-        : fail('CAP', 'expected a Transmitter device for the encoder journey', 1, {
-            expected: 'Transmitter',
-            observed: role,
-          })
+        : skip('CAP', 'encoder journey (device is not a Transmitter)', 1, { note: `device_role=${role}` })
     },
   },
   {
@@ -223,6 +220,8 @@ const useSteps: JourneyStep[] = [
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip('ENC-VARS', 'variables (no device)', 1, { note: 'NVX_PASS unset' })
+      const role = await readVar(ctx, 'device_role')
+      if (role !== 'Transmitter') return skip('ENC-VARS', 'encoder vars (device is not a Transmitter)', 1, { note: `device_role=${role}` })
       const s = await ctx.oracle.readStream0()
       const checks: Record<string, [string, string]> = {
         // wait for the panel to have polled at least once (tx_stream_name populated), then read all
@@ -245,6 +244,8 @@ const useSteps: JourneyStep[] = [
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip('ENC-FEEDBACKS', 'feedbacks (no device)', 1, { note: 'NVX_PASS unset' })
+      const role = await readVar(ctx, 'device_role')
+      if (role !== 'Transmitter') return skip('ENC-FEEDBACKS', 'encoder feedbacks (device is not a Transmitter)', 1, { note: `device_role=${role}` })
       // Satellite colour check deferred (spec §8); validate the variable that drives the feedback.
       const varVal = await readVar(ctx, 'tx_enabled', (v) => v !== '')
       const s = await ctx.oracle.readStream0()
