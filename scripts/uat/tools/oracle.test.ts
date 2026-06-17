@@ -227,3 +227,149 @@ test('restoreRx() returns { skipped: false } when a baselineRx was captured and 
   const result = await o.restoreRx()
   assert.deepEqual(result, { skipped: false }, 'restoreRx() must signal that baselineRx was applied')
 })
+
+// ── M4 : logout() doit être appelé après chaque méthode (bracket try/finally) ──
+// Tous ces tests échouent en phase RED : oracle.ts appelle login() sans jamais logout().
+// Ils passent une fois le coder ayant ajouté try { … } finally { await c.logout().catch(() => {}) }.
+
+test('readStream0() appelle logout() exactement une fois après succès', async () => {
+  let logoutCount = 0
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => ({ Device: { StreamTransmit: { Streams: [{ RtspSessionName: 'X' }] } } }),
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await o.readStream0()
+  assert.equal(logoutCount, 1, 'readStream0() doit appeler logout() exactement une fois')
+})
+
+test('readStream0() appelle logout() même si get() rejette (finally)', async () => {
+  let logoutCount = 0
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => { throw new Error('device unreachable') },
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await assert.rejects(() => o.readStream0(), /device unreachable/)
+  assert.equal(logoutCount, 1, 'readStream0() doit appeler logout() même si get() rejette')
+})
+
+test('readReceiveStream0() appelle logout() exactement une fois après succès', async () => {
+  let logoutCount = 0
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => ({ Device: { StreamReceive: { Streams: [{ SessionInitiation: 'Multicast via RTSP' }] } } }),
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await o.readReceiveStream0()
+  assert.equal(logoutCount, 1, 'readReceiveStream0() doit appeler logout() exactement une fois')
+})
+
+test('readReceiveStream0() appelle logout() même si get() rejette (finally)', async () => {
+  let logoutCount = 0
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => { throw new Error('device unreachable') },
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await assert.rejects(() => o.readReceiveStream0(), /device unreachable/)
+  assert.equal(logoutCount, 1, 'readReceiveStream0() doit appeler logout() même si get() rejette')
+})
+
+test('restore() appelle logout() exactement une fois après succès', async () => {
+  let logoutCount = 0
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => ({ Device: { StreamTransmit: { Streams: [{ RtspSessionName: 'X', MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' }] } } }),
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await o.captureBaseline()
+  const countBefore = logoutCount
+  await o.restore()
+  assert.equal(logoutCount - countBefore, 1, 'restore() doit appeler logout() exactement une fois')
+})
+
+test('restore() appelle logout() même si postSetPartial() rejette (finally)', async () => {
+  let logoutCount = 0
+  let throwOnPost = false
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => ({ Device: { StreamTransmit: { Streams: [{ RtspSessionName: 'X', MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' }] } } }),
+    postSetPartial: async () => { if (throwOnPost) throw new Error('device unreachable'); return 0 },
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await o.captureBaseline()
+  const countBefore = logoutCount
+  throwOnPost = true
+  await assert.rejects(() => o.restore(), /device unreachable/)
+  assert.equal(logoutCount - countBefore, 1, 'restore() doit appeler logout() même si postSetPartial() rejette')
+})
+
+test('restoreRx() appelle logout() exactement une fois après succès', async () => {
+  let logoutCount = 0
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => ({ Device: { StreamReceive: { Streams: [{ SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4', Status: 'Stream Stopped' }] } } }),
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await o.captureBaselineRx()
+  const countBefore = logoutCount
+  await o.restoreRx()
+  assert.equal(logoutCount - countBefore, 1, 'restoreRx() doit appeler logout() exactement une fois')
+})
+
+test('restoreRx() appelle logout() même si postSetPartial() rejette (finally)', async () => {
+  let logoutCount = 0
+  let throwOnPost = false
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => ({ Device: { StreamReceive: { Streams: [{ SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4', Status: 'Stream Stopped' }] } } }),
+    postSetPartial: async () => { if (throwOnPost) throw new Error('device unreachable'); return 0 },
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await o.captureBaselineRx()
+  const countBefore = logoutCount
+  throwOnPost = true
+  await assert.rejects(() => o.restoreRx(), /device unreachable/)
+  assert.equal(logoutCount - countBefore, 1, 'restoreRx() doit appeler logout() même si postSetPartial() rejette')
+})
+
+test('setRxScenario() appelle logout() exactement une fois après succès', async () => {
+  let logoutCount = 0
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => ({}),
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient))
+  await o.setRxScenario('rx-negotiating')
+  assert.equal(logoutCount, 1, 'setRxScenario() doit appeler logout() exactement une fois')
+})
+
+test('setRxScenario() appelle logout() même si post() rejette (finally)', async () => {
+  let logoutCount = 0
+  const o = new Oracle(() => ({
+    login: async () => {},
+    logout: async () => { logoutCount++ },
+    get: async () => ({}),
+    postSetPartial: async () => 0,
+    post: async () => { throw new Error('scenario route absent') },
+  } as unknown as NvxApiClient))
+  await assert.rejects(() => o.setRxScenario('rx-negotiating'), /scenario route absent/)
+  assert.equal(logoutCount, 1, 'setRxScenario() doit appeler logout() même si post() rejette')
+})

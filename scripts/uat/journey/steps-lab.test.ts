@@ -2,6 +2,10 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { labSteps } from './steps-lab.js'
 import type { JourneyContext } from './types.js'
+// M6 : HttpError n'existe pas encore dans companion-http.ts → ces tests échouent en phase RED.
+// Une fois HttpError exporté, les deux tests ci-dessous (HTTP 500 propagé / HTTP 404 toléré)
+// utilisent le typage fort au lieu du match de chaîne.
+import { HttpError } from '../tools/companion-http.js'
 
 function ctx(over: Partial<JourneyContext> = {}, nvxPass = ''): JourneyContext {
   const base = {
@@ -548,12 +552,13 @@ test('default layout fixture maps every decoder actionKey (no SKIP-silent on Rec
 // ── Task 8: readVar — erreur réseau (non-404) ne doit pas être avalée silencieusement ──
 
 test('readVar: erreur réseau (HTTP 500) propagée — step FAIL avec threw, pas SKIP silencieux', async () => {
-  // getVariable lance HTTP 500 (erreur réseau / serveur) sur toutes les tentatives.
+  // getVariable lance HttpError 500 (erreur réseau / serveur) sur toutes les tentatives.
   // readVar NE doit PAS capter cela silencieusement et retourner ''.
-  // Le step CAP reçoit alors l'erreur et runJourney la convertit en FAIL.
+  // Seul HTTP 404 (variable non encore enregistrée) est toléré — pas 500.
+  // Le step CAP reçoit l'erreur et runJourney la convertit en FAIL.
   // Pour tester sans runJourney, on vérifie que step.run() rejette.
   const step = labSteps.find((s) => s.id === 'CAP')!
-  const networkError = new Error('getVariable nvx-uat.device_role → HTTP 500')
+  const networkError = new HttpError('getVariable nvx-uat.device_role → HTTP 500', 500)
   const c = ctx(
     {
       http: {
@@ -583,11 +588,11 @@ test('readVar: erreur réseau (HTTP 500) propagée — step FAIL avec threw, pas
 })
 
 test('readVar: 404 (variable pas encore définie) toujours toléré — step SKIP nominal', async () => {
-  // getVariable lance HTTP 404 (variable pas encore définie) — comportement transitoire normal.
-  // readVar DOIT capter ce cas et continuer le polling jusqu'à épuisement.
+  // getVariable lance HttpError 404 (variable pas encore définie) — comportement transitoire normal.
+  // readVar DOIT capter ce cas (HttpError typé avec status===404) et continuer le polling.
   // Après toutes les tentatives, retourne '' → step CAP → role '' → SKIP (pas Transmitter).
   const step = labSteps.find((s) => s.id === 'CAP')!
-  const notFound = new Error('getVariable nvx-uat.device_role → HTTP 404')
+  const notFound = new HttpError('getVariable nvx-uat.device_role → HTTP 404', 404)
   let callCount = 0
   const c = ctx(
     {
