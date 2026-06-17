@@ -12,25 +12,33 @@ export class Oracle {
   /** Login + GET StreamTransmit Streams[0]. */
   async readStream0(): Promise<Record<string, unknown>> {
     const c = this.clientFactory()
-    await c.login()
-    const json = (await c.get('/Device/StreamTransmit')) as {
-      Device?: { StreamTransmit?: { Streams?: Array<Record<string, unknown>> } }
+    try {
+      await c.login()
+      const json = (await c.get('/Device/StreamTransmit')) as {
+        Device?: { StreamTransmit?: { Streams?: Array<Record<string, unknown>> } }
+      }
+      const s = json.Device?.StreamTransmit?.Streams?.[0]
+      if (!s) throw new Error('Streams[0] absent')
+      return s
+    } finally {
+      await c.logout().catch(() => {})
     }
-    const s = json.Device?.StreamTransmit?.Streams?.[0]
-    if (!s) throw new Error('Streams[0] absent')
-    return s
   }
 
   /** Login + GET StreamReceive Streams[0]. */
   async readReceiveStream0(): Promise<Record<string, unknown>> {
     const c = this.clientFactory()
-    await c.login()
-    const json = (await c.get('/Device/StreamReceive')) as {
-      Device?: { StreamReceive?: { Streams?: Array<Record<string, unknown>> } }
+    try {
+      await c.login()
+      const json = (await c.get('/Device/StreamReceive')) as {
+        Device?: { StreamReceive?: { Streams?: Array<Record<string, unknown>> } }
+      }
+      const s = json.Device?.StreamReceive?.Streams?.[0]
+      if (!s) throw new Error('StreamReceive Streams[0] absent')
+      return s
+    } finally {
+      await c.logout().catch(() => {})
     }
-    const s = json.Device?.StreamReceive?.Streams?.[0]
-    if (!s) throw new Error('StreamReceive Streams[0] absent')
-    return s
   }
 
   async captureBaseline(): Promise<void> {
@@ -47,14 +55,18 @@ export class Oracle {
   async restore(): Promise<{ skipped: boolean }> {
     if (!this.baseline) return { skipped: true }
     const c = this.clientFactory()
-    await c.login()
-    const b = this.baseline
-    if (typeof b.RtspSessionName === 'string')
-      await c.postSetPartial(streamTransmitBody(0, { RtspSessionName: b.RtspSessionName }))
-    if (typeof b.MulticastAddress === 'string')
-      await c.postSetPartial(streamTransmitBody(0, { MulticastAddress: b.MulticastAddress }))
-    await c.postSetPartial(streamTransmitBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
-    return { skipped: false }
+    try {
+      await c.login()
+      const b = this.baseline
+      if (typeof b.RtspSessionName === 'string')
+        await c.postSetPartial(streamTransmitBody(0, { RtspSessionName: b.RtspSessionName }))
+      if (typeof b.MulticastAddress === 'string')
+        await c.postSetPartial(streamTransmitBody(0, { MulticastAddress: b.MulticastAddress }))
+      await c.postSetPartial(streamTransmitBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
+      return { skipped: false }
+    } finally {
+      await c.logout().catch(() => {})
+    }
   }
 
   /**
@@ -65,8 +77,12 @@ export class Oracle {
    */
   async setRxScenario(scenario: string): Promise<void> {
     const c = this.clientFactory()
-    await c.login()
-    await c.post('/_control/scenario', { role: 'rx', scenario })
+    try {
+      await c.login()
+      await c.post('/_control/scenario', { role: 'rx', scenario })
+    } finally {
+      await c.logout().catch(() => {})
+    }
   }
 
   /** Restore StreamReceive source/state captured at baselineRx.
@@ -74,17 +90,21 @@ export class Oracle {
   async restoreRx(): Promise<{ skipped: boolean }> {
     if (!this.baselineRx) return { skipped: true }
     const c = this.clientFactory()
-    await c.login()
-    const b = this.baselineRx
-    // Restore session initiation + coordinates
-    if (typeof b.SessionInitiation === 'string') {
-      if (b.SessionInitiation === 'ByReceiver' && typeof b.StreamLocation === 'string')
-        await c.postSetPartial(streamReceiveBody(0, { SessionInitiation: 'ByReceiver', StreamLocation: b.StreamLocation }))
-      else if (typeof b.MulticastAddress === 'string')
-        await c.postSetPartial(streamReceiveBody(0, { SessionInitiation: b.SessionInitiation, MulticastAddress: b.MulticastAddress }))
+    try {
+      await c.login()
+      const b = this.baselineRx
+      // Restore session initiation + coordinates
+      if (typeof b.SessionInitiation === 'string') {
+        if (b.SessionInitiation === 'ByReceiver' && typeof b.StreamLocation === 'string')
+          await c.postSetPartial(streamReceiveBody(0, { SessionInitiation: 'ByReceiver', StreamLocation: b.StreamLocation }))
+        else if (typeof b.MulticastAddress === 'string')
+          await c.postSetPartial(streamReceiveBody(0, { SessionInitiation: b.SessionInitiation, MulticastAddress: b.MulticastAddress }))
+      }
+      // Restore start/stop state
+      await c.postSetPartial(streamReceiveBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
+      return { skipped: false }
+    } finally {
+      await c.logout().catch(() => {})
     }
-    // Restore start/stop state
-    await c.postSetPartial(streamReceiveBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
-    return { skipped: false }
   }
 }
