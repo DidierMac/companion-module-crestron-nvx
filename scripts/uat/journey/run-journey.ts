@@ -19,6 +19,7 @@ const LAYOUT_FILE = 'scripts/uat/fixtures/layout.json'
 /** Load the button layout: UAT_LAYOUT env (JSON) wins, else the fixture file. `_`-keys dropped. */
 export function loadLayout(env: NodeJS.ProcessEnv): Record<string, ButtonRef> | undefined {
   let raw: string | undefined = env.UAT_LAYOUT
+  const fromEnv = !!raw
   if (!raw) {
     try {
       raw = readFileSync(LAYOUT_FILE, 'utf8')
@@ -34,7 +35,12 @@ export function loadLayout(env: NodeJS.ProcessEnv): Record<string, ButtonRef> | 
       layout[k] = v as ButtonRef
     }
     return layout
-  } catch {
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err)
+    if (fromEnv) {
+      throw new Error(`UAT_LAYOUT contains invalid JSON — parse failed: ${detail}`)
+    }
+    // Fixture file malformed — treat as absent (fixture is optional and may be stale).
     return undefined
   }
 }

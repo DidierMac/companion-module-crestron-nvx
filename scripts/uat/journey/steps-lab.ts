@@ -52,8 +52,10 @@ async function pollLog(ctx: JourneyContext, mark: { ts: string }, re: RegExp): P
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 
 /**
- * Read a Companion variable, polling while it is undefined (404 → throws) or not yet `ready` —
+ * Read a Companion variable, polling while it is not yet defined (HTTP 404) or not yet `ready` —
  * the module defines/populates variables a moment after connecting. Returns the last value seen.
+ * Any error other than a 404 (network failure, server error…) is re-thrown immediately so the
+ * caller receives an honest failure instead of a silent empty string.
  */
 async function readVar(
   ctx: JourneyContext,
@@ -65,8 +67,10 @@ async function readVar(
     try {
       value = await ctx.http.getVariable(ctx.config.label, name)
       if (ready(value)) return value
-    } catch {
-      /* 404 — variable not defined yet */
+    } catch (err) {
+      // A 404 means the variable is not yet registered — normal during module startup, keep polling.
+      const msg = err instanceof Error ? err.message : String(err)
+      if (!msg.includes('HTTP 404')) throw err
     }
     await ctx.sleep(POLL_DELAY_MS)
   }

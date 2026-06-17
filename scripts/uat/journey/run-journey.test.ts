@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { loadJourneyConfig, ensureFreshConnection } from './run-journey.js'
+import { loadJourneyConfig, ensureFreshConnection, loadLayout } from './run-journey.js'
 import type { JourneyContext, JourneyConfig } from './types.js'
 
 test('loadJourneyConfig — hors lab, NVX_USER absent → défaut admin toléré', () => {
@@ -175,4 +175,29 @@ test('ensureFreshConnection: fillConfig reçoit host, port, username, password c
   assert.equal(fields.port,     443,             'fillConfig must receive correct port')
   assert.equal(fields.username, 'didier',        'fillConfig must receive correct username')
   assert.equal(fields.password, 'topsecret',     'fillConfig must receive correct password')
+})
+
+// ── Task 8: loadLayout — erreurs franches sur JSON malformé ──────────────────
+
+test('loadLayout — UAT_LAYOUT absent → undefined (comportement nominal inchangé)', () => {
+  // Sans fixture présent, la lecture échoue silencieusement → undefined.
+  // Ce test vérifie que le chemin "absent" n'est pas cassé par le fix.
+  const result = loadLayout({ UAT_LAYOUT: undefined })
+  // Peut être undefined (fixture absente ou présente) — juste ne pas throw.
+  assert.ok(result === undefined || typeof result === 'object')
+})
+
+test('loadLayout — UAT_LAYOUT = JSON invalide → throw avec message mentionnant UAT_LAYOUT ou parse', () => {
+  assert.throws(
+    () => loadLayout({ UAT_LAYOUT: '{ invalid json' }),
+    (err: unknown) => {
+      assert.ok(err instanceof Error, `attendu Error, reçu ${typeof err}`)
+      const msg = err.message.toLowerCase()
+      assert.ok(
+        msg.includes('uat_layout') || msg.includes('parse') || msg.includes('json'),
+        `message doit mentionner UAT_LAYOUT ou parse/json, reçu : "${err.message}"`,
+      )
+      return true
+    },
+  )
 })

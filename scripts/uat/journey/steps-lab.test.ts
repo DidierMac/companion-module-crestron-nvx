@@ -545,6 +545,71 @@ test('default layout fixture maps every decoder actionKey (no SKIP-silent on Rec
   }
 })
 
+// ── Task 8: readVar — erreur réseau (non-404) ne doit pas être avalée silencieusement ──
+
+test('readVar: erreur réseau (HTTP 500) propagée — step FAIL avec threw, pas SKIP silencieux', async () => {
+  // getVariable lance HTTP 500 (erreur réseau / serveur) sur toutes les tentatives.
+  // readVar NE doit PAS capter cela silencieusement et retourner ''.
+  // Le step CAP reçoit alors l'erreur et runJourney la convertit en FAIL.
+  // Pour tester sans runJourney, on vérifie que step.run() rejette.
+  const step = labSteps.find((s) => s.id === 'CAP')!
+  const networkError = new Error('getVariable nvx-uat.device_role → HTTP 500')
+  const c = ctx(
+    {
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'ok' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+        getVariable: async () => { throw networkError },
+        press: async () => {},
+      } as never,
+    },
+    'realpass',
+  )
+  // Le step doit propager l'erreur (rejet de la promesse) — pas retourner SKIP/PASS.
+  await assert.rejects(
+    () => step.run(c),
+    (err: unknown) => {
+      assert.ok(err instanceof Error, `attendu Error, reçu ${typeof err}`)
+      assert.ok(
+        err.message.includes('500') || err.message.includes('HTTP'),
+        `message doit mentionner HTTP/500, reçu : "${err.message}"`,
+      )
+      return true
+    },
+  )
+})
+
+test('readVar: 404 (variable pas encore définie) toujours toléré — step SKIP nominal', async () => {
+  // getVariable lance HTTP 404 (variable pas encore définie) — comportement transitoire normal.
+  // readVar DOIT capter ce cas et continuer le polling jusqu'à épuisement.
+  // Après toutes les tentatives, retourne '' → step CAP → role '' → SKIP (pas Transmitter).
+  const step = labSteps.find((s) => s.id === 'CAP')!
+  const notFound = new Error('getVariable nvx-uat.device_role → HTTP 404')
+  let callCount = 0
+  const c = ctx(
+    {
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'ok' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+        getVariable: async () => { callCount++; throw notFound },
+        press: async () => {},
+      } as never,
+      sleep: async () => {}, // pas de vrai délai
+    },
+    'realpass',
+  )
+  // Doit terminer sans rejet (le 404 est toléré) et retourner SKIP (rôle jamais = Transmitter).
+  const v = await step.run(c)
+  assert.equal(v.status, 'SKIP', 'CAP doit SKIP si la variable reste indisponible après tous les polls')
+  assert.ok(callCount > 1, `polling attendu (plusieurs appels), reçu ${callCount}`)
+})
+
 test('default layout fixture decoder buttons have no coordinate collision with encoder buttons', () => {
   const layout = loadLayout()
   const seen = new Map<string, string>()
