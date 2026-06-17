@@ -622,3 +622,105 @@ test('default layout fixture decoder buttons have no coordinate collision with e
     seen.set(coord, key)
   }
 })
+
+// ── Task 9: verrou bout-en-bout — le username configuré ne descend jamais à 'admin' ──
+//
+// Ce test est un verrou de non-régression pour la classe entière des steps de configuration.
+// Il exécute TOUS les steps (lab + local) qui appellent fillConfig avec nvxUser='didier'
+// et asserte qu'AUCUN username transmis n'est 'admin'.
+//
+// Valeur de détection : si quelqu'un réintroduit `username: 'admin'` en dur dans un step
+// existant ou futur, ce test casse — même si les tests individuels par step n'existent pas encore.
+
+import { localSteps } from './steps-local.js'
+
+test('verrou bout-en-bout: aucun step ne transmet username=admin quand nvxUser=didier', async () => {
+  // Accumulateur partagé : toutes les fillConfig appelées pendant ce test
+  const allCaptured: Array<{ stepId: string; username: string | undefined }> = []
+
+  // Spy fillConfig commun : capture (stepId, username) à chaque appel.
+  // Le stepId courant est injecté via closure lors de chaque exécution.
+  let currentStepId = '?'
+  const spyFillConfig = async (_page: unknown, fields: { username?: string }): Promise<void> => {
+    allCaptured.push({ stepId: currentStepId, username: fields.username })
+  }
+
+  // Config de base avec nvxUser='didier' (jamais 'admin').
+  const didierConfig = {
+    companionUrl: 'http://x:8000',
+    container: 'c',
+    label: 'nvx-uat',
+    nvxHost: '192.0.2.1',
+    nvxPort: 443,
+    nvxUser: 'didier',
+    nvxPass: 'realpass',
+  }
+
+  // Factory de contexte : même spy fillConfig injecté, http/logs/oracle minimaux pour que
+  // les steps "passent" sans device réel (on veut juste capturer fillConfig, pas la valeur retour).
+  const makeCtx = (): JourneyContext => ({
+    config: { ...didierConfig },
+    http: {
+      findConnectionId: async () => 'abc',
+      status: async () => ({ category: 'good', level: 'OK', message: '' }),
+      enable: async () => {},
+      disable: async () => {},
+      restart: async () => {},
+      getVariable: async () => '',
+      press: async () => {},
+    } as never,
+    logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+    oracle: {
+      readStream0: async () => ({ RtspSessionName: 'X' }),
+      readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
+      captureBaseline: async () => {},
+      captureBaselineRx: async () => {},
+      restore: async () => ({ skipped: false }),
+      restoreRx: async () => ({ skipped: false }),
+      setRxScenario: async () => {},
+    } as never,
+    ui: {
+      open: async () => ({}),
+      close: async () => {},
+      moduleAvailable: async () => true,
+      openConnectionConfig: async () => {},
+      fillConfig: spyFillConfig,
+    } as never,
+    sleep: async () => {},
+  })
+
+  // Exécuter tous les steps lab + local. On capture fillConfig pour chacun.
+  // On tolère les rejets (step SKIP, FAIL…) — on veut seulement intercepter les appels fillConfig.
+  const allSteps = [...labSteps, ...localSteps]
+  for (const step of allSteps) {
+    currentStepId = step.id
+    try {
+      await step.run(makeCtx())
+    } catch {
+      // Rejet toléré : ce test ne porte que sur le username transmis, pas sur le verdict.
+    }
+  }
+
+  // Le verrou : chaque appel fillConfig qui transmet un username doit utiliser 'didier'.
+  // Si aucun step n'a appelé fillConfig, le verrou devient aveugle — on l'exige explicitement.
+  assert.ok(
+    allCaptured.length > 0,
+    'Aucun step n\'a appelé fillConfig — le verrou est aveugle. Ajouter les steps de config ou revoir la logique.',
+  )
+
+  const adminCalls = allCaptured.filter((c) => c.username === 'admin')
+  assert.equal(
+    adminCalls.length,
+    0,
+    `${adminCalls.length} step(s) ont transmis username='admin' au lieu de 'didier' : ` +
+    adminCalls.map((c) => `${c.stepId}(username=${c.username})`).join(', '),
+  )
+
+  // Vérification positive : au moins un step a transmis le bon username ('didier').
+  const didierCalls = allCaptured.filter((c) => c.username === 'didier')
+  assert.ok(
+    didierCalls.length > 0,
+    `Aucun step n'a transmis username='didier'. Steps capturés : ` +
+    allCaptured.map((c) => `${c.stepId}(username=${c.username ?? 'undefined'})`).join(', '),
+  )
+})
