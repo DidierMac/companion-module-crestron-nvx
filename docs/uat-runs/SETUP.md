@@ -52,6 +52,7 @@ the config form itself (Chromium UI automation).
 | `NVX_PASS` | *(empty)* | device password — **empty → all lab steps SKIP** |
 | `ORACLE_HOST` | *(= NVX_HOST)* | device host as the ORACLE (host process) reaches it; differs only for the fake |
 | `UAT_LAB` | *(unset)* | `1` → also run the lab steps |
+| `UAT_FAKE` | *(unset)* | `1` → target is the **local fake-device** (enables scenario steps `DEC-NEGOTIATING`/`DEC-DECODING` which require the `/_control/scenario` route, absent on real NVX). **Required when running against `uat:fake-device`** — without it, those steps SKIP even in lab mode. |
 | `UAT_PROVISION` | *(unset)* | `1` → idempotent auto-provisioning (creates if absent, realigns if present, no delete; implies `UAT_KEEP=1`) |
 | `UAT_KEEP` | *(unset)* | `1` → skip connection provisioning/cleanup (reuse existing `nvx-uat` as-is) |
 | `UAT_LAYOUT` | *(unset)* | JSON button map, overrides `scripts/uat/fixtures/layout.json` |
@@ -66,7 +67,8 @@ and mirrors the auth + SetPartial contract, so the WHOLE journey runs locally.
 FAKE_NVX_PASS=test123 npm run uat:fake-device
 
 # terminal 2 — run the journey against it (module → host.docker.internal, oracle → 127.0.0.1)
-UAT_LAB=1 NVX_HOST=host.docker.internal NVX_PORT=8443 ORACLE_HOST=127.0.0.1 NVX_PASS=test123 \
+# UAT_FAKE=1 is required: without it, DEC-NEGOTIATING/DEC-DECODING SKIP (scenario route fake-only)
+UAT_LAB=1 UAT_FAKE=1 NVX_HOST=host.docker.internal NVX_PORT=8443 ORACLE_HOST=127.0.0.1 NVX_PASS=test123 \
   COMPANION_CONTAINER=companion-nvx-companion-1 npm run uat:journey
 ```
 
@@ -83,7 +85,8 @@ FAKE_NVX_PASS=test123 npm run uat:fake-device
 
 # terminal 2 — run multiple journeys, auto-provisioning the connection each time
 # (connection is created on first run, realigned on subsequent runs, never deleted)
-UAT_LAB=1 UAT_PROVISION=1 \
+# UAT_FAKE=1 required for scenario steps DEC-NEGOTIATING/DEC-DECODING to run (not SKIP)
+UAT_LAB=1 UAT_FAKE=1 UAT_PROVISION=1 \
   NVX_HOST=host.docker.internal NVX_PORT=8443 ORACLE_HOST=127.0.0.1 NVX_PASS=test123 \
   COMPANION_CONTAINER=companion-nvx-companion-1 npm run uat:journey
 ```

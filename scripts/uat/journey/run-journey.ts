@@ -52,6 +52,7 @@ export function loadJourneyConfig(env: NodeJS.ProcessEnv): JourneyConfig {
     nvxPort: Number(env.NVX_PORT ?? 443),
     nvxUser: env.NVX_USER ?? 'admin',
     nvxPass: env.NVX_PASS ?? '',
+    isFake: env.UAT_FAKE === '1',
     oracleHost: env.ORACLE_HOST,
     layout: loadLayout(env),
   }

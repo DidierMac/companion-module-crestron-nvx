@@ -142,6 +142,23 @@ test('ensureFreshConnection: connexion existante → delete puis fillConfig + en
   assert.ok(httpCalls.some((c) => c.startsWith('restart:')), 'restart must be called')
 })
 
+// ── isFake câblé via UAT_FAKE (Task 6 — finding CRITICAL) ────────────────────
+
+test('loadJourneyConfig — UAT_FAKE absent → isFake === false', () => {
+  const cfg = loadJourneyConfig({ NVX_HOST: '192.0.2.1' })
+  assert.equal(cfg.isFake, false, 'isFake doit valoir false quand UAT_FAKE est absent')
+})
+
+test("loadJourneyConfig — UAT_FAKE='1' → isFake === true", () => {
+  const cfg = loadJourneyConfig({ NVX_HOST: '192.0.2.1', UAT_FAKE: '1' })
+  assert.equal(cfg.isFake, true, "isFake doit valoir true quand UAT_FAKE='1'")
+})
+
+test("loadJourneyConfig — UAT_FAKE='0' → isFake === false", () => {
+  const cfg = loadJourneyConfig({ NVX_HOST: '192.0.2.1', UAT_FAKE: '0' })
+  assert.equal(cfg.isFake, false, "isFake doit valoir false quand UAT_FAKE='0' (pas '1')")
+})
+
 test('ensureFreshConnection: fillConfig reçoit host, port, username, password corrects', async () => {
   const { ctx, fillConfigArgs } = makeCtx({
     existingId: null,

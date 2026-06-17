@@ -465,6 +465,33 @@ test('BASELINE SKIPs (not FAILs) when device_role is Receiver', async () => {
   assert.equal(v.status, 'SKIP', 'BASELINE must SKIP on a Receiver (reads StreamTransmit)')
 })
 
+test('TEARDOWN-RX reports "no baselineRx" honestly when restoreRx() signals no baseline was captured', async () => {
+  const teardownRx = labSteps.find((s) => s.id === 'TEARDOWN-RX')!
+  // Oracle.restoreRx() signals no baseline by returning { skipped: true } instead of throwing.
+  const v = await teardownRx.run(
+    ctx(
+      {
+        oracle: {
+          readStream0: async () => ({}),
+          readReceiveStream0: async () => ({}),
+          captureBaseline: async () => {},
+          captureBaselineRx: async () => {},
+          restore: async () => ({ skipped: true }),
+          restoreRx: async () => ({ skipped: true }),
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  // Must NOT claim "device restored" when nothing was restored.
+  assert.equal(v.status, 'PASS', 'TEARDOWN-RX should still PASS (best-effort)')
+  assert.ok(
+    !String(v.evidence.note).toLowerCase().includes('baseline re-applied'),
+    `TEARDOWN-RX claimed "baseline re-applied" but no baselineRx was captured. note="${v.evidence.note}"`,
+  )
+  assert.match(String(v.evidence.note), /no baselin/i, 'TEARDOWN-RX note doit signaler l\'absence de baseline')
+})
+
 test('TEARDOWN reports "no baseline" honestly when restore() signals no baseline was captured', async () => {
   const teardown = labSteps.find((s) => s.id === 'TEARDOWN')!
   // Oracle.restore() signals no baseline by returning { skipped: true } instead of throwing.
