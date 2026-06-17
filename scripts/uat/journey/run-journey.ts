@@ -76,13 +76,17 @@ export function buildContext(cfg: JourneyConfig): JourneyContext {
   }
 }
 
-/** Delete any existing test connection, then create a fresh one — "repart à 0". */
+/** Delete any existing test connection, then create a fresh one fully configured and enabled. */
 export async function ensureFreshConnection(ctx: JourneyContext): Promise<void> {
   const existing = await ctx.http.findConnectionId(ctx.config.label)
   const page = await ctx.ui.open()
   try {
     if (existing) await ctx.ui.deleteConnectionViaUi(page, existing)
-    await ctx.ui.createConnection(page, ctx.config.label)
+    await ensureConnection(
+      { http: ctx.http, ui: ctx.ui, page },
+      ctx.config.label,
+      { host: ctx.config.nvxHost, port: ctx.config.nvxPort, username: ctx.config.nvxUser, password: ctx.config.nvxPass },
+    )
   } finally {
     await ctx.ui.close()
   }
