@@ -46,6 +46,7 @@ export function loadJourneyConfig(env: NodeJS.ProcessEnv): JourneyConfig {
     label: env.UAT_LABEL ?? 'nvx-uat',
     nvxHost: env.NVX_HOST ?? '192.0.2.1',
     nvxPort: Number(env.NVX_PORT ?? 443),
+    nvxUser: env.NVX_USER ?? 'admin',
     nvxPass: env.NVX_PASS ?? '',
     oracleHost: env.ORACLE_HOST,
     layout: loadLayout(env),
@@ -56,7 +57,7 @@ export function buildContext(cfg: JourneyConfig): JourneyContext {
   const harness: HarnessConfig = {
     nvxHost: cfg.oracleHost ?? cfg.nvxHost, // oracle (host process) may reach the device differently
     nvxPort: cfg.nvxPort,
-    nvxUser: 'admin',
+    nvxUser: cfg.nvxUser,
     nvxPass: cfg.nvxPass,
     companionUrl: cfg.companionUrl,
     tiers: [0],
@@ -139,7 +140,7 @@ async function main(): Promise<void> {
       await ensureConnection(
         { http: ctx.http, ui: ctx.ui, page },
         cfg.label,
-        { host: cfg.nvxHost, port: cfg.nvxPort, username: 'admin', password: cfg.nvxPass },
+        { host: cfg.nvxHost, port: cfg.nvxPort, username: cfg.nvxUser, password: cfg.nvxPass },
       )
       console.log(`[provision] ${cfg.label}: done`)
     } finally {

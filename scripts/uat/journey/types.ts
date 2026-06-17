@@ -17,6 +17,7 @@ export interface JourneyConfig {
   label: string // connection label under test
   nvxHost: string // device host as the MODULE reaches it (real IP, or host.docker.internal for the fake)
   nvxPort: number // device HTTPS port (443 real; 8443 for the local fake)
+  nvxUser: string // device username (NVX_USER; defaults to 'admin' — the fake's account)
   nvxPass: string // empty → lab-only steps SKIP
   /** Device host as the ORACLE (host process) reaches it. Defaults to nvxHost; differs only for
    *  the local fake (module → host.docker.internal, oracle → 127.0.0.1). */
