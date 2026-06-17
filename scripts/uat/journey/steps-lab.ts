@@ -167,6 +167,8 @@ function writeStep(
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
+      const role = await readVar(ctx, 'device_role')
+      if (role !== 'Transmitter') return skip(id, `${title} (device is not a Transmitter)`, 1, { note: `device_role=${role}` })
       if (!(await pressMapped(ctx, actionKey)))
         return skip(id, `${title} (button unmapped)`, 1, { note: `button '${actionKey}' not in layout — see SETUP` })
       const r = await pollOracle(ctx, pred)
@@ -191,6 +193,8 @@ function writeStepRx(
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
+      const role = await readVar(ctx, 'device_role')
+      if (role !== 'Receiver') return skip(id, `${title} (device is not a Receiver)`, 1, { note: `device_role=${role}` })
       if (!(await pressMapped(ctx, actionKey)))
         return skip(id, `${title} (button unmapped)`, 1, { note: `button '${actionKey}' not in layout — see SETUP` })
       const r = await pollOracleRx(ctx, pred)

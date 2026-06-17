@@ -80,9 +80,9 @@ test('CAP PASSes when device_role is Transmitter', async () => {
   assert.equal(v.status, 'PASS')
 })
 
-test('a WRITE step SKIPs when its button is not mapped (device present, no layout)', async () => {
+test('a WRITE step SKIPs when its button is not mapped (device present, Transmitter, no layout)', async () => {
   const step = labSteps.find((s) => s.id === 'ENC-NAME')!
-  const v = await step.run(ctx({}, 'realpass')) // config.layout undefined
+  const v = await step.run(ctxWithRole('Transmitter')) // config.layout undefined
   assert.equal(v.status, 'SKIP')
   assert.match(String(v.evidence.note), /layout|SETUP/i)
 })
@@ -211,9 +211,9 @@ test('DEC-CAP PASSes when device_role is Receiver', async () => {
   assert.equal(v.status, 'PASS')
 })
 
-test('a DEC WRITE step SKIPs when its button is not mapped (device present, no layout)', async () => {
+test('a DEC WRITE step SKIPs when its button is not mapped (device present, Receiver, no layout)', async () => {
   const step = labSteps.find((s) => s.id === 'DEC-SOURCE-URL')!
-  const v = await step.run(ctx({}, 'realpass'))
+  const v = await step.run(ctxWithRole('Receiver')) // config.layout undefined
   assert.equal(v.status, 'SKIP')
   assert.match(String(v.evidence.note), /layout|SETUP/i)
 })
@@ -339,4 +339,42 @@ test('CFG-GOOD passes ctx.config.nvxUser (not "admin") to fillConfig', async () 
   )
   assert.ok(captured.length > 0, 'fillConfig was not called')
   assert.equal(captured[0].username, 'didier', `expected 'didier', received '${captured[0].username}'`)
+})
+
+// ── Role guards in writeStep / writeStepRx (bug #3) ──────────────────────────
+
+/** ctx with device present and getVariable always returning `role` */
+function ctxWithRole(role: string): JourneyContext {
+  return ctx(
+    {
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'ok' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+        getVariable: async () => role,
+        press: async () => {},
+      } as never,
+    },
+    'realpass',
+  )
+}
+
+test('ENC-NAME (writeStep) SKIPs — not FAILs — when device_role is Receiver', async () => {
+  const step = labSteps.find((s) => s.id === 'ENC-NAME')!
+  // Provide a layout so the button IS mapped — role check must fire before pressMapped.
+  const c = ctxWithRole('Receiver')
+  c.config.layout = { set_stream_name: { page: 1, row: 0, col: 0 } }
+  const v = await step.run(c)
+  assert.equal(v.status, 'SKIP', 'ENC-NAME must SKIP on a Receiver, not FAIL')
+})
+
+test('DEC-SOURCE-URL (writeStepRx) SKIPs — not FAILs — when device_role is Transmitter', async () => {
+  const step = labSteps.find((s) => s.id === 'DEC-SOURCE-URL')!
+  // Provide a layout so the button IS mapped — role check must fire before pressMapped.
+  const c = ctxWithRole('Transmitter')
+  c.config.layout = { set_source_url: { page: 1, row: 0, col: 0 } }
+  const v = await step.run(c)
+  assert.equal(v.status, 'SKIP', 'DEC-SOURCE-URL must SKIP on a Transmitter, not FAIL')
 })
