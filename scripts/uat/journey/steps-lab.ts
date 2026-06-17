@@ -1,6 +1,7 @@
 import { pass, fail, skip } from '../lib/verdict.js'
 import type { Verdict } from '../lib/verdict.js'
 import type { JourneyStep, JourneyContext } from './types.js'
+import { HttpError } from '../tools/companion-http.js'
 
 // A deliberately wrong password — never the real one, no secret handling.
 const WRONG_PASSWORD = 'uat-deliberately-wrong-pw'
@@ -69,8 +70,7 @@ async function readVar(
       if (ready(value)) return value
     } catch (err) {
       // A 404 means the variable is not yet registered — normal during module startup, keep polling.
-      const msg = err instanceof Error ? err.message : String(err)
-      if (!msg.includes('HTTP 404')) throw err
+      if (!(err instanceof HttpError && err.status === 404)) throw err
     }
     await ctx.sleep(POLL_DELAY_MS)
   }
