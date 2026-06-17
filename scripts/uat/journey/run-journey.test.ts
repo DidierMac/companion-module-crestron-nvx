@@ -179,12 +179,13 @@ test('ensureFreshConnection: fillConfig reçoit host, port, username, password c
 
 // ── Task 8: loadLayout — erreurs franches sur JSON malformé ──────────────────
 
-test('loadLayout — UAT_LAYOUT absent → undefined (comportement nominal inchangé)', () => {
-  // Sans fixture présent, la lecture échoue silencieusement → undefined.
-  // Ce test vérifie que le chemin "absent" n'est pas cassé par le fix.
+test('loadLayout — UAT_LAYOUT absent → lit la fixture par défaut (objet avec clés connues)', () => {
+  // UAT_LAYOUT absent → loadLayout lit scripts/uat/fixtures/layout.json.
+  // La fixture est présente dans ce repo : le résultat doit être un objet non-null
+  // contenant au moins la clé « set_stream_name » définie dans la fixture.
   const result = loadLayout({ UAT_LAYOUT: undefined })
-  // Peut être undefined (fixture absente ou présente) — juste ne pas throw.
-  assert.ok(result === undefined || typeof result === 'object')
+  assert.ok(result !== null && typeof result === 'object', 'doit retourner un objet (fixture chargée)')
+  assert.ok('set_stream_name' in result!, 'doit contenir la clé set_stream_name de la fixture')
 })
 
 test('loadLayout — UAT_LAYOUT = JSON invalide → throw avec message mentionnant UAT_LAYOUT ou parse', () => {
