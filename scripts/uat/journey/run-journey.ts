@@ -40,6 +40,10 @@ export function loadLayout(env: NodeJS.ProcessEnv): Record<string, ButtonRef> | 
 }
 
 export function loadJourneyConfig(env: NodeJS.ProcessEnv): JourneyConfig {
+  const isLab = env.UAT_LAB === '1'
+  if (isLab && !env.NVX_USER) {
+    throw new Error('NVX_USER required in lab mode — set it explicitly to avoid silently falling back to admin')
+  }
   return {
     companionUrl: env.COMPANION_URL ?? 'http://localhost:8000',
     container: env.COMPANION_CONTAINER ?? 'companion-nvx-companion-1',
