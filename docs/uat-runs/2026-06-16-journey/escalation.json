@@ -1,0 +1,179 @@
+{
+  "version": "journey",
+  "startedAt": "2026-06-16T23:26:38.616Z",
+  "cases": [
+    {
+      "id": "CAP",
+      "title": "expected a Transmitter device for the encoder journey",
+      "tier": 1,
+      "status": "FAIL",
+      "evidence": {
+        "expected": "Transmitter",
+        "observed": "Receiver"
+      }
+    },
+    {
+      "id": "ENC-VARS",
+      "title": "variable/device mismatch",
+      "tier": 1,
+      "status": "FAIL",
+      "evidence": {
+        "observed": {
+          "tx_stream_name": {
+            "companion": "",
+            "device": "DM-NVX-360-00107FF7D99A"
+          },
+          "tx_enabled": {
+            "companion": "",
+            "device": "false"
+          }
+        }
+      }
+    },
+    {
+      "id": "ENC-FEEDBACKS",
+      "title": "feedback source mismatch",
+      "tier": 1,
+      "status": "FAIL",
+      "evidence": {
+        "expected": "false",
+        "observed": ""
+      }
+    },
+    {
+      "id": "DEC-SOURCE-URL",
+      "title": "set source URL (ByReceiver) → device",
+      "tier": 1,
+      "status": "FAIL",
+      "evidence": {
+        "expected": {
+          "SessionInitiation": "ByReceiver",
+          "StreamLocation": "rtsp://192.168.2.10:554/live.sdp"
+        },
+        "observed": {
+          "AudioChannels": 0,
+          "AudioFormat": "NoAudio",
+          "AudioMode": "Manual",
+          "Bitrate": 0,
+          "Buffer": 1000,
+          "CodecReady": false,
+          "ElapsedSeconds": 0,
+          "FramesPerSecond": 0,
+          "HdcpTransmitterMode": "Always",
+          "HorizontalResolution": 0,
+          "InitiatorAddress": "",
+          "IsAutomaticInitiationEnabled": true,
+          "IsPasswordProtectionEnabled": "***",
+          "IsStatisticsEnabled": false,
+          "MulticastAddress": "",
+          "NumAudioPacketsDropped": 0,
+          "NumAudioPacketsRcvd": 0,
+          "NumVideoPacketsDropped": 0,
+          "NumVideoPacketsRcvd": 0,
+          "Password": "***",
+          "Pause": false,
+          "Processing": false,
+          "RtpAudioPort": 49172,
+          "RtpVideoPort": 49170,
+          "RtspPort": 554,
+          "SessionInitiation": "ByReceiver",
+          "Start": false,
+          "Status": "Stream Stopped",
+          "Stop": false,
+          "StreamLocation": "",
+          "StreamProfile": "High",
+          "StreamTrustedCertifyingAuthorities": {
+            "Certificates": [
+              {
+                "Name": "SecureTrust CA",
+                "Trusted": true,
+                "Uid": "0CF08E5C0816A5AD427FF0EB271859D0"
+              }
+            ],
+            "DontTrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            },
+            "TrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            }
+          },
+          "StreamType": "Primary",
+          "TcpMode": "Auto",
+          "TransportMode": "MPEG2TSRTP",
+          "TsPort": 4570,
+          "Username": "",
+          "VerticalResolution": 0,
+          "VideoFormat": "Pixel",
+          "Volume": 0
+        }
+      }
+    },
+    {
+      "id": "DEC-DECODING",
+      "title": "start reception (decoding scenario) → CodecReady true",
+      "tier": 1,
+      "status": "FAIL",
+      "evidence": {
+        "expected": {
+          "CodecReady": true
+        },
+        "observed": {
+          "AudioChannels": 0,
+          "AudioFormat": "NoAudio",
+          "AudioMode": "Manual",
+          "Bitrate": 0,
+          "Buffer": 1000,
+          "CodecReady": false,
+          "ElapsedSeconds": 0,
+          "FramesPerSecond": 30,
+          "HdcpTransmitterMode": "Always",
+          "HorizontalResolution": 3840,
+          "InitiatorAddress": "",
+          "IsAutomaticInitiationEnabled": true,
+          "IsPasswordProtectionEnabled": "***",
+          "IsStatisticsEnabled": false,
+          "MulticastAddress": "239.1.1.4",
+          "NumAudioPacketsDropped": 0,
+          "NumAudioPacketsRcvd": 0,
+          "NumVideoPacketsDropped": 0,
+          "NumVideoPacketsRcvd": 0,
+          "Password": "***",
+          "Pause": false,
+          "Processing": false,
+          "RtpAudioPort": 49172,
+          "RtpVideoPort": 49170,
+          "RtspPort": 554,
+          "SessionInitiation": "Multicast via RTSP",
+          "Start": false,
+          "Status": "Stream started",
+          "Stop": false,
+          "StreamLocation": "",
+          "StreamProfile": "High",
+          "StreamTrustedCertifyingAuthorities": {
+            "Certificates": [
+              {
+                "Name": "SecureTrust CA",
+                "Trusted": true,
+                "Uid": "0CF08E5C0816A5AD427FF0EB271859D0"
+              }
+            ],
+            "DontTrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            },
+            "TrustCertifyingAuthority": {
+              "Name": "Certificate Name"
+            }
+          },
+          "StreamType": "Primary",
+          "TcpMode": "Auto",
+          "TransportMode": "MPEG2TSRTP",
+          "TsPort": 4570,
+          "Username": "",
+          "VerticalResolution": 2160,
+          "VideoFormat": "Pixel",
+          "Volume": 0
+        }
+      }
+    }
+  ]
+}
