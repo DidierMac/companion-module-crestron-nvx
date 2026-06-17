@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html xmlns:MadCap="http://www.madcapsoftware.com/Schemas/MadCap.xsd" lang="en-us" xml:lang="en-us" class="_Skins_TPSkin" data-mc-search-type="Stem" data-mc-help-system-file-name="index.xml" data-mc-path-to-help-system="../../../" data-mc-has-content-body="True" data-mc-toc-path="[%=System.LinkedHeader%]" data-mc-target-type="WebHelp2" data-mc-runtime-file-type="Topic;Default" data-mc-preload-images="false" data-mc-in-preview-mode="false">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset="utf-8" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="msapplication-config" content="../../../Skins/Favicons/browserconfig.xml" />
+        <link rel="icon" sizes="16x16" href="../../../Skins/Favicons/favicon.png" /><title>AudioVideoInputOutput | API for DM NVX®&#160;AV-over-IP&#160;Distribution Systems Manual</title>
+        <link href="../../../Skins/Default/Stylesheets/Slideshow.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Default/Stylesheets/TextEffects.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Default/Stylesheets/Topic.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Default/Stylesheets/Components/Styles.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Default/Stylesheets/Components/Tablet.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Default/Stylesheets/Components/Mobile.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Default/Stylesheets/Components/Print.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Fluid/Stylesheets/foundation.6.2.3.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Fluid/Stylesheets/Styles.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Fluid/Stylesheets/Tablet.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Fluid/Stylesheets/Mobile.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../../Skins/Fluid/Stylesheets/Print.css" rel="stylesheet" type="text/css" data-mc-generated="True" />
+        <link href="../../Resources/Stylesheets/TP-Global-Styles.css" rel="stylesheet" type="text/css" />
+        <link href="../../Resources/Stylesheets/TP-Global-Table-Styles.css" rel="stylesheet" data-mc-stylesheet-type="table" />
+        <link rel="icon" sizes="16x16" href="../../../Skins/Favicons/favicon.png" />
+        <script src="../../../Resources/Scripts/jquery.min.js" type="text/javascript">
+        </script>
+        <script src="../../../Resources/Scripts/purify.min.js" type="text/javascript" defer="defer">
+        </script>
+        <script src="../../../Resources/Scripts/require.min.js" type="text/javascript" defer="defer">
+        </script>
+        <script src="../../../Resources/Scripts/require.config.js" type="text/javascript" defer="defer">
+        </script>
+        <script src="../../../Resources/Scripts/foundation.6.2.3_custom.js" type="text/javascript" defer="defer">
+        </script>
+        <script src="../../../Resources/Scripts/plugins.min.js" type="text/javascript" defer="defer">
+        </script>
+        <script src="../../../Resources/Scripts/MadCapAll.js" type="text/javascript" defer="defer">
+        </script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js">
+        </script>
+    </head>
+    <body>
+        <div class="foundation-wrap off-canvas-wrapper">
+            <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper="">
+                <aside class="off-canvas position-right" role="complementary" id="offCanvas" data-off-canvas="" data-position="right" data-mc-ignore="true">
+                    <ul class="off-canvas-accordion vertical menu off-canvas-list" data-accordion-menu="" data-mc-back-link="Back" data-mc-css-tree-node-expanded="is-accordion-submenu-parent" data-mc-css-tree-node-collapsed="is-accordion-submenu-parent" data-mc-css-sub-menu="vertical menu is-accordion-submenu nested" data-mc-include-indicator="False" data-mc-include-icon="False" data-mc-include-parent-link="True" data-mc-include-back="False" data-mc-defer-expand-event="True" data-mc-expanded-event="down.zf.accordionMenu up.zf.accordionMenu" data-mc-expand-event="click.zf.accordionMenu" data-mc-toc="True">
+                    </ul>
+                </aside>
+                <div class="off-canvas-content inner-wrap" data-off-canvas-content="">
+                    <div data-sticky-container="" class="title-bar-container">
+                        <nav class="title-bar tab-bar sticky" aria-label="Main navigation and search" data-sticky="" data-options="marginTop:0" style="width:100%" data-sticky-on="only screen and (max-width: 1279px)" data-mc-ignore="true"><a class="skip-to-content fluid-skip showOnFocus" href="#">Skip To Main Content</a>
+                            <div class="middle title-bar-section outer-row clearfix">
+                                <div class="menu-icon-container relative clearfix">
+                                    <div class="central-account-wrapper">
+                                        <div class="central-dropdown"><a class="central-account-drop"><span class="central-account-image"></span><span class="central-account-text">Account</span></a>
+                                            <div class="central-dropdown-content"><a class="MCCentralLink central-dropdown-content-settings">Settings</a>
+                                                <hr class="central-separator" /><a class="MCCentralLink central-dropdown-content-logout">Logout</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="menu-icon" aria-label="Show Navigation Panel" data-toggle="offCanvas"><span></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="title-bar-layout outer-row">
+                                <div class="logo-wrapper"><a class="logo" href="http://www.crestron.com" alt="Logo"></a>
+                                </div>
+                                <div class="navigation-wrapper nocontent">
+                                    <ul class="navigation clearfix" data-mc-css-tree-node-has-children="has-children" data-mc-css-sub-menu="sub-menu" data-mc-expand-event="mouseenter" data-mc-top-nav-menu="True" data-mc-max-depth="3" data-mc-include-icon="False" data-mc-include-indicator="False" data-mc-include-children="True" data-mc-include-siblings="True" data-mc-include-parent="True" data-mc-toc="True">
+                                        <li class="placeholder" style="visibility:hidden"><a>placeholder</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="central-account-wrapper">
+                                    <div class="central-dropdown"><a class="central-account-drop"><span class="central-account-image"></span><span class="central-account-text">Account</span></a>
+                                        <div class="central-dropdown-content"><a class="MCCentralLink central-dropdown-content-settings">Settings</a>
+                                            <hr class="central-separator" /><a class="MCCentralLink central-dropdown-content-logout">Logout</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="nav-search-wrapper">
+                                    <div class="nav-search row">
+                                        <form class="search" action="#">
+                                            <div class="search-bar search-bar-container needs-pie">
+                                                <input class="search-field needs-pie" type="search" aria-label="Search Field" placeholder="Search" />
+                                                <div class="search-filter-wrapper"><span class="invisible-label" id="search-filters-label">Filter: </span>
+                                                    <div class="search-filter" aria-haspopup="true" aria-controls="sf-content" aria-expanded="false" aria-label="Search Filter" title="All Files" role="button" tabindex="0">
+                                                    </div>
+                                                    <div class="search-filter-content" id="sf-content">
+                                                        <ul>
+                                                            <li>
+                                                                <button class="mc-dropdown-item" aria-labelledby="search-filters-label filterSelectorLabel-00001"><span id="filterSelectorLabel-00001">All Files</span>
+                                                                </button>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div class="search-submit-wrapper" dir="ltr">
+                                                    <div class="search-submit" title="Search" role="button" tabindex="0"><span class="invisible-label">Submit Search</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </nav>
+                    </div>
+                    <div class="main-section">
+                        <div class="row outer-row sidenav-layout">
+                            <nav class="sidenav-wrapper">
+                                <div class="sidenav-container">
+                                    <ul class="off-canvas-accordion vertical menu sidenav" data-accordion-menu="" data-mc-css-tree-node-expanded="is-accordion-submenu-parent" data-mc-css-tree-node-collapsed="is-accordion-submenu-parent" data-mc-css-sub-menu="vertical menu accordion-menu is-accordion-submenu nested" data-mc-include-indicator="False" data-mc-include-icon="False" data-mc-include-parent-link="False" data-mc-include-back="False" data-mc-defer-expand-event="True" data-mc-expanded-event="down.zf.accordionMenu up.zf.accordionMenu" data-mc-expand-event="click.zf.accordionMenu" data-mc-toc="True" data-mc-side-nav-menu="True">
+                                    </ul>
+                                </div>
+                            </nav>
+                            <div class="body-container">
+                                <div data-mc-content-body="True">
+                                    <div style="pading-left: 10px; padding-right: 10px;">
+                                        <div class="nocontent">
+                                            <div class="MCBreadcrumbsBox_0 breadcrumbs" role="navigation" aria-label="Breadcrumbs" data-mc-breadcrumbs-divider=" / " data-mc-breadcrumbs-count="3" data-mc-toc="True"><span class="MCBreadcrumbsPrefix"> </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="grid-container">
+                                        <div class="content">
+                                            <div class="topic">
+                                                <div role="main" id="mc-main-content">
+                                                    <h1 id="AudioVideoInputOutput" data-magellan-target="AudioVideoInputOutput">AudioVideoInputOutput</h1>
+                                                    <p>The <strong>AudioVideoInputOutput</strong> object is used to get and set data for A/V inputs and outputs on the DM&#160;<span class="mc-variable TP-Variables.Model variable">NVX</span>&#160;device.</p>
+                                                    <h2 id="Syntax" data-magellan-target="Syntax"><a name="Syntax"></a>Syntax</h2>
+                                                    <ul>
+                                                        <li><strong>HTTP&#160;Methods</strong>:&#160;GET, POST</li>
+                                                        <div class="notebox">
+                                                            <p><span class="note">NOTE:&#160;</span><strong>ApplyEdid</strong>, <strong>DeleteEdid</strong>, and <strong>UploadEdid</strong> are write&#8209;only properties and do not support the GET&#160;method.</p>
+                                                        </div>
+                                                        <li><strong>Base URI</strong>: /Device/AudioVideoInputOutput/</li>
+                                                    </ul>
+                                                    <h2 id="Properties" data-magellan-target="Properties"><a name="Properti"></a>Properties</h2>
+                                                    <table style="width: 100%;mc-table-style: url('../../Resources/Stylesheets/TP-Global-Table-Styles.css');" class="TableStyle-TP-Global-Table-Styles" cellspacing="0">
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <thead>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Head-Header1">
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Property Name</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Parent Path</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Version</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Description</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Type</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Methods</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadD-Column1-Header1" style="text-align: left;">Validation Rules</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">AudioVideoInputOutput</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The top-level <strong>AudioVideoInputOutput</strong> object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">N/A</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth">GlobalConfig</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.5.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The <strong>GlobalConfig</strong> object.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">N/A</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">GlobalEdid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/GlobalConfig/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.5.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Applies EDID&#160;to all inputs of a corresponding name.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">GlobalEdidType</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/GlobalConfig/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.5.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Applies&#160;EDID&#160;to all inputs of a corresponding type.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Copy", "System", "Custom"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth">Inputs</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.4.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains the inputs supported on the device. Refer to the inputs table below.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object Collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">N/A</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth">Outputs</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.4.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains the outputs supported on the device. Refer to the outputs table below.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object Collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">N/A</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1"><span class="indentEighth">Version</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">/Device/AudioVideoInputOutput/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">2.5.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">The object version.<br /><br /><strong>"2.0.0"</strong>: Initial public release,<br /><strong>"2.0.1"</strong>: Added <strong>HdcpTransmitterMode</strong> in Output Section,<br /><strong>"2.0.2"</strong>: Added <strong>EndpointExists </strong>for Inputs and Outputs,<br /><strong>"2.0.3"</strong>: Added <strong>ResolutionOptionsName</strong>, <strong>ResolutionOptionsVersion</strong> for Outputs,<br /><strong>"2.1.0"</strong>: Added <strong>Orientation</strong> for Outputs,<br /><strong>"2.2.0"</strong>: Added <strong>VideoTimeout</strong> properties and <strong>CecControl</strong> object, <strong>InputControl</strong> subobject,<br /><strong>"2.3.0"</strong> : Added <strong>EndpointId</strong>, <strong>IsEndPointOnline</strong>,  and DM endpoint power control object support,<br /><strong>"2.4.0"</strong>: Added <strong>UnsupportedVideoDetected</strong>  property  in both HDMI input and output,<br /><strong>"2.5.0"</strong>:&#160;Added the <strong>GlobalConfig</strong> subobject.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyA-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <p>&#160;</p>
+                                                    <p>The following properties are supported for inputs only.</p>
+                                                    <table style="width: 100%;mc-table-style: url('../../Resources/Stylesheets/TP-Global-Table-Styles.css');" class="TableStyle-TP-Global-Table-Styles" cellspacing="0">
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <thead>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Head-Header1">
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Property Name</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Parent Path</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Version</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Description</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Type</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Methods</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadD-Column1-Header1" style="text-align: left;">Validation Rules</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth">Inputs</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains the inputs supported on the device.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">Name</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The input name.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">Uuid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The unique ID&#160;for the input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">EndpointExists</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.2</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether an endpoint support exists on this input (<strong>true</strong>) or not (<strong>false</strong>).</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">EndpointId</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.3.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The static endpoint ID (such as "Input1").</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Input1", "Input2", [...] "Input<em>N</em>"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">VideoPortTypeSelect</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The video type selected for the port.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">	"Hdmi", "Vga", "Bnc", "Auto"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">Ports</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains supported physical ports for a particular input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object Collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Power</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.3.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains endpoint power-related control properties.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object Collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">DmInputType</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Power/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.3.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The type of endpoint power control that is applied.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"OFF", "Dm", "DmLite"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">PortType</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The physical port type.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Hdmi", "Analog","Audio"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Uuid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The unique ID&#160;for the port.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">IsSyncDetected</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates that video sync levels are detected at the HDMI&#160;input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">IsSourceDetected</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates that a video signal is detected at the HDMI&#160;input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">IsInterlacedDetected</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether interlaced video is detected.<br /><br /><strong>true</strong> = detected, <strong>false</strong> = not detected</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">ColorSpace</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The color space of the input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">ColorDepth</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The color depth of the input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">HorizontalResolution</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The horizontal resolution detected on the input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">VerticalResolution</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The vertical resolution detected on the input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">FramesPerSecond</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The FPS&#160;(frames per second)&#160;detected on the input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">AspectRatio</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The aspect ratio detected on the input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Edid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The supported EDIDs for a particular input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object Collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">CurrentEdid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Edid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The selected EDID name.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">EdidList</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Edid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The collection of supported EDIDs.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object Collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">Name</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Edid/EdidList/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The name of the selected EDID.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">Type</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Edid/EdidList/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The EDID&#160;type.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">UploadEdid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Edid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Used to upload a new EDID.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">ApplyEdid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Edid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Used to apply an EDID.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">DeleteEdid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Edid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Used to delete an EDID.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Hdmi</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The HDMI video object.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">IsSourceHdcpActive</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">If <strong>true</strong>, indicates HDCP&#160;(High&#8209;Bandwidth Digital Content Protection) is present on the input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">HdcpReceiverCapability</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets whether the HDCP&#160;receiver capability is disabled or enabled.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">HdcpState</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The current HDCP&#160;state.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">IsCecErrorDetected</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether a CEC&#160;NACK (No ACK) error has occurred. This error occurs when the connected CEC device fails to respond to a CEC command (with an ACK pulse).
+The state remains true until the CEC command is sent successfully.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">Status3D</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether incoming video is 2D or 3D.<br /><br /><strong>0d</strong> = 2D, <strong>1d</strong> = 3D</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">ReceiveCecMessage</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The serial data received via CEC.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">TransmitCecMessage</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Used to transmit serial data via CEC.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">UnsupportedVideoDetected</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.4.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether an unsupported video type is detected (<strong>true</strong>) or not (<strong>false</strong>).</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Audio</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The audio object.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">AudioTypeSelect</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Audio/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Selects the audio input to use for devices that support multiple audio inputs:<br /><br /><strong>0d</strong> = Auto,<br /><strong>1d</strong> = HDMI,<br /><strong>2d</strong> = Analog,<br /><strong>3d</strong> = SPDIF</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"0 to 3"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">Digital</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Audio/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The digital audio object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">Channels</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Audio/Digital/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The number of audio channels.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">Format</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Inputs/x/Ports/x/Audio/Digital/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The audio format.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1"><span class="indentEighth">Version</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">	/Device/AudioVideoInputOutput/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">2.4.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">The object version.<br /><br /><strong>"2.0.0"</strong>: Initial public release,<br /><strong>"2.0.1"</strong>: Added <strong>HdcpTransmitterMode</strong> in Output Section,<br /><strong>"2.0.2"</strong>: Added <strong>EndpointExists </strong>for Inputs and Outputs,<br /><strong>"2.0.3"</strong>: Added <strong>ResolutionOptionsName</strong>, <strong>ResolutionOptionsVersion</strong> for Outputs,<br /><strong>"2.1.0"</strong>: Added <strong>Orientation</strong> for Outputs,<br /><strong>"2.2.0"</strong>: Added <strong>VideoTimeout</strong> properties and <strong>CecControl</strong> object, <strong>InputControl</strong> subobject,<br /><strong>"2.3.0"</strong> : Added <strong>EndpointId</strong>, <strong>IsEndPointOnline</strong>,  and DM endpoint power control object support,<br /><strong>"2.4.0"</strong>: Added <strong>UnsupportedVideoDetected</strong>  property  in both HDMI input and output</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyA-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <p>
+                                                        <br />The following properties are supported for outputs only.</p>
+                                                    <table style="width: 100%;mc-table-style: url('../../Resources/Stylesheets/TP-Global-Table-Styles.css');" class="TableStyle-TP-Global-Table-Styles" cellspacing="0">
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <col class="TableStyle-TP-Global-Table-Styles-Column-Column1" />
+                                                        <thead>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Head-Header1">
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Property Name</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Parent Path</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Version</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Description</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Type</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadE-Column1-Header1" style="text-align: left;">Methods</th>
+                                                                <th class="TableStyle-TP-Global-Table-Styles-HeadD-Column1-Header1" style="text-align: left;">Validation Rules</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth">Outputs</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains the outputs supported on the device.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">Name</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The output name.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">Uuid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The unique ID&#160;for the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">EndpointExists</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.2</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether an endpoint support exists on this output (<strong>true</strong>) or not (<strong>false</strong>).</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">VideoPortTypeSelect</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The video type selected for the port.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">	"Hdmi", "Vga", "Bnc", "Auto"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth2">Ports</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains supported physical ports for a particular output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object Collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">PortType</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The physical port type.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Hdmi", "Analog","Audio"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Uuid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The unique ID&#160;for the port.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">IsSinkConnected</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether sink is connected to the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">IsSourceDetected</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether a source is detected for the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">ColorSpace</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The color space of the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">ColorDepth</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The color depth of the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">ColorSpaceMode</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets the color space for the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">HorizontalBezelCompensation</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets or gets the horizontal bezel compensation for the scaler.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">VerticalBezelCompensation</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets or gets the vertical bezel compensation for the scaler.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">VideoTimeout</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets or gets the video timeout.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">IsVideoTimeoutEnabled</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether video timeout is enabled (<strong>true</strong>) or not (<strong>false</strong>).</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Underscan</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	Sets the underscan of the device (used to fit to a display.)<br /><br /><strong>DM&#160;<span class="mc-variable TP-Variables.Model variable">NVX</span></strong>:  Range is 0–10%, in 0.1% steps,<br /></td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Floating Point Number</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"0 to 15"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">MaxColorDepth</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets or gets the maximum color depth.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">AspectRatioMode</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets or gets the aspect ratio mode.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">HorizontalResolution</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The horizontal resolution detected on the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">VerticalResolution</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The vertical resolution detected on the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">FramesPerSecond</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The FPS&#160;(frames per second)&#160;detected on the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">AspectRatio</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The aspect ratio detected on the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Resolution</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.4.10</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The resolution of the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">Available resolutions vary by device.</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">ResolutionOptionsName</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.3</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains the name of the options group supported on this device.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">ResolutionOptionsVersion</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.3</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains the version of the options group supported on this device.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Orientation</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.1.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Specifies the layout orientation.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Landscape", "Portrait"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">DownstreamEdid</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Contains the supported EDIDs  for a particular input.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object Collection</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">ManufacturerString</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/DownstreamEdid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The EDID name.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">SerialNumberString</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/DownstreamEdid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The EDID&#160;type ("System")</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">NameString</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/DownstreamEdid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The EDID&#160;author.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">PrefTimingString</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/DownstreamEdid/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The EDID&#160;unique ID.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Hdmi</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The HDMI&#160;video object.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">IsBlankingDisabled</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether blanking is enabled or disabled.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">DisabledByHdcp</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether the output is disabled by HDPC.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">IsOutputDisabled</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether the output is enabled or disabled.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">HdcpState</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The current HDCP state.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">IsCecInError</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether there is a CEC&#160;error.<br /><br /><strong>true</strong> = A CEC error is present, <strong>false</strong> = No error is present</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">ReceiveCecMessage</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The serial data received via CEC.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">HdcpTransmitterMode</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.1</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets or gets the HDCP&#160;mode for the output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Auto", "FollowInput", "Always", "Never"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">UnsupportedVideoDetected</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Hdmi/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.4.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates whether an unsupported video type is detected (<strong>true</strong>) or not (<strong>false</strong>).</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Boolean</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">CecControl</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The CEC&#160;control subobject.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">TransmitCecMessage</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/CecControl/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Transmits serial data via CEC.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">Base64 Encoded Data</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">Format</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/CecControl/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates the CEC&#160;message format.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Hex", "Ascii"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">Delimiter</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/CecControl/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates the CEC&#160;message delimiter.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"NONE", "CR", "LF", "CR_LF"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">Type</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/CecControl/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates the CEC&#160;message type.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Custom", "Power off: RCP and SS", "Power off: RCP Only", "Power off: SS Only",
+"Power On: RCP and IVO", "Power On: RCP", "Power On: Image View on"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">InputControl</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/CecControl/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The input control subobject for standard commands.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">TransmitCecMessage</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/CecControl/InputControl/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Transmits serial data via CEC (for input control).</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">Base64 Encoded Data</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">Format</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/CecControl/InputControl/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates the CEC&#160;message format (for input control.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"Hex", "Ascii"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">Delimiter</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">/Device/AudioVideoInputOutput/Outputs/x/Ports/x/CecControl/InputControl/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.2.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Indicates the CEC&#160;message delimiter (for input control.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"NONE", "CR", "LF", "CR_LF"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth3">Audio</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The audio object.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">Volume</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Audio/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Sets the gain of the audio output.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET, POST</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">"-100 to 100"</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth4">Digital</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Audio/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The Digital Audio object.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Object</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">Channels</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Audio/Digital/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The number of audio channels.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">Numeric (Unsigned 16-bit)</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1"><span class="indentEighth5">Format</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">	/Device/AudioVideoInputOutput/Outputs/x/Ports/x/Audio/Digital/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">2.0.0</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">The audio format.</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyE-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyD-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                            <tr class="TableStyle-TP-Global-Table-Styles-Body-Body1">
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1"><span class="indentEighth">Version</span>
+                                                                </td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">	/Device/AudioVideoInputOutput/</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">2.4.10</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">The object version.<br /><br /><strong>"2.0.0"</strong>: Initial public release,<br /><strong>"2.0.1"</strong>: Added <strong>HdcpTransmitterMode</strong> in Output Section,<br /><strong>"2.0.2"</strong>: Added <strong>EndpointExists</strong> for Inputs and Outputs,<br /><strong>"2.0.3"</strong>: Added <strong>ResolutionOptionsName</strong>, <strong>ResolutionOptionsVersion</strong> for Outputs,<br /><strong>"2.1.0"</strong>: Added <strong>Orientation</strong> for Outputs,<br /><strong>"2.2.0"</strong>: Added <strong>VideoTimeout</strong> properties and <strong>CecControl</strong> object, <strong>InputControl</strong> subobject,<br /><strong>"2.3.0"</strong> : Added <strong>EndpointId</strong>, <strong>IsEndPointOnline</strong>,  and DM endpoint power control object support,<br /><strong>"2.4.0"</strong>: Added <strong>UnsupportedVideoDetected</strong>  property  in both HDMI input and output,<br /><strong>"2.4.10"</strong>:&#160;Added <strong>Resolution</strong> refresh rates beyond 60Hz: 1920x1080@120 &amp; 1920x1080@240</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">String</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyB-Column1-Body1">GET</td>
+                                                                <td class="TableStyle-TP-Global-Table-Styles-BodyA-Column1-Body1">N/A</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <h2 id="ExampleJSON" data-magellan-target="ExampleJSON"><a name="Example"></a>Example JSON</h2>
+                                                    <p>The following example JSON&#160;uses the current object version (2.5.0).</p>
+                                                    <p>
+                                                        <div class="codeSnippet"><a class="codeSnippetCopyButton" role="button" href="javascript:void(0);">Copy</a>
+                                                            <div style="mc-code-lang: XML;" class="codeSnippetBody" data-mc-continue="False" data-mc-line-number-start="1" data-mc-use-line-numbers="False"><pre><code>{<br />&#160;&#160;"Device": {<br />&#160;&#160;&#160;&#160;"AudioVideoInputOutput": {<br />&#160;&#160;&#160;&#160;&#160;&#160;"GlobalConfig":<br />&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"CurrentEdid": "01 DM default",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"CurrentEdidType": "System"<br />&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;"Inputs": [<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Name": "input0",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"EndpointExists": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"EndpointId": "Input1",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Ports": [<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Power": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"DmInputType": "OFF"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"AspectRatio": "NoSignal",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Audio": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"AudioTypeSelect": 1,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Bass": 0,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Digital": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Channels": 0,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Format": "NoAudio"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Mute": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Treble": 0,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Volume": 0<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Edid": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"CurrentEdid": "01 DM default",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"EdidList": [<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Name": "Copy Output",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Type": "Auto&#160;&#160;"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Name": "01 DM default",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Type": "System"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Name": "Laptop 16x9 1080p60 2ch",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Type": "System"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Name": "Laptop 16x10 1280x800 2ch",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Type": "System"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Name": "Laptop widescreen 2ch",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Type": "System"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Name": "Laptop 16x9 1080p50 2ch",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Type": "System"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;]<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"FramesPerSecond": 0,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Hdmi": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"HdcpReceiverCapability": "Disabled",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"HdcpState": "HDCPnotRequired",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsHdcpSupportEnabled": true,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsSourceHdcpActive": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Status3D": 0,<br /><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"UnsupportedVideoDetected": true,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"HorizontalResolution": 0,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsInterlacedDetected": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsSourceDetected": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsSyncDetected": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"PortType": "HDMI",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Uuid": "ee665f83-58cf-4f16-b2ae-6dcea693b060",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"VerticalResolution": 0<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;],<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Uuid": "9460ac0a-ceeb-4b64-88b6-269ff6e4c5fd",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"VideoPortTypeSelect": "Hdmi"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;&#160;&#160;],<br />&#160;&#160;&#160;&#160;&#160;&#160;"Outputs": [<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Name": "output0",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"EndpointExists": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Ports": [<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"AspectRatio": 169,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Audio": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Bass": 0,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Digital": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Channels": 2,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Format": "Lpcm"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Mute": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Treble": 0,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Volume": 0<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"DownstreamEdid": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"ManufacturerString": "ACI",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"NameString": "ASUS VH2",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"PrefTimingString": "1920x1080@60",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"SerialNumberString": 33443<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"FramesPerSecond": 60,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Hdmi": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"DisabledByHdcp": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"HdcpState": "HDCPnotRequired",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsBlankingDisabled": true,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsHdcpForceDisabled": true,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsOutputDisabled": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Status3D": 0,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"HdcpTransmitterMode": "Auto",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"ReceiveCecMessage": "",<br /><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"UnsupportedVideoDetected": true,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"HorizontalResolution": 1920,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsInterlacedDetected": false,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsSinkConnected": true,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"IsVideoTimeOutEnabled": true,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"VideoTimeOut": 10,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"PortType": "HDMI",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Resolution": "Auto",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"CecControl": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"TransmitCecMessage": "Base64EncodedData",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Format": "Hex",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Delimiter": "LF",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Type": "Custom",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"InputControl": {<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"TransmitCecMessage": "Base64EncodedData",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Format": "Hex",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Delimiter": "LF"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;},<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"ResolutionOptionsName": "AM200OutputResolutions",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"ResolutionOptionsVersion": "1.0.0",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Orientation": "Landscape",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Underscan": 192,<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Uuid": "f05490dc-aad7-49ac-b14a-7a69399c09db",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"VerticalResolution": 1080<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;],<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"Uuid": "bb65980a-80a6-4306-a0b3-3859696940ae",<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"VideoPortTypeSelect": "Hdmi"<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;&#160;&#160;],<br />&#160;&#160;&#160;&#160;&#160;&#160;"Version": "2.5.0"<br />&#160;&#160;&#160;&#160;}<br />&#160;&#160;}<br />}</code></pre>
+                                                            </div>
+                                                        </div>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="footer">
+                                                <div class="fineprint">
+                                                    <div class="tipbox">
+                                                        <p>Have feedback on this document?&#160;Contact <a href="mailto:docfeedback@crestron.com?subject=Documentation Feedback">docfeedback@crestron.com</a>.</p>
+                                                    </div>
+                                                    <p>©<span class="mc-variable TP-Variables.Year variable">2026</span> Crestron Electronics, Inc.</p>
+                                                    <p>All brand names, product names and trademarks are the property of their respective owners. Certain trademarks, registered trademarks, and trade names may be used to refer to either the entities claiming the marks and names or their products. Crestron disclaims any proprietary interest in the marks and names of others. Crestron is not responsible for errors in typography or photography. Specifications are subject to change without notice.</p>
+                                                    <p><a target="_blank" href="https://www.crestron.com/en-us/legal/patents">Patents</a>&#160;| <a target="_blank" href="https://www.crestron.com/en-us/legal">Legal</a>&#160;| <a target="_blank" href="https://www.crestron.com/crestroneuropeterms">Crestron&#160;Europe&#160;Terms</a>&#160;| <a target="_blank" href="https://www.crestron.com/legal/privacy-policy">Privacy&#160;Policy</a>&#160;| <a target="_blank" href="https://www.crestron.com/legal/website-terms-of-use">Terms&#160;of&#160;Use</a>&#160;| <a target="_blank" href="https://community.crestron.com/">Support</a></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="menu" id="side-menu-proxy-container">
+                                            <div data-sticky-container="" id="aJ43O2SKA0-6aco55insbQ">
+                                                <div class="sticky sticky-menu" style="width:100%" data-sticky="" data-top-anchor="aJ43O2SKA0-6aco55insbQ:top" data-bottom-anchor="contentBody:bottom" data-scroll-container=".body-container" data-sticky-on="only screen and (min-width: 1280px)" data-scroll-container-on="only screen and (min-width: 1280px)">
+                                                    <ul data-magellan="" data-animation-duration="250" data-active-class="selected" data-scroll-container=".body-container" data-scroll-container-on="only screen and (min-width: 1280px)" class="nocontent menu _Skins_TPSkin_Menu mc-component">
+                                                        <li class="tree-node"><a href="#AudioVideoInputOutput">AudioVideoInputOutput</a>
+                                                            <ul>
+                                                                <li class="tree-node"><a href="#Syntax">Syntax</a>
+                                                                </li>
+                                                                <li class="tree-node"><a href="#Properties">Properties</a>
+                                                                </li>
+                                                                <li class="tree-node"><a href="#ExampleJSON">Example JSON</a>
+                                                                </li>
+                                                            </ul>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <script src="../../Resources/js/Hide-Menu.js">
+                                    </script>
+                                    <script src="../../Resources/js/DiscoToggle.js">
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div><a data-close="true"></a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
