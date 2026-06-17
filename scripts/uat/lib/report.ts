@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { writeFileSync, mkdirSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import type { Verdict, VerdictStatus } from './verdict.js'
 import type { RunResult } from './case.js'
@@ -75,6 +75,24 @@ export function renderEscalation(run: RunResult): EscalationPacket {
       .filter((v) => ESCALATED.includes(v.status))
       .map((v) => ({ ...v, evidence: redact(v.evidence) as typeof v.evidence })),
   }
+}
+
+/** Résout le prochain dossier de run : `<baseDir>/<date>#<NN>-<moduleTag>`.
+ *  NN s'incrémente par jour (01→99), tous modules confondus, pour préserver l'ordre
+ *  chronologique des runs (RX puis TX d'un même créneau → #01 puis #02). Le premier
+ *  run d'un jour démarre à 01 (baseDir absent ou aucun dossier du jour → max=0 → 01). */
+export function resolveRunDir(baseDir: string, date: string, moduleTag: string): string {
+  let max = 0
+  try {
+    for (const name of readdirSync(baseDir)) {
+      const m = name.match(new RegExp(`^${date}#(\\d{2})-`))
+      if (m) max = Math.max(max, Number(m[1]))
+    }
+  } catch {
+    /* baseDir absent → premier run du jour */
+  }
+  const nn = String(max + 1).padStart(2, '0')
+  return path.join(baseDir, `${date}#${nn}-${moduleTag}`)
 }
 
 /** Write report.md + escalation.json into `dir` (created if missing). */

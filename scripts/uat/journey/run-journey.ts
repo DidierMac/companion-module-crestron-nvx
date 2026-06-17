@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { writeRun } from '../lib/report.js'
+import { writeRun, resolveRunDir } from '../lib/report.js'
 import type { RunResult, HarnessConfig } from '../lib/case.js'
 import type { Verdict } from '../lib/verdict.js'
 import { CompanionHttp } from '../tools/companion-http.js'
@@ -113,6 +113,16 @@ export async function runJourney(steps: JourneyStep[], ctx: JourneyContext): Pro
   return verdicts
 }
 
+/** Tag module pour le nom du dossier de run : `UAT_MODULE` explicite, sinon dérivé du
+ *  label (`…-rx` → Rx, `…-tx` → Tx), sinon `journey` (run générique / mode local). */
+export function deriveModule(env: NodeJS.ProcessEnv): string {
+  if (env.UAT_MODULE) return env.UAT_MODULE
+  const label = (env.UAT_LABEL ?? '').toLowerCase()
+  if (/(^|[-_])rx$/.test(label) || label.includes('-rx')) return 'Rx'
+  if (/(^|[-_])tx$/.test(label) || label.includes('-tx')) return 'Tx'
+  return 'journey'
+}
+
 async function main(): Promise<void> {
   const cfg = loadJourneyConfig(process.env)
   const ctx = buildContext(cfg)
@@ -143,7 +153,8 @@ async function main(): Promise<void> {
   const verdicts = await runJourney(steps, ctx)
   const startedAt = new Date().toISOString()
   const run: RunResult = { startedAt, version: process.env.UAT_VERSION ?? 'journey', verdicts }
-  const dir = path.join('docs/uat-runs', `${startedAt.slice(0, 10)}-journey`)
+  const moduleTag = deriveModule(process.env)
+  const dir = resolveRunDir('docs/uat-runs', startedAt.slice(0, 10), moduleTag)
   writeRun(dir, run)
 
   // Exit cleanup: remove the test connection so the next run starts at zero (unless UAT_KEEP=1).

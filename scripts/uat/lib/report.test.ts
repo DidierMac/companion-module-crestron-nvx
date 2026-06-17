@@ -1,6 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { renderMarkdown, renderEscalation } from './report.js'
+import { mkdtempSync, mkdirSync, rmSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { renderMarkdown, renderEscalation, resolveRunDir } from './report.js'
 import { pass, fail, human } from './verdict.js'
 import type { RunResult } from './case.js'
 
@@ -31,6 +34,32 @@ test('renderEscalation keeps only FAIL/AMBIGUOUS/HUMAN with full evidence', () =
   const enc = pkt.cases.find((c) => c.id === 'ENC-01')!
   assert.equal(enc.evidence.expected, 'X')
   assert.equal(enc.evidence.observed, 'Y')
+})
+
+test('resolveRunDir: premier run du jour démarre à #01', () => {
+  const base = mkdtempSync(path.join(os.tmpdir(), 'uat-runs-'))
+  try {
+    assert.equal(resolveRunDir(base, '2026-06-17', 'Rx'), path.join(base, '2026-06-17#01-Rx'))
+  } finally {
+    rmSync(base, { recursive: true, force: true })
+  }
+})
+
+test('resolveRunDir: incrémente par jour, tous modules confondus, autres jours ignorés', () => {
+  const base = mkdtempSync(path.join(os.tmpdir(), 'uat-runs-'))
+  try {
+    mkdirSync(path.join(base, '2026-06-17#01-Rx'))
+    mkdirSync(path.join(base, '2026-06-17#02-Tx'))
+    mkdirSync(path.join(base, '2026-06-16#09-Rx')) // autre jour → ignoré
+    assert.equal(resolveRunDir(base, '2026-06-17', 'Tx'), path.join(base, '2026-06-17#03-Tx'))
+  } finally {
+    rmSync(base, { recursive: true, force: true })
+  }
+})
+
+test('resolveRunDir: baseDir absent → #01 (pas de crash)', () => {
+  const missing = path.join(os.tmpdir(), 'uat-runs-absent-xyz-123')
+  assert.equal(resolveRunDir(missing, '2026-06-17', 'journey'), path.join(missing, '2026-06-17#01-journey'))
 })
 
 test('redaction: secrets in evidence never reach md or json', () => {
