@@ -1,0 +1,41 @@
+{
+  "Device": {
+    "DiscoveredStreams": {
+      "Streams": {
+        "00000000-0000-4002-0059-e204080bff04": {
+          "Address": "https://192.168.2.11/onvif/services",
+          "AudioChannels": 0,
+          "AudioFormat": "No Audio",
+          "Bitrate": 200,
+          "Encryption": true,
+          "Fps": 0,
+          "MulticastAddress": "239.1.1.6",
+          "Resolution": "0x0",
+          "RtspUri": "rtsp://192.168.2.11:554/live.sdp",
+          "SessionName": "DM-NVX-E30-00107FEA8A32",
+          "SnapshotUrl": "",
+          "Transport": "TS/RTP",
+          "UniqueId": "00000000-0000-4002-0059-e204080bff04",
+          "VideoFormat": "Pixel"
+        },
+        "00000000-0000-4002-0059-e40020340313": {
+          "Address": "https://192.168.2.10/onvif/services",
+          "AudioChannels": 2,
+          "AudioFormat": "Lpcm",
+          "Bitrate": 200,
+          "Encryption": true,
+          "Fps": 30,
+          "MulticastAddress": "239.1.1.4",
+          "Resolution": "3840x2160",
+          "RtspUri": "rtsp://192.168.2.10:554/live.sdp",
+          "SessionName": "DM-NVX-360-C442684E534B",
+          "SnapshotUrl": "",
+          "Transport": "TS/RTP",
+          "UniqueId": "00000000-0000-4002-0059-e40020340313",
+          "VideoFormat": "Pixel"
+        }
+      },
+      "Version": "2.0.0"
+    }
+  }
+}
