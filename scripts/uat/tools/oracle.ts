@@ -42,9 +42,10 @@ export class Oracle {
     this.baselineRx = await this.readReceiveStream0()
   }
 
-  /** Restore name/multicast/state captured at baseline. No-op if no baseline. */
-  async restore(): Promise<void> {
-    if (!this.baseline) return
+  /** Restore name/multicast/state captured at baseline.
+   *  Returns { skipped: true } when no baseline was captured (no-op, nothing restored). */
+  async restore(): Promise<{ skipped: boolean }> {
+    if (!this.baseline) return { skipped: true }
     const c = this.clientFactory()
     await c.login()
     const b = this.baseline
@@ -53,6 +54,7 @@ export class Oracle {
     if (typeof b.MulticastAddress === 'string')
       await c.postSetPartial(streamTransmitBody(0, { MulticastAddress: b.MulticastAddress }))
     await c.postSetPartial(streamTransmitBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
+    return { skipped: false }
   }
 
   /**
@@ -67,9 +69,10 @@ export class Oracle {
     await c.post('/_control/scenario', { role: 'rx', scenario })
   }
 
-  /** Restore StreamReceive source/state captured at baselineRx. No-op if no baselineRx. */
-  async restoreRx(): Promise<void> {
-    if (!this.baselineRx) return
+  /** Restore StreamReceive source/state captured at baselineRx.
+   *  Returns { skipped: true } when no baselineRx was captured (no-op, nothing restored). */
+  async restoreRx(): Promise<{ skipped: boolean }> {
+    if (!this.baselineRx) return { skipped: true }
     const c = this.clientFactory()
     await c.login()
     const b = this.baselineRx
@@ -82,5 +85,6 @@ export class Oracle {
     }
     // Restore start/stop state
     await c.postSetPartial(streamReceiveBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
+    return { skipped: false }
   }
 }

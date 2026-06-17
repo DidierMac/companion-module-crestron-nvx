@@ -27,8 +27,9 @@ function ctx(over: Partial<JourneyContext> = {}, nvxPass = ''): JourneyContext {
       readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
       captureBaseline: async () => {},
       captureBaselineRx: async () => {},
-      restore: async () => {},
-      restoreRx: async () => {},
+      restore: async () => ({ skipped: false }),
+      restoreRx: async () => ({ skipped: false }),
+      setRxScenario: async () => {},
     } as never,
     ui: {
       open: async () => ({}),
@@ -100,10 +101,11 @@ test('baseline precedes the USE block and teardown is last', () => {
   assert.equal(ids[ids.length - 1], 'TEARDOWN', 'TEARDOWN last')
 })
 
-test('BASELINE and TEARDOWN PASS with a device', async () => {
+test('BASELINE and TEARDOWN PASS with a device (Transmitter role)', async () => {
   const baseline = labSteps.find((s) => s.id === 'BASELINE')!
   const teardown = labSteps.find((s) => s.id === 'TEARDOWN')!
-  assert.equal((await baseline.run(ctx({}, 'realpass'))).status, 'PASS')
+  // BASELINE reads StreamTransmit — must be a Transmitter.
+  assert.equal((await baseline.run(ctxWithRole('Transmitter'))).status, 'PASS')
   assert.equal((await teardown.run(ctx({}, 'realpass'))).status, 'PASS')
 })
 
@@ -377,4 +379,112 @@ test('DEC-SOURCE-URL (writeStepRx) SKIPs — not FAILs — when device_role is T
   c.config.layout = { set_source_url: { page: 1, row: 0, col: 0 } }
   const v = await step.run(c)
   assert.equal(v.status, 'SKIP', 'DEC-SOURCE-URL must SKIP on a Transmitter, not FAIL')
+})
+
+// ── Task 6: scenario steps fake-only SKIP / role guards / honest teardown ────
+
+/** ctx for a real device (isFake=false), Receiver role, with layout mapped */
+function ctxRealReceiver(): JourneyContext {
+  const c = ctx(
+    {
+      config: {
+        companionUrl: 'http://x:8000',
+        container: 'c',
+        label: 'nvx-uat',
+        nvxHost: '192.0.2.1',
+        nvxPort: 443,
+        nvxUser: 'admin',
+        nvxPass: 'realpass',
+        isFake: false,
+      },
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'ok' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+        getVariable: async () => 'Receiver',
+        press: async () => {},
+      } as never,
+    },
+    'realpass',
+  )
+  c.config.layout = { dec_enable_stream: { page: 1, row: 0, col: 0 } }
+  return c
+}
+
+test('DEC-NEGOTIATING SKIPs (not FAILs) when isFake is false (real device)', async () => {
+  const step = labSteps.find((s) => s.id === 'DEC-NEGOTIATING')!
+  const v = await step.run(ctxRealReceiver())
+  assert.equal(v.status, 'SKIP', 'DEC-NEGOTIATING must SKIP on a real device (scenario route absent)')
+  assert.match(String(v.evidence.note), /fake|scenario/i)
+})
+
+test('DEC-DECODING SKIPs (not FAILs) when isFake is false (real device)', async () => {
+  const step = labSteps.find((s) => s.id === 'DEC-DECODING')!
+  const v = await step.run(ctxRealReceiver())
+  assert.equal(v.status, 'SKIP', 'DEC-DECODING must SKIP on a real device (scenario route absent)')
+  assert.match(String(v.evidence.note), /fake|scenario/i)
+})
+
+test('DEC-NEGOTIATING SKIPs (not FAILs) when device_role is Transmitter', async () => {
+  const step = labSteps.find((s) => s.id === 'DEC-NEGOTIATING')!
+  // isFake=true so we isolate role guard from fake guard
+  const c = ctx(
+    {
+      config: {
+        companionUrl: 'http://x:8000',
+        container: 'c',
+        label: 'nvx-uat',
+        nvxHost: '192.0.2.1',
+        nvxPort: 8443,
+        nvxUser: 'admin',
+        nvxPass: 'realpass',
+        isFake: true,
+      },
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'ok' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+        getVariable: async () => 'Transmitter',
+        press: async () => {},
+      } as never,
+    },
+    'realpass',
+  )
+  c.config.layout = { dec_enable_stream: { page: 1, row: 0, col: 0 } }
+  const v = await step.run(c)
+  assert.equal(v.status, 'SKIP', 'DEC-NEGOTIATING must SKIP when device is a Transmitter')
+})
+
+test('BASELINE SKIPs (not FAILs) when device_role is Receiver', async () => {
+  const step = labSteps.find((s) => s.id === 'BASELINE')!
+  const v = await step.run(ctxWithRole('Receiver'))
+  assert.equal(v.status, 'SKIP', 'BASELINE must SKIP on a Receiver (reads StreamTransmit)')
+})
+
+test('TEARDOWN reports "no baseline" honestly when restore() signals no baseline was captured', async () => {
+  const teardown = labSteps.find((s) => s.id === 'TEARDOWN')!
+  // Oracle.restore() signals no baseline by returning { skipped: true } instead of throwing.
+  const v = await teardown.run(
+    ctx(
+      {
+        oracle: {
+          readStream0: async () => ({}),
+          captureBaseline: async () => {},
+          restore: async () => ({ skipped: true }),
+          restoreRx: async () => ({ skipped: true }),
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  // Must NOT claim "device restored" when nothing was restored.
+  assert.equal(v.status, 'PASS', 'TEARDOWN should still PASS (best-effort)')
+  assert.ok(
+    !String(v.evidence.note).toLowerCase().includes('device restored'),
+    `TEARDOWN claimed "device restored" but no baseline was captured. note="${v.evidence.note}"`,
+  )
 })

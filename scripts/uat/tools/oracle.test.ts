@@ -163,3 +163,67 @@ test('restoreRx is a no-op without a baselineRx', async () => {
   await o.restoreRx()
   assert.equal(posted.length, 0)
 })
+
+// ── Task 6: restore/restoreRx signal "no baseline" honestly ──────────────────
+
+test('restore() returns { skipped: true } when no baseline was captured', async () => {
+  const client = {
+    login: async () => {},
+    logout: async () => {},
+    get: async () => ({ Device: { StreamTransmit: { Streams: [{}] } } }),
+    postSetPartial: async () => 0,
+  } as unknown as NvxApiClient
+  const o = new Oracle(() => client)
+  const result = await o.restore()
+  assert.deepEqual(result, { skipped: true }, 'restore() must signal that no baseline was captured')
+})
+
+test('restore() returns { skipped: false } when a baseline was captured and restored', async () => {
+  const client = {
+    login: async () => {},
+    logout: async () => {},
+    get: async () => ({
+      Device: {
+        StreamTransmit: {
+          Streams: [{ RtspSessionName: 'X', MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' }],
+        },
+      },
+    }),
+    postSetPartial: async () => 0,
+  } as unknown as NvxApiClient
+  const o = new Oracle(() => client)
+  await o.captureBaseline()
+  const result = await o.restore()
+  assert.deepEqual(result, { skipped: false }, 'restore() must signal that baseline was applied')
+})
+
+test('restoreRx() returns { skipped: true } when no baselineRx was captured', async () => {
+  const client = {
+    login: async () => {},
+    logout: async () => {},
+    get: async () => ({ Device: { StreamReceive: { Streams: [{}] } } }),
+    postSetPartial: async () => 0,
+  } as unknown as NvxApiClient
+  const o = new Oracle(() => client)
+  const result = await o.restoreRx()
+  assert.deepEqual(result, { skipped: true }, 'restoreRx() must signal that no baselineRx was captured')
+})
+
+test('restoreRx() returns { skipped: false } when a baselineRx was captured and restored', async () => {
+  const client = {
+    login: async () => {},
+    logout: async () => {},
+    get: async () => ({
+      Device: {
+        StreamReceive: {
+          Streams: [{ SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4', Status: 'Stream Stopped' }],
+        },
+      },
+    }),
+    postSetPartial: async () => 0,
+  } as unknown as NvxApiClient
+  const o = new Oracle(() => client)
+  await o.captureBaselineRx()
+  const result = await o.restoreRx()
+  assert.deepEqual(result, { skipped: false }, 'restoreRx() must signal that baselineRx was applied')
+})

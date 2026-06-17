@@ -109,7 +109,10 @@ async function pollOracle(
  * 1. setRxScenario(scenario) on the fake device (before pressing the button).
  * 2. press the action button.
  * 3. poll StreamReceive oracle until pred holds.
- * SKIPs cleanly when the button is not mapped (same behaviour as writeStepRx).
+ * SKIPs cleanly when:
+ * - button is not mapped (same behaviour as writeStepRx)
+ * - device_role is not Receiver
+ * - isFake is false/unset (the /_control/scenario route is fake-only)
  */
 function writeStepRxWithScenario(
   id: string,
@@ -125,6 +128,10 @@ function writeStepRxWithScenario(
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
+      if (!ctx.config.isFake)
+        return skip(id, `${title} (scenario fake-only)`, 1, { note: `scenario '${scenario}' requires fake device — SKIP on real NVX` })
+      const role = await readVar(ctx, 'device_role')
+      if (role !== 'Receiver') return skip(id, `${title} (device is not a Receiver)`, 1, { note: `device_role=${role}` })
       const loc = ctx.config.layout?.[actionKey]
       if (!loc)
         return skip(id, `${title} (button unmapped)`, 1, { note: `button '${actionKey}' not in layout — see SETUP` })
@@ -379,8 +386,9 @@ const decoderUseSteps: JourneyStep[] = [
     run: async (ctx): Promise<Verdict> => {
       if (noDevice(ctx)) return skip('TEARDOWN-RX', 'teardown-rx (no device)', 1, { note: 'NVX_PASS unset' })
       try {
-        await ctx.oracle.restoreRx()
-        return pass('TEARDOWN-RX', 'decoder restored', 1, { note: 'StreamReceive baseline re-applied' })
+        const r = await ctx.oracle.restoreRx()
+        const note = r.skipped ? 'no baselineRx (SKIP capture) — nothing restored' : 'StreamReceive baseline re-applied'
+        return pass('TEARDOWN-RX', 'teardown-rx complete', 1, { note })
       } catch (err) {
         return fail('TEARDOWN-RX', 'decoder restore failed', 1, { note: `decoder restore failed: ${msg(err)}` })
       }
@@ -451,13 +459,16 @@ const authSteps: JourneyStep[] = [
 
 const msg = (err: unknown): string => (err instanceof Error ? err.message : String(err))
 
-/** Capture the device's pre-USE state so TEARDOWN can restore it. */
+/** Capture the device's pre-USE state so TEARDOWN can restore it.
+ *  SKIP on a Receiver: captureBaseline reads StreamTransmit which is absent on Receiver devices. */
 const baselineStep: JourneyStep = {
   id: 'BASELINE',
   title: 'capture device baseline (Streams[0])',
   scope: 'lab',
   run: async (ctx): Promise<Verdict> => {
     if (noDevice(ctx)) return skip('BASELINE', 'baseline (no device)', 1, { note: 'NVX_PASS unset' })
+    const role = await readVar(ctx, 'device_role')
+    if (role !== 'Transmitter') return skip('BASELINE', 'baseline (device is not a Transmitter)', 1, { note: `device_role=${role} — StreamTransmit absent on Receiver` })
     try {
       await ctx.oracle.captureBaseline()
       return pass('BASELINE', 'baseline captured', 1, { note: 'stored for TEARDOWN restore' })
@@ -467,7 +478,8 @@ const baselineStep: JourneyStep = {
   },
 }
 
-/** Restore the device to baseline and disable the test connection (best-effort, reported). */
+/** Restore the device to baseline and disable the test connection (best-effort, reported).
+ *  Uses restore()'s return value to report honestly whether a baseline was actually applied. */
 const teardownStep: JourneyStep = {
   id: 'TEARDOWN',
   title: 'restore device + disable connection',
@@ -477,8 +489,8 @@ const teardownStep: JourneyStep = {
     const notes: string[] = []
     let ok = true
     try {
-      await ctx.oracle.restore()
-      notes.push('device restored')
+      const r = await ctx.oracle.restore()
+      notes.push(r.skipped ? 'no baseline (SKIP capture) — nothing restored' : 'device restored')
     } catch (err) {
       ok = false
       notes.push(`restore failed: ${msg(err)}`)
@@ -494,7 +506,7 @@ const teardownStep: JourneyStep = {
       }
     }
     return ok
-      ? pass('TEARDOWN', 'device restored + connection disabled', 1, { note: notes.join('; ') })
+      ? pass('TEARDOWN', 'teardown complete', 1, { note: notes.join('; ') })
       : fail('TEARDOWN', 'teardown incomplete', 1, { note: notes.join('; ') })
   },
 }
