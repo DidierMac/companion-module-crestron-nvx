@@ -40,7 +40,30 @@ the config form itself (Chromium UI automation).
   (useful when buttons and collections are already laid out and you want to repeat a run without
   touching the Companion config).
 
-## 3. Environment variables
+## 3. Launch profiles — recommended path
+
+Instead of composing 6–7 variables by hand, use `UAT_PROFILE` to load a named preset. Explicit env vars always win over profile defaults (a profile only fills what is absent).
+
+| Profile | Alias | What it sets |
+|---------|-------|-------------|
+| `fake` | `npm run uat:fake` | `UAT_LAB=1 UAT_FAKE=1 NVX_HOST=host.docker.internal NVX_PORT=8443 ORACLE_HOST=127.0.0.1 NVX_PASS=test123 COMPANION_CONTAINER=companion-nvx-companion-1` |
+| `local` | `npm run uat:local` | `COMPANION_CONTAINER=companion-nvx-companion-1` (install + config-failure steps only, no device) |
+| `lab` | *(no bare alias)* | `UAT_LAB=1 COMPANION_CONTAINER=companion-nvx-companion-1` — device coords must come from env |
+
+```bash
+# Fake device (all steps, no hardware)
+npm run uat:fake
+
+# Local only (no device, no lab steps)
+npm run uat:local
+
+# Lab (real device — supply host + password)
+UAT_PROFILE=lab NVX_HOST=<ip> NVX_PASS=<pass> npm run uat:journey
+```
+
+An unknown `UAT_PROFILE` value aborts immediately (fail-fast). The §4/§4a/§4b hand-composed forms below remain valid for overrides or CI pipelines.
+
+## 3b. Environment variables (full reference)
 
 | Var | Default | Meaning |
 |-----|---------|---------|
@@ -126,7 +149,19 @@ UAT_LAB=1 NVX_HOST=<device-ip> NVX_PASS=<password> \
   COMPANION_CONTAINER=companion-nvx-companion-1 npm run uat:journey
 ```
 
-Report is written to `docs/uat-runs/<date>-journey/` (`report.md` + `escalation.json`).
+Report is written to `docs/uat-runs/<date>#<NN>-<module>/` — three artefacts:
+
+| File | Content |
+|------|---------|
+| `report.md` | Human-readable summary — observed values truncated at 200 chars |
+| `escalation.json` | Full evidence for FAIL / AMBIGUOUS / HUMAN verdicts only |
+| `details.json` | Full redacted evidence for **all** verdicts (the complete picture `report.md` summarises) |
+
+⚠️ **`details.json` is as sensitive as `escalation.json`.** Redaction is by key name only
+(`pass*`, `token`, `cookie`, `sessionid`, `authorization`, `api-key` …). A secret appearing
+as a *value* under an innocuous key (e.g. inside a `note` string) is **not masked** — treat
+`details.json` accordingly (do not commit, do not paste in public channels).
+
 Verdicts: **PASS / FAIL / AMBIGUOUS / HUMAN / SKIP** (SKIP = lab step without a device —
 never a false PASS).
 
