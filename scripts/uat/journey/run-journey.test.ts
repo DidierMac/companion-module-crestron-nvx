@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { loadJourneyConfig, ensureFreshConnection, loadLayout } from './run-journey.js'
+import { applyProfile } from '../profiles.js'
 import type { JourneyContext, JourneyConfig } from './types.js'
 
 test('loadJourneyConfig — hors lab, NVX_USER absent → défaut admin toléré', () => {
@@ -16,6 +17,12 @@ test('loadJourneyConfig — hors lab, NVX_USER présent → utilisé', () => {
 test('loadJourneyConfig — mode lab, NVX_USER présent → utilisé sans erreur', () => {
   const cfg = loadJourneyConfig({ UAT_LAB: '1', NVX_HOST: '10.0.0.10', NVX_USER: 'admin' })
   assert.equal(cfg.nvxUser, 'admin')
+})
+
+test('loadJourneyConfig — profil fake résout sans throw (le profil fournit NVX_USER malgré UAT_LAB=1)', () => {
+  const cfg = loadJourneyConfig(applyProfile({ UAT_PROFILE: 'fake' }))
+  assert.equal(cfg.nvxUser, 'admin')
+  assert.equal(cfg.isFake, true)
 })
 
 test('loadJourneyConfig — mode lab, NVX_USER absent → throw avec message explicite', () => {

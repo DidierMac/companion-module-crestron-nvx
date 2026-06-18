@@ -5,12 +5,15 @@
 export const PROFILES: Record<string, Record<string, string>> = {
   // Full offline journey against the local fake-device (no real hardware).
   // NVX_PASS defaults to the fake's throwaway password (matches FAKE_NVX_PASS in SETUP.md).
+  // NVX_USER is required because UAT_LAB=1 here trips loadJourneyConfig's lab-mode guard;
+  // 'admin' is the fake's conventional account (its auth checks only the password).
   fake: {
     UAT_LAB: '1',
     UAT_FAKE: '1',
     NVX_HOST: 'host.docker.internal',
     NVX_PORT: '8443',
     ORACLE_HOST: '127.0.0.1',
+    NVX_USER: 'admin',
     NVX_PASS: 'test123',
     COMPANION_CONTAINER: 'companion-nvx-companion-1',
   },
