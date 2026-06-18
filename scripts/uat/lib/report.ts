@@ -1,6 +1,6 @@
 import { writeFileSync, mkdirSync, readdirSync } from 'node:fs'
 import path from 'node:path'
-import type { Verdict, VerdictStatus } from './verdict.js'
+import type { Verdict, VerdictStatus, Evidence } from './verdict.js'
 import type { RunResult } from './case.js'
 
 const ESCALATED: VerdictStatus[] = ['FAIL', 'AMBIGUOUS', 'HUMAN']
@@ -23,6 +23,16 @@ function redact(value: unknown): unknown {
     return out
   }
   return value
+}
+
+const MAX_OBSERVED = 200
+
+/** JSON compact, tronqué au-delà de MAX_OBSERVED — l'évidence complète vit dans details.json. */
+function compactJson(value: unknown): string {
+  const s = JSON.stringify(value)
+  return s.length > MAX_OBSERVED
+    ? `${s.slice(0, MAX_OBSERVED)}… (truncated — full evidence in details.json)`
+    : s
 }
 
 const ICON: Record<VerdictStatus, string> = {
@@ -52,9 +62,9 @@ export function renderMarkdown(run: RunResult): string {
   lines.push('')
   for (const v of run.verdicts) {
     const ev = redact(v.evidence) as typeof v.evidence
-    lines.push(`### ${ICON[v.status]} ${v.id} · ${v.title} (tier ${v.tier})`)
+    lines.push(`### ${ICON[v.status]} ${v.id} · ${v.title}`)
     if (ev.expected !== undefined) lines.push(`- expected: \`${JSON.stringify(ev.expected)}\``)
-    if (ev.observed !== undefined) lines.push(`- observed: \`${JSON.stringify(ev.observed)}\``)
+    if (ev.observed !== undefined) lines.push(`- observed: \`${compactJson(ev.observed)}\``)
     if (ev.note) lines.push(`- note: ${ev.note}`)
     lines.push('')
   }
@@ -77,6 +87,21 @@ export function renderEscalation(run: RunResult): EscalationPacket {
   }
 }
 
+export interface DetailRecord {
+  id: string
+  status: VerdictStatus
+  evidence: Evidence
+}
+
+/** Évidence complète (redactée) de TOUS les verdicts — l'artefact détaillé que le .md résume. */
+export function renderDetails(run: RunResult): DetailRecord[] {
+  return run.verdicts.map((v) => ({
+    id: v.id,
+    status: v.status,
+    evidence: redact(v.evidence) as Evidence,
+  }))
+}
+
 /** Résout le prochain dossier de run : `<baseDir>/<date>#<NN>-<moduleTag>`.
  *  NN s'incrémente par jour (01→99), tous modules confondus, pour préserver l'ordre
  *  chronologique des runs (RX puis TX d'un même créneau → #01 puis #02). Le premier
@@ -95,9 +120,10 @@ export function resolveRunDir(baseDir: string, date: string, moduleTag: string):
   return path.join(baseDir, `${date}#${nn}-${moduleTag}`)
 }
 
-/** Write report.md + escalation.json into `dir` (created if missing). */
+/** Write report.md + escalation.json + details.json into `dir` (created if missing). */
 export function writeRun(dir: string, run: RunResult): void {
   mkdirSync(dir, { recursive: true })
   writeFileSync(path.join(dir, 'report.md'), renderMarkdown(run), 'utf8')
   writeFileSync(path.join(dir, 'escalation.json'), JSON.stringify(renderEscalation(run), null, 2), 'utf8')
+  writeFileSync(path.join(dir, 'details.json'), JSON.stringify(renderDetails(run), null, 2), 'utf8')
 }

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, mkdirSync, rmSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { renderMarkdown, renderEscalation, resolveRunDir } from './report.js'
+import { renderMarkdown, renderEscalation, renderDetails, resolveRunDir } from './report.js'
 import { pass, fail, human } from './verdict.js'
 import type { RunResult } from './case.js'
 
@@ -72,4 +72,32 @@ test('redaction: secrets in evidence never reach md or json', () => {
   assert.doesNotMatch(md, /hunter2|abc/)
   assert.doesNotMatch(pkt, /hunter2|abc/)
   assert.match(pkt, /1\.2\.3\.4/) // non-sensitive value preserved
+})
+
+test('renderMarkdown ne mentionne plus le tier', () => {
+  const md = renderMarkdown(run)
+  assert.doesNotMatch(md, /tier/i)
+})
+
+test('renderMarkdown tronque un observed volumineux et renvoie vers details.json', () => {
+  const big = { blob: 'x'.repeat(500) }
+  const r: RunResult = {
+    startedAt: '2026-06-18T10:00:00.000Z', version: 'v0.4',
+    verdicts: [fail('B1', 'big observed', 1, { observed: big })],
+  }
+  const md = renderMarkdown(r)
+  assert.match(md, /truncated — full evidence in details\.json/)
+  assert.ok(md.length < JSON.stringify(big).length + 400) // pas de dump intégral
+})
+
+test('renderDetails renvoie chaque verdict avec son évidence redactée', () => {
+  const r: RunResult = {
+    startedAt: '2026-06-18T10:00:00.000Z', version: 'v0.4',
+    verdicts: [pass('P1', 'ok', 1, { observed: { sessionid: 'leak-me', value: 42 } })],
+  }
+  const details = renderDetails(r)
+  assert.equal(details.length, 1)
+  assert.equal(details[0].id, 'P1')
+  assert.equal((details[0].evidence.observed as Record<string, unknown>).sessionid, '***')
+  assert.equal((details[0].evidence.observed as Record<string, unknown>).value, 42)
 })
