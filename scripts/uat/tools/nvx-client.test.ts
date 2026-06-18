@@ -5,7 +5,7 @@ import type { HarnessConfig } from '../lib/case.js'
 
 const cfg = (over: Partial<HarnessConfig> = {}): HarnessConfig => ({
   nvxHost: '192.168.1.50', nvxPort: 443, nvxUser: 'admin', nvxPass: '',
-  companionUrl: 'http://localhost:8000', tiers: [0], ...over,
+  companionUrl: 'http://localhost:8000', ...over,
 })
 
 test('makeClient builds an NvxApiClient from harness config', () => {

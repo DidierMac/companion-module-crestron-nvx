@@ -1,4 +1,4 @@
-import type { Verdict, Tier } from './verdict.js'
+import type { Verdict } from './verdict.js'
 
 export interface HarnessConfig {
   nvxHost: string
@@ -7,7 +7,6 @@ export interface HarnessConfig {
   nvxPass: string // from NVX_PASS env; never logged in full
   companionUrl: string
   companionApiKey?: string
-  tiers: Tier[] // legacy field; the journey selects by step scope, not tiers
 }
 
 export interface RunResult {

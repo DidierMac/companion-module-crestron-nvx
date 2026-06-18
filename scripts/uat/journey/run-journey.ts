@@ -71,7 +71,6 @@ export function buildContext(cfg: JourneyConfig): JourneyContext {
     nvxUser: cfg.nvxUser,
     nvxPass: cfg.nvxPass,
     companionUrl: cfg.companionUrl,
-    tiers: [0],
   }
   return {
     config: cfg,
