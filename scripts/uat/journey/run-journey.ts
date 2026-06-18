@@ -10,6 +10,7 @@ import { Oracle } from '../tools/oracle.js'
 import { CompanionUi } from '../tools/chromium.js'
 import { makeClient } from '../tools/nvx-client.js'
 import { ensureConnection } from '../tools/ensure-connection.js'
+import { applyProfile } from '../profiles.js'
 import { localSteps } from './steps-local.js'
 import { labSteps } from './steps-lab.js'
 import type { JourneyContext, JourneyConfig, JourneyStep, ButtonRef } from './types.js'
@@ -46,21 +47,22 @@ export function loadLayout(env: NodeJS.ProcessEnv): Record<string, ButtonRef> | 
 }
 
 export function loadJourneyConfig(env: NodeJS.ProcessEnv): JourneyConfig {
-  const isLab = env.UAT_LAB === '1'
-  if (isLab && !env.NVX_USER) {
+  const e = applyProfile(env)
+  const isLab = e.UAT_LAB === '1'
+  if (isLab && !e.NVX_USER) {
     throw new Error('NVX_USER required in lab mode — set it explicitly to avoid silently falling back to admin')
   }
   return {
-    companionUrl: env.COMPANION_URL ?? 'http://localhost:8000',
-    container: env.COMPANION_CONTAINER ?? 'companion-nvx-companion-1',
-    label: env.UAT_LABEL ?? 'nvx-uat',
-    nvxHost: env.NVX_HOST ?? '192.0.2.1',
-    nvxPort: Number(env.NVX_PORT ?? 443),
-    nvxUser: env.NVX_USER ?? 'admin',
-    nvxPass: env.NVX_PASS ?? '',
-    isFake: env.UAT_FAKE === '1',
-    oracleHost: env.ORACLE_HOST,
-    layout: loadLayout(env),
+    companionUrl: e.COMPANION_URL ?? 'http://localhost:8000',
+    container: e.COMPANION_CONTAINER ?? 'companion-nvx-companion-1',
+    label: e.UAT_LABEL ?? 'nvx-uat',
+    nvxHost: e.NVX_HOST ?? '192.0.2.1',
+    nvxPort: Number(e.NVX_PORT ?? 443),
+    nvxUser: e.NVX_USER ?? 'admin',
+    nvxPass: e.NVX_PASS ?? '',
+    isFake: e.UAT_FAKE === '1',
+    oracleHost: e.ORACLE_HOST,
+    layout: loadLayout(e),
   }
 }
 
@@ -139,13 +141,12 @@ export function deriveModule(env: NodeJS.ProcessEnv): string {
 }
 
 async function main(): Promise<void> {
-  const cfg = loadJourneyConfig(process.env)
+  const env = applyProfile(process.env)
+  const cfg = loadJourneyConfig(env)
   const ctx = buildContext(cfg)
 
-  const provision = process.env.UAT_PROVISION === '1'
-  // Self-provision the test connection (delete-if-exists + create) unless UAT_KEEP=1.
-  // UAT_PROVISION=1 → idempotent ensure (no delete) + implicit keep=true.
-  let keep = process.env.UAT_KEEP === '1'
+  const provision = env.UAT_PROVISION === '1'
+  let keep = env.UAT_KEEP === '1'
   if (provision) {
     keep = true
     const page = await ctx.ui.open()
@@ -164,15 +165,14 @@ async function main(): Promise<void> {
     await ensureFreshConnection(ctx)
   }
 
-  const steps = process.env.UAT_LAB === '1' ? [...localSteps, ...labSteps] : localSteps
+  const steps = env.UAT_LAB === '1' ? [...localSteps, ...labSteps] : localSteps
   const verdicts = await runJourney(steps, ctx)
   const startedAt = new Date().toISOString()
-  const run: RunResult = { startedAt, version: process.env.UAT_VERSION ?? 'journey', verdicts }
-  const moduleTag = deriveModule(process.env)
+  const run: RunResult = { startedAt, version: env.UAT_VERSION ?? 'journey', verdicts }
+  const moduleTag = deriveModule(env)
   const dir = resolveRunDir('docs/uat-runs', startedAt.slice(0, 10), moduleTag)
   writeRun(dir, run)
 
-  // Exit cleanup: remove the test connection so the next run starts at zero (unless UAT_KEEP=1).
   if (!keep) await removeConnection(ctx)
 
   const failed = verdicts.filter((v) => v.status === 'FAIL').length

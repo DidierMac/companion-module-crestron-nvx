@@ -10,6 +10,8 @@
 		"pretest": "tsc -p tsconfig.json --noEmit",
 		"test": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs --test src/*.test.ts src/**/*.test.ts scripts/uat/*.test.ts scripts/uat/**/*.test.ts",
 		"uat:journey": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/journey/run-journey.ts",
+		"uat:fake": "UAT_PROFILE=fake npm run uat:journey",
+		"uat:local": "UAT_PROFILE=local npm run uat:journey",
 		"uat:fake-device": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/fake-device/server.ts",
 		"lint": "eslint .",
 		"format": "prettier -w ."
