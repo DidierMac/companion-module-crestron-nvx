@@ -3,10 +3,6 @@ import { ModuleLogger } from '../../../src/logger.js'
 import type { ModuleConfig, ModuleSecrets } from '../../../src/config.js'
 import type { HarnessConfig } from '../lib/case.js'
 
-export function hasDevice(config: HarnessConfig): boolean {
-  return Boolean(config.nvxHost) && Boolean(config.nvxPass)
-}
-
 /** Build an NvxApiClient from harness config. Mirrors scripts/capture-nvx.ts wiring. */
 export function makeClient(config: HarnessConfig, opts: { password?: string } = {}): NvxApiClient {
   const moduleConfig: ModuleConfig = {
