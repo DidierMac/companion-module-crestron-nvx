@@ -1,24 +1,21 @@
 /**
- * oracle.test.ts — Red phase (vague 1, Phase 3) — v2 post-revue archi
+ * oracle.test.ts — co-évolution vague 1 — Green depuis ae417bb
  *
- * Co-évolution test-first : oracle.test.ts teste l'API CIBLE générique.
- * oracle.ts implémente encore l'ancienne API → tests Red pour bonne raison.
- *
- * Contrat de l'API cible :
+ * Contrat de l'API oracle (implémentée) :
  *   read(endpoint)                  → Device[lastSegment] brut  (PAS Streams[0])
  *   snapshot(endpoint)              → stocke Device[lastSegment] par clé endpoint
  *   restore(endpoint, buildBodies)  → poste buildBodies(subsystem) dans l'ordre
  *   setRxScenario(scenario)         → inchangé
  *
- * Wrappers legacy (cohabitent avec steps-lab v1 non migré) :
+ * Wrappers legacy (v1 — cohabitent avec steps-lab non migré) :
  *   readStream0()      = read('/Device/StreamTransmit').Streams[0]
  *   readReceiveStream0()= read('/Device/StreamReceive').Streams[0]
  *   captureBaseline()  = snapshot('/Device/StreamTransmit')
  *   captureBaselineRx()= snapshot('/Device/StreamReceive')
- *   restoreTx()        = restore('/Device/StreamTransmit', txBuilder)  ← RENOMMÉ depuis restore()
+ *   restoreTx()        = restore('/Device/StreamTransmit', txBuilder)
  *   restoreRx()        = restore('/Device/StreamReceive', rxBuilder)
  *
- * Invariants comportementaux préservés :
+ * Invariants comportementaux :
  *   Tx  — restoreTx rejoue  name → multicast → {Start|Stop}
  *   Rx  — restoreRx rejoue  {SessionInitiation + URL|Multicast} → {Start|Stop}
  *   {skipped:true} sans snapshot/captureBaseline, {skipped:false} avec
@@ -26,6 +23,8 @@
  *
  * Invariant architectural :
  *   aucun import de src/panels dans oracle.ts (test d'architecture)
+ *
+ * Seul test Red restant : guard builders (M-2) — attend l'implémentation du guard.
  */
 
 import { test } from 'node:test'
@@ -38,40 +37,22 @@ import type { NvxApiClient } from '../../../src/api.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
-// ── Types cible ────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-/** Json = type des valeurs manipulées par l'oracle générique. */
+/** Json = type des valeurs manipulées par l'oracle. */
 type Json = Record<string, unknown>
 
 /**
  * Builder : reçoit le subsystem complet (Device[lastSegment]) et retourne
  * la liste de bodies SetPartial à poster dans l'ordre.
- * Exemple Tx : buildBodies reçoit { Streams: [{...}] }, drill dans Streams[0].
+ * Tx : reçoit { Streams: [{...}] }, drill dans Streams[0].
  */
 type BuildBodiesFn = (subsystem: Json) => unknown[]
-
-/** Interface de l'oracle cible. Déclarée localement pour permettre la compilation
- *  avant que oracle.ts n'implémente ces méthodes (cast via unknown). */
-interface OracleTarget {
-  // Noyau générique
-  read(endpoint: string): Promise<Json>
-  snapshot(endpoint: string): Promise<void>
-  restore(endpoint: string, buildBodies: BuildBodiesFn): Promise<{ skipped: boolean }>
-  // Wrappers legacy
-  readStream0(): Promise<Json>
-  readReceiveStream0(): Promise<Json>
-  captureBaseline(): Promise<void>
-  captureBaselineRx(): Promise<void>
-  restoreTx(): Promise<{ skipped: boolean }>  // renommé depuis restore()
-  restoreRx(): Promise<{ skipped: boolean }>
-  // Fake control
-  setRxScenario(scenario: string): Promise<void>
-}
 
 // ── Builders (fournis par le SubsystemSpec ; reçoivent le subsystem complet) ───
 
 /**
- * Builder Tx — reproduit la séquence de l'ancienne restore().
+ * Builder Tx — reproduit la séquence POST de l'ancienne restore().
  * Reçoit Device.StreamTransmit = { Streams: [{...}] }, drill dans Streams[0].
  *
  * Séquence POST exacte à préserver :
@@ -91,7 +72,7 @@ const buildTxBodies: BuildBodiesFn = (subsystem) => {
 }
 
 /**
- * Builder Rx — reproduit la séquence de l'ancienne restoreRx().
+ * Builder Rx — reproduit la séquence POST de l'ancienne restoreRx().
  * Reçoit Device.StreamReceive = { Streams: [{...}] }, drill dans Streams[0].
  *
  * Séquence POST exacte à préserver :
@@ -155,17 +136,12 @@ function makeAudioClient(audio: Json, posted?: unknown[]) {
   } as unknown as NvxApiClient
 }
 
-/** Cast oracle vers l'interface cible pour les appels de tests. */
-function asTarget(o: Oracle): OracleTarget {
-  return o as unknown as OracleTarget
-}
-
 // ══════════════════════════════════════════════════════════════════════════════
 // Section 1 — read(endpoint) : transport générique, retourne Device[lastSegment]
 // ══════════════════════════════════════════════════════════════════════════════
 
 test('read() retourne le subsystem StreamTransmit brut (PAS Streams[0])', async () => {
-  const o = asTarget(new Oracle(() => makeTxClient({ RtspSessionName: 'MYSTREAM', Status: 'Stream started' })))
+  const o = new Oracle(() => makeTxClient({ RtspSessionName: 'MYSTREAM', Status: 'Stream started' }))
   const subsystem = await o.read('/Device/StreamTransmit')
   // subsystem = { Streams: [{ RtspSessionName: 'MYSTREAM', ... }] }
   assert.ok(Array.isArray(subsystem.Streams), 'doit retourner { Streams:[…] }, pas Streams[0] directement')
@@ -173,7 +149,7 @@ test('read() retourne le subsystem StreamTransmit brut (PAS Streams[0])', async 
 })
 
 test('read() retourne le subsystem StreamReceive brut', async () => {
-  const o = asTarget(new Oracle(() => makeRxClient({ SessionInitiation: 'Multicast via RTSP', Status: 'Stream Stopped' })))
+  const o = new Oracle(() => makeRxClient({ SessionInitiation: 'Multicast via RTSP', Status: 'Stream Stopped' }))
   const subsystem = await o.read('/Device/StreamReceive')
   assert.ok(Array.isArray(subsystem.Streams), 'doit retourner { Streams:[…] }')
   assert.equal((subsystem.Streams as Array<Json>)[0]?.SessionInitiation, 'Multicast via RTSP')
@@ -182,7 +158,7 @@ test('read() retourne le subsystem StreamReceive brut', async () => {
 test('read() retourne le subsystem AudioVideoInputOutput brut — généricité NON-Streams prouvée', async () => {
   // Preuve que l'oracle n'est PAS couplé à Streams[0] :
   // un endpoint audio (v0.4) retourne { Outputs:[…] }, sans .Streams.
-  const o = asTarget(new Oracle(() => makeAudioClient({ Volume: -20, Muted: false })))
+  const o = new Oracle(() => makeAudioClient({ Volume: -20, Muted: false }))
   const subsystem = await o.read('/Device/AudioVideoInputOutput')
   assert.ok(subsystem.Outputs, 'doit retourner { Outputs:[…] } — pas .Streams')
   assert.ok(!('Streams' in subsystem), 'ne contient PAS .Streams — confirme que l\'oracle est générique')
@@ -198,32 +174,32 @@ test('read() throw quand Device[endpoint-segment] est absent de la réponse', as
     postSetPartial: async () => 0,
     post: async () => ({}),
   } as unknown as NvxApiClient
-  const o = asTarget(new Oracle(() => client))
+  const o = new Oracle(() => client)
   await assert.rejects(() => o.read('/Device/StreamTransmit'))
 })
 
 test('read() appelle logout() exactement une fois après succès', async () => {
   let logoutCount = 0
-  const o = asTarget(new Oracle(() => ({
+  const o = new Oracle(() => ({
     login: async () => {},
     logout: async () => { logoutCount++ },
     get: async () => ({ Device: { StreamTransmit: { Streams: [{ RtspSessionName: 'X' }] } } }),
     postSetPartial: async () => 0,
     post: async () => ({}),
-  } as unknown as NvxApiClient)))
+  } as unknown as NvxApiClient))
   await o.read('/Device/StreamTransmit')
   assert.equal(logoutCount, 1, 'read() doit appeler logout() exactement une fois')
 })
 
 test('read() appelle logout() même si get() rejette (finally)', async () => {
   let logoutCount = 0
-  const o = asTarget(new Oracle(() => ({
+  const o = new Oracle(() => ({
     login: async () => {},
     logout: async () => { logoutCount++ },
     get: async () => { throw new Error('device unreachable') },
     postSetPartial: async () => 0,
     post: async () => ({}),
-  } as unknown as NvxApiClient)))
+  } as unknown as NvxApiClient))
   await assert.rejects(() => o.read('/Device/StreamTransmit'), /device unreachable/)
   assert.equal(logoutCount, 1, 'read() doit appeler logout() même si get() rejette')
 })
@@ -234,10 +210,10 @@ test('read() appelle logout() même si get() rejette (finally)', async () => {
 
 test('snapshot+restore Tx — reposte name → multicast → {Stop} dans l\'ordre exact', async () => {
   const posted: unknown[] = []
-  const o = asTarget(new Oracle(() => makeTxClient(
+  const o = new Oracle(() => makeTxClient(
     { RtspSessionName: 'ORIG', MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' },
     posted,
-  )))
+  ))
   await o.snapshot('/Device/StreamTransmit')
   await o.restore('/Device/StreamTransmit', buildTxBodies)
   assert.equal(posted.length, 3, 'doit rejouer 3 POST : name + multicast + state')
@@ -248,10 +224,10 @@ test('snapshot+restore Tx — reposte name → multicast → {Stop} dans l\'ordr
 
 test('snapshot+restore Tx — reposte {Start:true} quand Status était "Stream started"', async () => {
   const posted: unknown[] = []
-  const o = asTarget(new Oracle(() => makeTxClient(
+  const o = new Oracle(() => makeTxClient(
     { RtspSessionName: 'LIVE', MulticastAddress: '239.1.2.3', Status: 'Stream started' },
     posted,
-  )))
+  ))
   await o.snapshot('/Device/StreamTransmit')
   await o.restore('/Device/StreamTransmit', buildTxBodies)
   assert.deepEqual(posted[2], { Device: { StreamTransmit: { Streams: [{ Start: true }] } } })
@@ -259,10 +235,10 @@ test('snapshot+restore Tx — reposte {Start:true} quand Status était "Stream s
 
 test('snapshot+restore Tx — omet POST name si RtspSessionName absent du snapshot', async () => {
   const posted: unknown[] = []
-  const o = asTarget(new Oracle(() => makeTxClient(
+  const o = new Oracle(() => makeTxClient(
     { MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' },  // pas de RtspSessionName
     posted,
-  )))
+  ))
   await o.snapshot('/Device/StreamTransmit')
   await o.restore('/Device/StreamTransmit', buildTxBodies)
   assert.equal(posted.length, 2, 'sans RtspSessionName : 2 POST seulement (multicast + state)')
@@ -270,13 +246,13 @@ test('snapshot+restore Tx — omet POST name si RtspSessionName absent du snapsh
 })
 
 test('restore() Tx — retourne {skipped:true} sans snapshot préalable', async () => {
-  const o = asTarget(new Oracle(() => makeTxClient({})))
+  const o = new Oracle(() => makeTxClient({}))
   const result = await o.restore('/Device/StreamTransmit', buildTxBodies)
   assert.deepEqual(result, { skipped: true })
 })
 
 test('restore() Tx — retourne {skipped:false} avec snapshot préalable', async () => {
-  const o = asTarget(new Oracle(() => makeTxClient({ RtspSessionName: 'X', MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' })))
+  const o = new Oracle(() => makeTxClient({ RtspSessionName: 'X', MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' }))
   await o.snapshot('/Device/StreamTransmit')
   const result = await o.restore('/Device/StreamTransmit', buildTxBodies)
   assert.deepEqual(result, { skipped: false })
@@ -284,13 +260,13 @@ test('restore() Tx — retourne {skipped:false} avec snapshot préalable', async
 
 test('restore() Tx — appelle logout() exactement une fois', async () => {
   let logoutCount = 0
-  const o = asTarget(new Oracle(() => ({
+  const o = new Oracle(() => ({
     login: async () => {},
     logout: async () => { logoutCount++ },
     get: async () => ({ Device: { StreamTransmit: { Streams: [{ RtspSessionName: 'X', MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' }] } } }),
     postSetPartial: async () => 0,
     post: async () => ({}),
-  } as unknown as NvxApiClient)))
+  } as unknown as NvxApiClient))
   await o.snapshot('/Device/StreamTransmit')
   const countBefore = logoutCount
   await o.restore('/Device/StreamTransmit', buildTxBodies)
@@ -300,13 +276,13 @@ test('restore() Tx — appelle logout() exactement une fois', async () => {
 test('restore() Tx — appelle logout() même si postSetPartial() rejette (finally)', async () => {
   let logoutCount = 0
   let throwOnPost = false
-  const o = asTarget(new Oracle(() => ({
+  const o = new Oracle(() => ({
     login: async () => {},
     logout: async () => { logoutCount++ },
     get: async () => ({ Device: { StreamTransmit: { Streams: [{ RtspSessionName: 'X', MulticastAddress: '239.1.1.1', Status: 'Stream Stopped' }] } } }),
     postSetPartial: async () => { if (throwOnPost) throw new Error('device unreachable'); return 0 },
     post: async () => ({}),
-  } as unknown as NvxApiClient)))
+  } as unknown as NvxApiClient))
   await o.snapshot('/Device/StreamTransmit')
   const countBefore = logoutCount
   throwOnPost = true
@@ -320,10 +296,10 @@ test('restore() Tx — appelle logout() même si postSetPartial() rejette (final
 
 test('snapshot+restore Rx Multicast — reposte SessionInitiation+Multicast → {Stop}', async () => {
   const posted: unknown[] = []
-  const o = asTarget(new Oracle(() => makeRxClient(
+  const o = new Oracle(() => makeRxClient(
     { SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4', Status: 'Stream Stopped' },
     posted,
-  )))
+  ))
   await o.snapshot('/Device/StreamReceive')
   await o.restore('/Device/StreamReceive', buildRxBodies)
   assert.deepEqual(posted[0], { Device: { StreamReceive: { Streams: [{ SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4' }] } } })
@@ -332,10 +308,10 @@ test('snapshot+restore Rx Multicast — reposte SessionInitiation+Multicast → 
 
 test('snapshot+restore Rx ByReceiver — reposte SessionInitiation+StreamLocation → {Start}', async () => {
   const posted: unknown[] = []
-  const o = asTarget(new Oracle(() => makeRxClient(
+  const o = new Oracle(() => makeRxClient(
     { SessionInitiation: 'ByReceiver', StreamLocation: 'rtsp://10.0.0.9:554/live.sdp', Status: 'Stream started' },
     posted,
-  )))
+  ))
   await o.snapshot('/Device/StreamReceive')
   await o.restore('/Device/StreamReceive', buildRxBodies)
   assert.deepEqual(posted[0], { Device: { StreamReceive: { Streams: [{ SessionInitiation: 'ByReceiver', StreamLocation: 'rtsp://10.0.0.9:554/live.sdp' }] } } })
@@ -343,15 +319,15 @@ test('snapshot+restore Rx ByReceiver — reposte SessionInitiation+StreamLocatio
 })
 
 test('restore() Rx — retourne {skipped:true} sans snapshot préalable', async () => {
-  const o = asTarget(new Oracle(() => makeRxClient({})))
+  const o = new Oracle(() => makeRxClient({}))
   const result = await o.restore('/Device/StreamReceive', buildRxBodies)
   assert.deepEqual(result, { skipped: true })
 })
 
 test('restore() Rx — retourne {skipped:false} avec snapshot préalable', async () => {
-  const o = asTarget(new Oracle(() => makeRxClient(
+  const o = new Oracle(() => makeRxClient(
     { SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4', Status: 'Stream Stopped' },
-  )))
+  ))
   await o.snapshot('/Device/StreamReceive')
   const result = await o.restore('/Device/StreamReceive', buildRxBodies)
   assert.deepEqual(result, { skipped: false })
@@ -359,13 +335,13 @@ test('restore() Rx — retourne {skipped:false} avec snapshot préalable', async
 
 test('restore() Rx — appelle logout() exactement une fois', async () => {
   let logoutCount = 0
-  const o = asTarget(new Oracle(() => ({
+  const o = new Oracle(() => ({
     login: async () => {},
     logout: async () => { logoutCount++ },
     get: async () => ({ Device: { StreamReceive: { Streams: [{ SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4', Status: 'Stream Stopped' }] } } }),
     postSetPartial: async () => 0,
     post: async () => ({}),
-  } as unknown as NvxApiClient)))
+  } as unknown as NvxApiClient))
   await o.snapshot('/Device/StreamReceive')
   const countBefore = logoutCount
   await o.restore('/Device/StreamReceive', buildRxBodies)
@@ -375,13 +351,13 @@ test('restore() Rx — appelle logout() exactement une fois', async () => {
 test('restore() Rx — appelle logout() même si postSetPartial() rejette (finally)', async () => {
   let logoutCount = 0
   let throwOnPost = false
-  const o = asTarget(new Oracle(() => ({
+  const o = new Oracle(() => ({
     login: async () => {},
     logout: async () => { logoutCount++ },
     get: async () => ({ Device: { StreamReceive: { Streams: [{ SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.1.1.4', Status: 'Stream Stopped' }] } } }),
     postSetPartial: async () => { if (throwOnPost) throw new Error('device unreachable'); return 0 },
     post: async () => ({}),
-  } as unknown as NvxApiClient)))
+  } as unknown as NvxApiClient))
   await o.snapshot('/Device/StreamReceive')
   const countBefore = logoutCount
   throwOnPost = true
@@ -396,7 +372,7 @@ test('restore() Rx — appelle logout() même si postSetPartial() rejette (final
 test('snapshot+restore non-Streams — reposte exactement les bodies fournis par le builder audio', async () => {
   const posted: unknown[] = []
   const audioState = { Volume: -30, Muted: true }
-  const o = asTarget(new Oracle(() => makeAudioClient(audioState, posted)))
+  const o = new Oracle(() => makeAudioClient(audioState, posted))
   await o.snapshot('/Device/AudioVideoInputOutput')
   await o.restore('/Device/AudioVideoInputOutput', buildAudioBodies)
   assert.equal(posted.length, 1, 'le builder audio produit 1 seul POST')
@@ -410,11 +386,11 @@ test('deux snapshots indépendants — Tx et Rx isolés par clé endpoint', asyn
   const txPosted: unknown[] = []
   const rxPosted: unknown[] = []
   let useRx = false
-  const o = asTarget(new Oracle(() =>
+  const o = new Oracle(() =>
     useRx
       ? makeRxClient({ SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.99.0.1', Status: 'Stream started' }, rxPosted)
       : makeTxClient({ RtspSessionName: 'TX-ORIG', Status: 'Stream Stopped' }, txPosted),
-  ))
+  )
   await o.snapshot('/Device/StreamTransmit')
   useRx = true
   await o.snapshot('/Device/StreamReceive')
@@ -437,28 +413,52 @@ test('deux snapshots indépendants — Tx et Rx isolés par clé endpoint', asyn
 // ══════════════════════════════════════════════════════════════════════════════
 
 test('readStream0() retourne Streams[0] de StreamTransmit', async () => {
-  const o = asTarget(new Oracle(() => makeTxClient({ RtspSessionName: 'ORIG', Status: 'Stream Stopped' })))
+  const o = new Oracle(() => makeTxClient({ RtspSessionName: 'ORIG', Status: 'Stream Stopped' }))
   const s = await o.readStream0()
   assert.equal(s.RtspSessionName, 'ORIG', 'readStream0 doit retourner Streams[0]')
 })
 
 test('readReceiveStream0() retourne Streams[0] de StreamReceive', async () => {
-  const o = asTarget(new Oracle(() => makeRxClient({ SessionInitiation: 'ByReceiver', Status: 'Stream started' })))
+  const o = new Oracle(() => makeRxClient({ SessionInitiation: 'ByReceiver', Status: 'Stream started' }))
   const s = await o.readReceiveStream0()
   assert.equal(s.SessionInitiation, 'ByReceiver', 'readReceiveStream0 doit retourner Streams[0]')
+})
+
+// I-1 : chemins d'erreur wrappers — Streams absent ou vide
+test('readStream0() throw quand Streams est vide', async () => {
+  const client = {
+    login: async () => {},
+    logout: async () => {},
+    get: async () => ({ Device: { StreamTransmit: { Streams: [] } } }),
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient
+  const o = new Oracle(() => client)
+  await assert.rejects(() => o.readStream0(), /Streams\[0\] absent/)
+})
+
+test('readReceiveStream0() throw quand StreamReceive Streams est vide', async () => {
+  const client = {
+    login: async () => {},
+    logout: async () => {},
+    get: async () => ({ Device: { StreamReceive: { Streams: [] } } }),
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient
+  const o = new Oracle(() => client)
+  await assert.rejects(() => o.readReceiveStream0(), /StreamReceive Streams\[0\] absent/)
 })
 
 test('captureBaseline() + restoreTx() — rejoue le nom capturé', async () => {
   // captureBaseline() = snapshot('/Device/StreamTransmit')
   // restoreTx()       = restore('/Device/StreamTransmit', txBuilder)
-  // Ce test est Red car restoreTx() n'existe pas encore (renommé depuis restore()).
   const posted: unknown[] = []
-  const o = asTarget(new Oracle(() => makeTxClient(
+  const o = new Oracle(() => makeTxClient(
     { RtspSessionName: 'CAP', MulticastAddress: '239.0.0.1', Status: 'Stream Stopped' },
     posted,
-  )))
+  ))
   await o.captureBaseline()
-  await o.restoreTx()  // Red : TypeError — restoreTx is not a function
+  await o.restoreTx()
   assert.ok(posted.some(b => JSON.stringify(b).includes('CAP')), 'restoreTx doit rejouer le nom capturé')
 })
 
@@ -466,26 +466,57 @@ test('captureBaselineRx() + restoreRx() — rejoue le multicast capturé', async
   // captureBaselineRx() = snapshot('/Device/StreamReceive')
   // restoreRx()         = restore('/Device/StreamReceive', rxBuilder)
   const posted: unknown[] = []
-  const o = asTarget(new Oracle(() => makeRxClient(
+  const o = new Oracle(() => makeRxClient(
     { SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.0.0.4', Status: 'Stream Stopped' },
     posted,
-  )))
+  ))
   await o.captureBaselineRx()
   await o.restoreRx()
   assert.ok(posted.some(b => JSON.stringify(b).includes('239.0.0.4')), 'restoreRx doit rejouer le multicast capturé')
 })
 
 test('restoreTx() — {skipped:true} sans captureBaseline préalable', async () => {
-  // Red : restoreTx() n'existe pas encore (renommé depuis restore()).
-  const o = asTarget(new Oracle(() => makeTxClient({})))
+  const o = new Oracle(() => makeTxClient({}))
   const result = await o.restoreTx()
   assert.deepEqual(result, { skipped: true })
 })
 
 test('restoreRx() — {skipped:true} sans captureBaselineRx préalable', async () => {
-  const o = asTarget(new Oracle(() => makeRxClient({})))
+  const o = new Oracle(() => makeRxClient({}))
   const result = await o.restoreRx()
   assert.deepEqual(result, { skipped: true })
+})
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section 5b — Guard builders (M-2) — Red en attente du coder
+//
+// Les builders internes (txBuilder / rxBuilder) utilisent encore `?? {}` comme
+// fallback quand Streams est absent. Le coder ajoutera un guard explicite qui
+// throw si le subsystem n'a pas de clé Streams — empêchant un restore silencieux
+// invalide (POST { Stop: true } sur un subsystem non-Streams).
+//
+// Ce test est Red jusqu'à l'ajout du guard dans oracle.ts.
+// ══════════════════════════════════════════════════════════════════════════════
+
+test('restoreTx() throw quand le snapshot ne contient pas de clé Streams [guard builder — Red]', async () => {
+  // Arrange : fake retourne un subsystem sans .Streams (ex. réponse inattendue du device).
+  const client = {
+    login: async () => {},
+    logout: async () => {},
+    get: async () => ({ Device: { StreamTransmit: { unexpectedKey: true } } }),
+    postSetPartial: async () => 0,
+    post: async () => ({}),
+  } as unknown as NvxApiClient
+  const o = new Oracle(() => client)
+  await o.captureBaseline()  // stocke { unexpectedKey: true } — snapshot réussit
+  // Act + Assert : restoreTx() doit rejeter car txBuilder reçoit un subsystem sans Streams.
+  // Actuellement : txBuilder fait `?? {}` → retourne corps silencieux → test FAIL (Red).
+  // Après guard : txBuilder throw "Streams absent" → assert.rejects passe → Green.
+  await assert.rejects(
+    () => o.restoreTx(),
+    /Streams/,
+    'restoreTx() doit rejeter quand le subsystem n\'a pas de clé Streams',
+  )
 })
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -494,26 +525,26 @@ test('restoreRx() — {skipped:true} sans captureBaselineRx préalable', async (
 
 test('setRxScenario() appelle logout() exactement une fois après succès', async () => {
   let logoutCount = 0
-  const o = asTarget(new Oracle(() => ({
+  const o = new Oracle(() => ({
     login: async () => {},
     logout: async () => { logoutCount++ },
     get: async () => ({}),
     postSetPartial: async () => 0,
     post: async () => ({}),
-  } as unknown as NvxApiClient)))
+  } as unknown as NvxApiClient))
   await o.setRxScenario('rx-negotiating')
   assert.equal(logoutCount, 1, 'setRxScenario() doit appeler logout() exactement une fois')
 })
 
 test('setRxScenario() appelle logout() même si post() rejette (finally)', async () => {
   let logoutCount = 0
-  const o = asTarget(new Oracle(() => ({
+  const o = new Oracle(() => ({
     login: async () => {},
     logout: async () => { logoutCount++ },
     get: async () => ({}),
     postSetPartial: async () => 0,
     post: async () => { throw new Error('scenario route absent') },
-  } as unknown as NvxApiClient)))
+  } as unknown as NvxApiClient))
   await assert.rejects(() => o.setRxScenario('rx-negotiating'), /scenario route absent/)
   assert.equal(logoutCount, 1, 'setRxScenario() doit appeler logout() même si post() rejette')
 })
@@ -523,9 +554,8 @@ test('setRxScenario() appelle logout() même si post() rejette (finally)', async
 // ══════════════════════════════════════════════════════════════════════════════
 
 test('architecture — oracle.ts n\'importe aucun module de src/panels', () => {
-  // Après implémentation, oracle.ts doit utiliser un builder local (streamsSetBody)
-  // à la place de streamTransmitBody / streamReceiveBody importés depuis src/panels.
-  // Ce test est Red car oracle.ts a encore ces 2 imports.
+  // co-évolution vague 1 — Green depuis ae417bb.
+  // Régression guard : si un import src/panels réapparaît, ce test casse.
   const src = readFileSync(join(__dirname, 'oracle.ts'), 'utf8')
   assert.ok(
     !src.includes('src/panels'),
