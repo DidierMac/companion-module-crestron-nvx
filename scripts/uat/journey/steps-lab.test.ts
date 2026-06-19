@@ -31,7 +31,7 @@ function ctx(over: Partial<JourneyContext> = {}, nvxPass = ''): JourneyContext {
       readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
       captureBaseline: async () => {},
       captureBaselineRx: async () => {},
-      restore: async () => ({ skipped: false }),
+      restoreTx: async () => ({ skipped: false }),
       restoreRx: async () => ({ skipped: false }),
       setRxScenario: async () => {},
     } as never,
@@ -121,7 +121,7 @@ test('TEARDOWN FAILs (reports) when restore throws', async () => {
         oracle: {
           readStream0: async () => ({}),
           captureBaseline: async () => {},
-          restore: async () => {
+          restoreTx: async () => {
             throw new Error('device unreachable')
           },
         } as never,
@@ -151,7 +151,7 @@ test('CFG-GOOD FAILs when the oracle cannot read a stream', async () => {
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
           captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restore: async () => {},
+          restoreTx: async () => {},
           restoreRx: async () => {},
         } as never,
       },
@@ -243,7 +243,7 @@ test('CFG-GOOD — catégorie jamais good → AMBIGUOUS (connexion non établie)
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
           captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restore: async () => ({ skipped: false }),
+          restoreTx: async () => ({ skipped: false }),
           restoreRx: async () => ({ skipped: false }),
           setRxScenario: async () => {},
         } as never,
@@ -281,7 +281,7 @@ test('CFG-GOOD — good mais oracle échoue → FAIL (Q2: oracle-unreachable res
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
           captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restore: async () => ({ skipped: false }),
+          restoreTx: async () => ({ skipped: false }),
           restoreRx: async () => ({ skipped: false }),
           setRxScenario: async () => {},
         } as never,
@@ -377,7 +377,7 @@ test('TEARDOWN-RX FAILs when restoreRx throws', async () => {
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
           captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restore: async () => {},
+          restoreTx: async () => {},
           restoreRx: async () => {
             throw new Error('decoder unreachable')
           },
@@ -465,7 +465,7 @@ test('CFG-GOOD passes ctx.config.nvxUser (not "admin") to fillConfig', async () 
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
           captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restore: async () => {},
+          restoreTx: async () => {},
           restoreRx: async () => {},
         } as never,
         ui: {
@@ -618,7 +618,7 @@ test('TEARDOWN-RX reports "no baselineRx" honestly when restoreRx() signals no b
           readReceiveStream0: async () => ({}),
           captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restore: async () => ({ skipped: true }),
+          restoreTx: async () => ({ skipped: true }),
           restoreRx: async () => ({ skipped: true }),
         } as never,
       },
@@ -643,7 +643,7 @@ test('TEARDOWN reports "no baseline" honestly when restore() signals no baseline
         oracle: {
           readStream0: async () => ({}),
           captureBaseline: async () => {},
-          restore: async () => ({ skipped: true }),
+          restoreTx: async () => ({ skipped: true }),
           restoreRx: async () => ({ skipped: true }),
         } as never,
       },
@@ -818,7 +818,7 @@ test('verrou bout-en-bout: aucun step ne transmet username=admin quand nvxUser=d
       readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
       captureBaseline: async () => {},
       captureBaselineRx: async () => {},
-      restore: async () => ({ skipped: false }),
+      restoreTx: async () => ({ skipped: false }),
       restoreRx: async () => ({ skipped: false }),
       setRxScenario: async () => {},
     } as never,
