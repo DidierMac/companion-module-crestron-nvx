@@ -509,7 +509,7 @@ const teardownStep: JourneyStep = {
     const notes: string[] = []
     let ok = true
     try {
-      const r = await ctx.oracle.restore()
+      const r = await ctx.oracle.restoreTx()
       notes.push(r.skipped ? 'no baseline (SKIP capture) — nothing restored' : 'device restored')
     } catch (err) {
       ok = false

@@ -1,108 +1,148 @@
-import { streamTransmitBody } from '../../../src/panels/encoder.js'
-import { streamReceiveBody } from '../../../src/panels/decoder.js'
 import type { NvxApiClient } from '../../../src/api.js'
 
-/** Device ground-truth: reads Streams[0] directly from the NVX, captures a baseline, restores it.
- *  This is the oracle the journey verifies against — independent of Companion. */
+type Json = Record<string, unknown>
+type BuildBodiesFn = (subsystem: Json) => unknown[]
+
+// ── Local builder (découplé du code de production — cf. plan phase 3 vague 1) ──
+
+/** Construit { Device: { [subsystem]: { Streams: [props, …] } } } pour le stream à l'index donné.
+ *  Oracle utilise toujours index 0 — paramétre conservé pour alignement avec le plan. */
+function streamsSetBody(subsystem: 'StreamTransmit' | 'StreamReceive', index: number, props: Record<string, unknown>): unknown {
+  const streams = Array.from({ length: index + 1 }, (_, i) => (i === index ? props : {}))
+  return { Device: { [subsystem]: { Streams: streams } } }
+}
+
+// ── Builders privés (portent la logique de séquence restore — détenus par oracle en v1) ───
+
+/** Builder Tx : reproduit la séquence POST de l'ancien restore() pour StreamTransmit.
+ *  Reçoit Device.StreamTransmit (le subsystem complet), drill dans Streams[0].
+ *  Séquence : POST {RtspSessionName} si présent → POST {MulticastAddress} si présent → POST {Start|Stop}. */
+function txBuilder(subsystem: Json): unknown[] {
+  const b = (subsystem.Streams as Array<Json>)?.[0] ?? {}
+  const bodies: unknown[] = []
+  if (typeof b.RtspSessionName === 'string')
+    bodies.push(streamsSetBody('StreamTransmit', 0, { RtspSessionName: b.RtspSessionName }))
+  if (typeof b.MulticastAddress === 'string')
+    bodies.push(streamsSetBody('StreamTransmit', 0, { MulticastAddress: b.MulticastAddress }))
+  bodies.push(streamsSetBody('StreamTransmit', 0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
+  return bodies
+}
+
+/** Builder Rx : reproduit la séquence POST de l'ancien restoreRx() pour StreamReceive.
+ *  Reçoit Device.StreamReceive (le subsystem complet), drill dans Streams[0].
+ *  Séquence : POST {SessionInitiation + StreamLocation|MulticastAddress} → POST {Start|Stop}. */
+function rxBuilder(subsystem: Json): unknown[] {
+  const b = (subsystem.Streams as Array<Json>)?.[0] ?? {}
+  const bodies: unknown[] = []
+  if (typeof b.SessionInitiation === 'string') {
+    if (b.SessionInitiation === 'ByReceiver' && typeof b.StreamLocation === 'string')
+      bodies.push(streamsSetBody('StreamReceive', 0, { SessionInitiation: 'ByReceiver', StreamLocation: b.StreamLocation }))
+    else if (typeof b.MulticastAddress === 'string')
+      bodies.push(streamsSetBody('StreamReceive', 0, { SessionInitiation: b.SessionInitiation, MulticastAddress: b.MulticastAddress }))
+  }
+  bodies.push(streamsSetBody('StreamReceive', 0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
+  return bodies
+}
+
+/** Device ground-truth: lit les sous-systèmes NVX, capture des baselines, les restaure.
+ *  Oracle vérifié par les journeys — indépendant de Companion. */
 export class Oracle {
-  private baseline: Record<string, unknown> | null = null
-  private baselineRx: Record<string, unknown> | null = null
+  /** Map<endpoint, Device[lastSegment]> — baselines capturées, clés par endpoint. */
+  private snapshots: Map<string, Json> = new Map()
+
   constructor(private clientFactory: () => NvxApiClient) {}
 
-  /** Login + GET StreamTransmit Streams[0]. */
-  async readStream0(): Promise<Record<string, unknown>> {
+  // ── Noyau générique ────────────────────────────────────────────────────────
+
+  /** Login + GET endpoint, retourne Device[dernier-segment] BRUT (PAS Streams[0]).
+   *  Sentinel-safe : throw si Device[segment] est absent. logout() dans finally. */
+  async read(endpoint: string): Promise<Json> {
+    const segment = endpoint.split('/').pop() ?? endpoint
     const c = this.clientFactory()
     try {
       await c.login()
-      const json = (await c.get('/Device/StreamTransmit')) as {
-        Device?: { StreamTransmit?: { Streams?: Array<Record<string, unknown>> } }
-      }
-      const s = json.Device?.StreamTransmit?.Streams?.[0]
-      if (!s) throw new Error('Streams[0] absent')
-      return s
+      const json = (await c.get(endpoint)) as { Device?: Record<string, Json> }
+      const subsystem = json.Device?.[segment]
+      if (subsystem === undefined) throw new Error(`${segment} absent from Device response`)
+      return subsystem
     } finally {
       await c.logout().catch(() => {})
     }
   }
 
-  /** Login + GET StreamReceive Streams[0]. */
-  async readReceiveStream0(): Promise<Record<string, unknown>> {
+  /** Capture Device[dernier-segment] pour endpoint ; stocké avec endpoint comme clé. */
+  async snapshot(endpoint: string): Promise<void> {
+    const subsystem = await this.read(endpoint)
+    this.snapshots.set(endpoint, subsystem)
+  }
+
+  /** Poste buildBodies(baseline) dans l'ordre.
+   *  Retourne {skipped:true} si pas de snapshot pour cet endpoint. logout() dans finally. */
+  async restore(endpoint: string, buildBodies: BuildBodiesFn): Promise<{ skipped: boolean }> {
+    const baseline = this.snapshots.get(endpoint)
+    if (baseline === undefined) return { skipped: true }
     const c = this.clientFactory()
     try {
       await c.login()
-      const json = (await c.get('/Device/StreamReceive')) as {
-        Device?: { StreamReceive?: { Streams?: Array<Record<string, unknown>> } }
+      for (const body of buildBodies(baseline)) {
+        await c.postSetPartial(body)
       }
-      const s = json.Device?.StreamReceive?.Streams?.[0]
-      if (!s) throw new Error('StreamReceive Streams[0] absent')
-      return s
-    } finally {
-      await c.logout().catch(() => {})
-    }
-  }
-
-  async captureBaseline(): Promise<void> {
-    this.baseline = await this.readStream0()
-  }
-
-  /** Capture StreamReceive Streams[0] before decoder USE steps, for TEARDOWN restore. */
-  async captureBaselineRx(): Promise<void> {
-    this.baselineRx = await this.readReceiveStream0()
-  }
-
-  /** Restore name/multicast/state captured at baseline.
-   *  Returns { skipped: true } when no baseline was captured (no-op, nothing restored). */
-  async restore(): Promise<{ skipped: boolean }> {
-    if (!this.baseline) return { skipped: true }
-    const c = this.clientFactory()
-    try {
-      await c.login()
-      const b = this.baseline
-      if (typeof b.RtspSessionName === 'string')
-        await c.postSetPartial(streamTransmitBody(0, { RtspSessionName: b.RtspSessionName }))
-      if (typeof b.MulticastAddress === 'string')
-        await c.postSetPartial(streamTransmitBody(0, { MulticastAddress: b.MulticastAddress }))
-      await c.postSetPartial(streamTransmitBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
       return { skipped: false }
     } finally {
       await c.logout().catch(() => {})
     }
   }
 
+  // ── Wrappers legacy (v1 — cohabitent avec steps-lab non migré) ──────────────
+
+  /** Login + GET StreamTransmit Streams[0]. */
+  async readStream0(): Promise<Json> {
+    const subsystem = await this.read('/Device/StreamTransmit')
+    const s = (subsystem.Streams as Array<Json>)?.[0]
+    if (!s) throw new Error('Streams[0] absent')
+    return s
+  }
+
+  /** Login + GET StreamReceive Streams[0]. */
+  async readReceiveStream0(): Promise<Json> {
+    const subsystem = await this.read('/Device/StreamReceive')
+    const s = (subsystem.Streams as Array<Json>)?.[0]
+    if (!s) throw new Error('StreamReceive Streams[0] absent')
+    return s
+  }
+
+  /** = snapshot('/Device/StreamTransmit') */
+  async captureBaseline(): Promise<void> {
+    await this.snapshot('/Device/StreamTransmit')
+  }
+
+  /** = snapshot('/Device/StreamReceive') */
+  async captureBaselineRx(): Promise<void> {
+    await this.snapshot('/Device/StreamReceive')
+  }
+
+  /** = restore('/Device/StreamTransmit', txBuilder). Renommé depuis restore(). */
+  async restoreTx(): Promise<{ skipped: boolean }> {
+    return this.restore('/Device/StreamTransmit', txBuilder)
+  }
+
+  /** = restore('/Device/StreamReceive', rxBuilder) */
+  async restoreRx(): Promise<{ skipped: boolean }> {
+    return this.restore('/Device/StreamReceive', rxBuilder)
+  }
+
+  // ── Contrôle fake ─────────────────────────────────────────────────────────
+
   /**
-   * POST /_control/scenario to the fake device (no auth required by that route).
-   * Uses the oracle's client factory so certs are handled identically to reads.
-   * No-op if the target is a real device (the route doesn't exist → the call throws,
-   * which is intentional: callers should guard with a fake-only flag or let it FAIL).
+   * POST /_control/scenario au fake device (route sans auth).
+   * Utilise la clientFactory de l'oracle pour gérer les certs identiquement aux reads.
+   * No-op si la cible est un vrai device (route absente → throw intentionnel).
    */
   async setRxScenario(scenario: string): Promise<void> {
     const c = this.clientFactory()
     try {
       await c.login()
       await c.post('/_control/scenario', { role: 'rx', scenario })
-    } finally {
-      await c.logout().catch(() => {})
-    }
-  }
-
-  /** Restore StreamReceive source/state captured at baselineRx.
-   *  Returns { skipped: true } when no baselineRx was captured (no-op, nothing restored). */
-  async restoreRx(): Promise<{ skipped: boolean }> {
-    if (!this.baselineRx) return { skipped: true }
-    const c = this.clientFactory()
-    try {
-      await c.login()
-      const b = this.baselineRx
-      // Restore session initiation + coordinates
-      if (typeof b.SessionInitiation === 'string') {
-        if (b.SessionInitiation === 'ByReceiver' && typeof b.StreamLocation === 'string')
-          await c.postSetPartial(streamReceiveBody(0, { SessionInitiation: 'ByReceiver', StreamLocation: b.StreamLocation }))
-        else if (typeof b.MulticastAddress === 'string')
-          await c.postSetPartial(streamReceiveBody(0, { SessionInitiation: b.SessionInitiation, MulticastAddress: b.MulticastAddress }))
-      }
-      // Restore start/stop state
-      await c.postSetPartial(streamReceiveBody(0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
-      return { skipped: false }
     } finally {
       await c.logout().catch(() => {})
     }
