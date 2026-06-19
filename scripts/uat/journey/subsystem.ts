@@ -29,7 +29,7 @@ const POLL_DELAY_MS = 1000
 
 /** Overrides de titres pour préserver les titres legacy dans les journeys.
  *  Chaque clé remplace le titre par défaut du verdict correspondant.
- *  Non implémenté dans cette version — param ignoré (tests Red vague 2a décision A). */
+ *  Tous les champs sont optionnels : sans `titles`, le builder garde ses titres génériques. */
 export interface IssueTitles {
   step?: string
   pass?: string
@@ -202,17 +202,20 @@ export function buildCapStep(
   spec: SubsystemSpec,
   meta: { id: string; title: string; titles?: IssueTitles },
 ): JourneyStep {
-  const { id, title } = meta
+  const { id } = meta
+  const t = meta.titles
+  const title = meta.title  // bare title pour les titres dérivés par défaut
   return {
     id,
-    title,
+    title: t?.step ?? title,
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
+      if (noDevice(ctx))
+        return skip(id, t?.noDevice ?? `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
       const role = await readVar(ctx, 'device_role', (v) => v === spec.role)
       return role === spec.role
-        ? pass(id, title, 1, { note: `device_role=${role}` })
-        : skip(id, `${title} (device is not a ${spec.role})`, 1, { note: `device_role=${role}` })
+        ? pass(id, t?.pass ?? title, 1, { note: `device_role=${role}` })
+        : skip(id, t?.skipRole ?? `${title} (device is not a ${spec.role})`, 1, { note: `device_role=${role}` })
     },
   }
 }
@@ -230,16 +233,19 @@ export function buildVarsStep(
   spec: SubsystemSpec,
   meta: { id: string; title: string; titles?: IssueTitles },
 ): JourneyStep {
-  const { id, title } = meta
+  const { id } = meta
+  const t = meta.titles
+  const title = meta.title
   return {
     id,
-    title,
+    title: t?.step ?? title,
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
+      if (noDevice(ctx))
+        return skip(id, t?.noDevice ?? `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
       const role = await readVar(ctx, 'device_role')
       if (role !== spec.role)
-        return skip(id, `${title} (device is not a ${spec.role})`, 1, { note: `device_role=${role}` })
+        return skip(id, t?.skipRole ?? `${title} (device is not a ${spec.role})`, 1, { note: `device_role=${role}` })
 
       // Lecture oracle unique — le subsystem est capturé une seule fois pour toutes les VarChecks.
       const subsystem = await ctx.oracle.read(spec.endpoint)
@@ -259,8 +265,8 @@ export function buildVarsStep(
       }
 
       return Object.keys(mismatches).length === 0
-        ? pass(id, title, 1, { note: `${total}/${total} match` })
-        : fail(id, title, 1, { observed: mismatches })
+        ? pass(id, t?.pass ?? title, 1, { note: `${total}/${total} match` })
+        : fail(id, t?.fail ?? title, 1, { observed: mismatches })
     },
   }
 }
@@ -268,33 +274,42 @@ export function buildVarsStep(
 /**
  * Crée un step BASELINE générique (oracle.snapshot, role-gardé).
  *
- * ⚠️ Asymétrie de note SKIP : paramètre `skipNote` pour préserver les wordings
- * actuels des steps BASELINE (Tx, ajoute "— StreamTransmit absent on Receiver")
- * et BASELINE-RX (Rx, pas de suffixe). Omis → note = "device_role=${role}".
+ * Note SKIP par défaut : `device_role=${role} — ${segment} absent on ${role}`
+ * (où segment = dernier segment de spec.endpoint), ce qui préserve le wording
+ * "— StreamTransmit absent on Receiver" sans le passer explicitement.
+ * Passer `skipNote` override ce défaut (ex: BASELINE-RX = pas de suffixe).
+ *
+ * `passNote` override la note PASS (asymétrie Tx 'stored for TEARDOWN restore'
+ * vs Rx 'stored for TEARDOWN-RX restore').
  */
 export function buildBaselineStep(
   spec: SubsystemSpec,
   meta: { id: string; title: string; skipNote?: string; passNote?: string; titles?: IssueTitles },
 ): JourneyStep {
-  const { id, title } = meta
+  const { id } = meta
+  const t = meta.titles
+  const title = meta.title
+  const segment = spec.endpoint.split('/').pop() ?? spec.endpoint
+  const notePass = meta.passNote ?? 'stored for TEARDOWN restore'
   return {
     id,
-    title,
+    title: t?.step ?? title,
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
+      if (noDevice(ctx))
+        return skip(id, t?.noDevice ?? `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
       const role = await readVar(ctx, 'device_role')
       if (role !== spec.role) {
         const noteSkip = meta.skipNote
           ? `device_role=${role} ${meta.skipNote}`
-          : `device_role=${role}`
-        return skip(id, `${title} (device is not a ${spec.role})`, 1, { note: noteSkip })
+          : `device_role=${role} — ${segment} absent on ${role}`
+        return skip(id, t?.skipRole ?? `${title} (device is not a ${spec.role})`, 1, { note: noteSkip })
       }
       try {
         await ctx.oracle.snapshot(spec.endpoint)
-        return pass(id, title, 1, { note: 'stored for TEARDOWN restore' })
+        return pass(id, t?.pass ?? title, 1, { note: notePass })
       } catch (err) {
-        return fail(id, title, 1, { note: msg(err) })
+        return fail(id, t?.fail ?? title, 1, { note: msg(err) })
       }
     },
   }
@@ -322,47 +337,51 @@ export function buildTeardownStep(
     titles?: IssueTitles
   },
 ): JourneyStep {
-  const { id, title, disableConnection = false } = meta
+  const { id, disableConnection = false } = meta
+  const t = meta.titles
+  const title = meta.title
   const restoredNote = meta.restoredNote ?? 'baseline re-applied'
   const skippedNote = meta.skippedNote ?? 'no baseline (SKIP capture) — not applied'
   const failNote = meta.failNote ?? 'restore failed'
 
   return {
     id,
-    title,
+    title: t?.step ?? title,
     scope: 'lab',
     run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
-
-      const notes: string[] = []
-      let ok = true
+      if (noDevice(ctx))
+        return skip(id, t?.noDevice ?? `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
 
       // Restauration via oracle.restore générique
+      // evidence.note = restore note seul (pas joint avec 'connection disabled' — cf. tests §9)
+      let note: string
+      let ok = true
+
       try {
         const r = await ctx.oracle.restore(spec.endpoint, spec.buildBodies)
-        notes.push(r.skipped ? skippedNote : restoredNote)
+        note = r.skipped ? skippedNote : restoredNote
       } catch (err) {
         ok = false
-        notes.push(`${failNote}: ${msg(err)}`)
+        note = `${failNote}: ${msg(err)}`
       }
 
-      // Désactivation conditionnelle de la connexion Companion (TEARDOWN Tx seulement)
-      if (disableConnection) {
+      // Désactivation conditionnelle (seulement si restore a réussi)
+      if (ok && disableConnection) {
         const connId = await ctx.http.findConnectionId(ctx.config.label)
         if (connId) {
           try {
             await ctx.http.disable(connId)
-            notes.push('connection disabled')
+            // note inchangée — disable success est silencieux dans le rapport
           } catch (err) {
             ok = false
-            notes.push(`disable failed: ${msg(err)}`)
+            note = `${note}; disable failed: ${msg(err)}`
           }
         }
       }
 
       return ok
-        ? pass(id, `${title} complete`, 1, { note: notes.join('; ') })
-        : fail(id, `${title} incomplete`, 1, { note: notes.join('; ') })
+        ? pass(id, t?.pass ?? `${title} complete`, 1, { note })
+        : fail(id, t?.fail ?? `${title} incomplete`, 1, { note })
     },
   }
 }
