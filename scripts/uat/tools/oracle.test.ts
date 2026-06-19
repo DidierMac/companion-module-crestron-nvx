@@ -1,5 +1,5 @@
 /**
- * oracle.test.ts — co-évolution vague 2b — Tx wrappers supprimés
+ * oracle.test.ts — co-évolution vague 2c — Rx wrappers supprimés
  *
  * Contrat de l'API oracle (implémentée) :
  *   read(endpoint)                  → Device[lastSegment] brut  (PAS Streams[0])
@@ -7,20 +7,14 @@
  *   restore(endpoint, buildBodies)  → poste buildBodies(subsystem) dans l'ordre
  *   setRxScenario(scenario)         → inchangé
  *
- * Wrappers legacy Rx (v1 — supprimés en 2c) :
- *   readReceiveStream0()= read('/Device/StreamReceive').Streams[0]
- *   captureBaselineRx() = snapshot('/Device/StreamReceive')
- *   restoreRx()         = restore('/Device/StreamReceive', rxBuilder)
- *
  * Invariants comportementaux :
- *   Rx  — restoreRx rejoue  {SessionInitiation + URL|Multicast} → {Start|Stop}
- *   {skipped:true} sans snapshot/captureBaselineRx, {skipped:false} avec
+ *   {skipped:true} sans snapshot préalable, {skipped:false} avec
  *   logout() dans finally après chaque méthode
  *
  * Invariant architectural :
  *   aucun import de src/panels dans oracle.ts (test d'architecture)
  *
- * Aucun test Red restant dans ce fichier (guard builders M-2 retiré avec les wrappers Tx).
+ * Aucun test Red restant dans ce fichier (tous les wrappers legacy supprimés en 2b+2c).
  */
 
 import { test } from 'node:test'
@@ -402,48 +396,6 @@ test('deux snapshots indépendants — Tx et Rx isolés par clé endpoint', asyn
     rxPosted.some(b => JSON.stringify(b).includes('239.99.0.1')),
     'restore Rx doit rejouer le snapshot Rx (MulticastAddress 239.99.0.1)',
   )
-})
-
-// ══════════════════════════════════════════════════════════════════════════════
-// Section 5 — Wrappers legacy Rx (Tx supprimés en 2b, Rx supprimés en 2c)
-// ══════════════════════════════════════════════════════════════════════════════
-
-test('readReceiveStream0() retourne Streams[0] de StreamReceive', async () => {
-  const o = new Oracle(() => makeRxClient({ SessionInitiation: 'ByReceiver', Status: 'Stream started' }))
-  const s = await o.readReceiveStream0()
-  assert.equal(s.SessionInitiation, 'ByReceiver', 'readReceiveStream0 doit retourner Streams[0]')
-})
-
-// I-1 : chemin d'erreur wrapper Rx — Streams absent ou vide
-test('readReceiveStream0() throw quand StreamReceive Streams est vide', async () => {
-  const client = {
-    login: async () => {},
-    logout: async () => {},
-    get: async () => ({ Device: { StreamReceive: { Streams: [] } } }),
-    postSetPartial: async () => 0,
-    post: async () => ({}),
-  } as unknown as NvxApiClient
-  const o = new Oracle(() => client)
-  await assert.rejects(() => o.readReceiveStream0(), /StreamReceive Streams\[0\] absent/)
-})
-
-test('captureBaselineRx() + restoreRx() — rejoue le multicast capturé', async () => {
-  // captureBaselineRx() = snapshot('/Device/StreamReceive')
-  // restoreRx()         = restore('/Device/StreamReceive', rxBuilder)
-  const posted: unknown[] = []
-  const o = new Oracle(() => makeRxClient(
-    { SessionInitiation: 'Multicast via RTSP', MulticastAddress: '239.0.0.4', Status: 'Stream Stopped' },
-    posted,
-  ))
-  await o.captureBaselineRx()
-  await o.restoreRx()
-  assert.ok(posted.some(b => JSON.stringify(b).includes('239.0.0.4')), 'restoreRx doit rejouer le multicast capturé')
-})
-
-test('restoreRx() — {skipped:true} sans captureBaselineRx préalable', async () => {
-  const o = new Oracle(() => makeRxClient({}))
-  const result = await o.restoreRx()
-  assert.deepEqual(result, { skipped: true })
 })
 
 // ══════════════════════════════════════════════════════════════════════════════
