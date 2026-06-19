@@ -617,6 +617,28 @@ test('buildBaselineStep — oracle.snapshot() throws → FAIL', async () => {
   assert.equal(v.status, 'FAIL')
 })
 
+test('buildBaselineStep — note SKIP rôle NUE quand skipNote absent (comportement Rx legacy)', async () => {
+  // Sans skipNote, le note du SKIP-role doit être NUE : "device_role=${role}" (pas de suffixe).
+  // Comportement BASELINE-RX : pas de suffixe — juste la note de rôle.
+  // Red si l'implémentation dérive un suffixe depuis spec.endpoint.
+  const step = buildBaselineStep(rxSpec, { id: 'BASELINE-RX', title: 'baseline rx' })
+  const v = await step.run(makeCtx({ role: 'Transmitter' }))
+  assert.equal(v.status, 'SKIP')
+  assert.equal(v.evidence.note, 'device_role=Transmitter',
+    'note SKIP doit être NUE (pas "— StreamReceive absent on Transmitter") quand skipNote absent')
+})
+
+test('buildBaselineStep — note SKIP rôle = device_role+skipNote quand skipNote fourni (comportement Tx legacy)', async () => {
+  // Avec skipNote fourni, le note est COMPOSITE : "device_role=${role} ${skipNote}".
+  // Comportement BASELINE Tx : skipNote='— StreamTransmit absent on Receiver'.
+  const skipNote = '— StreamTransmit absent on Receiver'
+  const step = buildBaselineStep(txSpec, { id: 'BASELINE', title: 'baseline', skipNote })
+  const v = await step.run(makeCtx({ role: 'Receiver' }))
+  assert.equal(v.status, 'SKIP')
+  assert.equal(v.evidence.note, `device_role=Receiver ${skipNote}`,
+    'note SKIP doit être composite (device_role + skipNote) quand skipNote fourni')
+})
+
 // ══════════════════════════════════════════════════════════════════════════════
 // Section 8 — buildTeardownStep
 // ══════════════════════════════════════════════════════════════════════════════
@@ -687,6 +709,28 @@ test('buildTeardownStep — disableConnection:false → http.disable PAS appelé
   }))
   assert.equal(v.status, 'PASS')
   assert.ok(!disableCalled, 'http.disable ne doit PAS être appelé si disableConnection:false')
+})
+
+test('buildTeardownStep — restore échoue + disableConnection:true → disable tenté INCONDITIONNELLEMENT (legacy)', async () => {
+  // Comportement legacy (steps-lab.ts l.509-530) : le disable est INCONDITIONNEL.
+  // Même si oracle.restore() throw, http.disable doit être appelé ET la note doit être composite.
+  // Red si l'implémentation conditionne sur `if (ok && disableConnection)`.
+  let disableCalled = false
+  const failNote = 'restore failed'
+  const step = buildTeardownStep(txSpec, {
+    id: 'TEARDOWN',
+    title: 'teardown',
+    disableConnection: true,
+    failNote,
+  })
+  const v = await step.run(makeCtx({
+    oracleRestore: async () => { throw new Error('device unreachable') },
+    disable: async () => { disableCalled = true },
+  }))
+  assert.equal(v.status, 'FAIL', 'statut FAIL quand restore échoue')
+  assert.ok(disableCalled, 'http.disable doit être tenté MEME si restore échoue (disable inconditionnel)')
+  assert.match(String(v.evidence.note ?? ''), /^restore failed: .*; connection disabled$/,
+    'note composite : restore failed → ; connection disabled (même en cas d\'échec restore)')
 })
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -851,7 +895,7 @@ test('buildBaselineStep Tx — titres + passNote + skipNote legacy EXACTS (Red d
   }
   const passNote = 'stored for TEARDOWN restore'
   const skipNote = '— StreamTransmit absent on Receiver'
-  const step = buildBaselineStep(txSpec, { id: 'BASELINE', title: titles.step, passNote, titles })
+  const step = buildBaselineStep(txSpec, { id: 'BASELINE', title: titles.step, passNote, skipNote, titles })
 
   assert.equal(step.title, titles.step)
 
@@ -860,8 +904,9 @@ test('buildBaselineStep Tx — titres + passNote + skipNote legacy EXACTS (Red d
 
   const vSkipRole = await step.run(makeCtx({ role: 'Receiver' }))
   assert.equal(vSkipRole.title, titles.skipRole)
-  // skipNote Tx : la note doit contenir le suffixe attendu
-  assert.match(String(vSkipRole.evidence.note ?? ''), new RegExp(skipNote.replace(/[()[\]]/g, '\\$&')))
+  // skipNote Tx : note COMPOSITE exacte = "device_role=Receiver <skipNote>"
+  assert.equal(vSkipRole.evidence.note, `device_role=Receiver ${skipNote}`,
+    'note SKIP Tx doit être composite exacte : device_role=Receiver — StreamTransmit absent on Receiver')
 
   const vPass = await step.run(makeCtx({
     role: 'Transmitter',
@@ -897,6 +942,9 @@ test('buildBaselineStep Rx — titres + passNote legacy EXACTS (Red décision A)
 
   const vSkipRole = await step.run(makeCtx({ role: 'Transmitter' }))
   assert.equal(vSkipRole.title, titles.skipRole)
+  // Baseline Rx : sans skipNote → note NUE (pas de suffixe)
+  assert.equal(vSkipRole.evidence.note, 'device_role=Transmitter',
+    'note SKIP Rx doit être NUE : "device_role=Transmitter" (pas de suffixe endpoint)')
 
   const vPass = await step.run(makeCtx({
     role: 'Receiver',
@@ -943,19 +991,24 @@ test('buildTeardownStep Tx — titres + notes legacy EXACTS (Red décision A)', 
     oracleRestore: async () => ({ skipped: false }),
   }))
   assert.equal(vPassRestored.title, titles.pass)
-  assert.equal(vPassRestored.evidence.note, restoredNote, 'restoredNote doit être dans evidence.note quand skipped=false')
+  // Comportement legacy : note COMPOSITE quand disableConnection=true et disable réussit
+  assert.equal(vPassRestored.evidence.note, `${restoredNote}; connection disabled`,
+    'note PASS restore = restoredNote + "; connection disabled" (disable inconditionnel)')
 
   const vPassSkipped = await step.run(makeCtx({
     oracleRestore: async () => ({ skipped: true }),
   }))
   assert.equal(vPassSkipped.title, titles.pass)
-  assert.equal(vPassSkipped.evidence.note, skippedNote, 'skippedNote doit être dans evidence.note quand skipped=true')
+  assert.equal(vPassSkipped.evidence.note, `${skippedNote}; connection disabled`,
+    'note PASS skipped = skippedNote + "; connection disabled" (disable inconditionnel)')
 
   const vFail = await step.run(makeCtx({
     oracleRestore: async () => { throw new Error('device unreachable') },
   }))
   assert.equal(vFail.title, titles.fail)
-  assert.match(String(vFail.evidence.note ?? ''), new RegExp(`^${failNote}:`), `evidence.note doit commencer par "${failNote}:"`)
+  // restore échoue + disable tenté quand même → note composite avec les deux
+  assert.match(String(vFail.evidence.note ?? ''), /^restore failed: .*; connection disabled$/,
+    'note FAIL = "restore failed: <msg>; connection disabled" (disable inconditionnel même en échec restore)')
 })
 
 // ── TEARDOWN Rx ──────────────────────────────────────────────────────────────
