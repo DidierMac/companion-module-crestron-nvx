@@ -1,16 +1,8 @@
 import type { NvxApiClient } from '../../../src/api.js'
+import { streamsSetBody } from '../journey/subsystems/streams-body.js'
 
 type Json = Record<string, unknown>
 type BuildBodiesFn = (subsystem: Json) => unknown[]
-
-// ── Local builder (découplé du code de production — cf. plan phase 3 vague 1) ──
-
-/** Construit { Device: { [subsystem]: { Streams: [props, …] } } } pour le stream à l'index donné.
- *  Oracle utilise toujours index 0 — paramétre conservé pour alignement avec le plan. */
-function streamsSetBody(subsystem: 'StreamTransmit' | 'StreamReceive', index: number, props: Record<string, unknown>): unknown {
-  const streams = Array.from({ length: index + 1 }, (_, i) => (i === index ? props : {}))
-  return { Device: { [subsystem]: { Streams: streams } } }
-}
 
 // ── Builders privés (portent la logique de séquence restore — détenus par oracle en v1) ───
 
