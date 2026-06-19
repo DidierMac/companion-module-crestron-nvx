@@ -39,3 +39,16 @@ test('mergeVerdicts ignores LLM entries with no matching id', () => {
   assert.equal(merged.length, 1)
   assert.equal(merged[0].status, 'FAIL')
 })
+
+test('buildEscalationPrompt inclut les cas AMBIGUOUS et demande un JSON', () => {
+  const packet: EscalationPacket = {
+    version: 'v0.4', startedAt: '2026-06-18T00:00:00.000Z',
+    cases: [
+      { id: 'CFG-NOPASS', title: 'empty password → BadConfig', tier: 1 as const, status: 'AMBIGUOUS' as const, evidence: { note: 'cause non observée' } },
+    ],
+  }
+  const prompt = buildEscalationPrompt(packet)
+  assert.match(prompt, /CFG-NOPASS/)
+  assert.match(prompt, /current: AMBIGUOUS/)
+  assert.match(prompt, /Reply as JSON/)
+})

@@ -1,7 +1,8 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { writeRun, resolveRunDir } from '../lib/report.js'
+import { writeRun, resolveRunDir, renderEscalation } from '../lib/report.js'
+import { buildEscalationPrompt } from '../lib/escalate.js'
 import type { RunResult, HarnessConfig } from '../lib/case.js'
 import type { Verdict } from '../lib/verdict.js'
 import { CompanionHttp } from '../tools/companion-http.js'
@@ -172,6 +173,18 @@ async function main(): Promise<void> {
   const moduleTag = deriveModule(env)
   const dir = resolveRunDir('docs/uat-runs', startedAt.slice(0, 10), moduleTag)
   writeRun(dir, run)
+
+  // Escalade (glue pure — adjudication manuelle) : si des cas sont escaladés, produire le
+  // prompt prêt à l'emploi pour l'agent uat-runner. AUCUN appel LLM in-process.
+  const packet = renderEscalation(run)
+  if (packet.cases.length > 0) {
+    writeFileSync(path.join(dir, 'escalation-prompt.md'), buildEscalationPrompt(packet), 'utf8')
+    console.log(
+      `UAT escalade : ${packet.cases.length} cas (FAIL/AMBIGUOUS/HUMAN). ` +
+        `Adjudication : lancer l'agent uat-runner sur ${path.join(dir, 'escalation-prompt.md')}, ` +
+        `puis 'npm run uat:adjudicate -- ${dir} <llm-verdicts.json>'.`,
+    )
+  }
 
   if (!keep) await removeConnection(ctx)
 
