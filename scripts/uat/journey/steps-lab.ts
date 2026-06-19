@@ -2,6 +2,8 @@ import { pass, fail, skip, ambiguous } from '../lib/verdict.js'
 import type { Verdict } from '../lib/verdict.js'
 import type { JourneyStep, JourneyContext } from './types.js'
 import { HttpError } from '../tools/companion-http.js'
+import { buildCapStep, buildVarsStep, buildBaselineStep, buildTeardownStep, buildWriteStep } from './subsystem.js'
+import { encoderSpec } from './subsystems/encoder.js'
 
 // A deliberately wrong password — never the real one, no secret handling.
 const WRONG_PASSWORD = 'uat-deliberately-wrong-pw'
@@ -77,10 +79,6 @@ async function readVar(
   return value
 }
 
-// Known test values the SETUP buttons must be configured to set (so the oracle can verify).
-const UAT_STREAM_NAME = 'UAT-STREAM'
-const UAT_MULTICAST = '239.200.0.1'
-
 // Receiver-side test values (sourced from DiscoveredStreams in docs/hardware-validation/raw/192.168.2.9).
 const UAT_RX_URL = 'rtsp://192.168.2.10:554/live.sdp'
 const UAT_RX_MULTICAST = '239.1.1.4'
@@ -92,20 +90,6 @@ async function pressMapped(ctx: JourneyContext, actionKey: string): Promise<bool
   if (!loc) return false
   await ctx.http.press(loc.page, loc.row, loc.col)
   return true
-}
-
-/** Poll the device (oracle) until `pred(Streams[0])` holds, returning the last snapshot. */
-async function pollOracle(
-  ctx: JourneyContext,
-  pred: (s: Record<string, unknown>) => boolean,
-): Promise<{ ok: boolean; snapshot: Record<string, unknown> | null }> {
-  let snapshot: Record<string, unknown> | null = null
-  for (let i = 0; i < POLL_ATTEMPTS; i++) {
-    snapshot = await ctx.oracle.readStream0()
-    if (pred(snapshot)) return { ok: true, snapshot }
-    await ctx.sleep(POLL_DELAY_MS)
-  }
-  return { ok: false, snapshot }
 }
 
 /**
@@ -164,32 +148,6 @@ async function pollOracleRx(
   return { ok: false, snapshot }
 }
 
-/** A WRITE step: press an action button, then confirm the device changed via the oracle. */
-function writeStep(
-  id: string,
-  title: string,
-  actionKey: string,
-  pred: (s: Record<string, unknown>) => boolean,
-  expected: unknown,
-): JourneyStep {
-  return {
-    id,
-    title,
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
-      const role = await readVar(ctx, 'device_role')
-      if (role !== 'Transmitter') return skip(id, `${title} (device is not a Transmitter)`, 1, { note: `device_role=${role}` })
-      if (!(await pressMapped(ctx, actionKey)))
-        return skip(id, `${title} (button unmapped)`, 1, { note: `button '${actionKey}' not in layout — see SETUP` })
-      const r = await pollOracle(ctx, pred)
-      return r.ok
-        ? pass(id, title, 1, { deviceJson: r.snapshot, note: 'device changed as expected' })
-        : fail(id, title, 1, { expected, observed: r.snapshot })
-    },
-  }
-}
-
 /** A WRITE step targeting StreamReceive: press a button, confirm via StreamReceive oracle. */
 function writeStepRx(
   id: string,
@@ -217,42 +175,27 @@ function writeStepRx(
 }
 
 const useSteps: JourneyStep[] = [
-  {
+  buildCapStep(encoderSpec, {
     id: 'CAP',
     title: 'encoder panel active (device_role = Transmitter)',
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip('CAP', 'capability (no device)', 1, { note: 'NVX_PASS unset' })
-      const role = await readVar(ctx, 'device_role', (v) => v === 'Transmitter')
-      return role === 'Transmitter'
-        ? pass('CAP', 'encoder panel active (role=Transmitter)', 1, { note: `device_role=${role}` })
-        : skip('CAP', 'encoder journey (device is not a Transmitter)', 1, { note: `device_role=${role}` })
+    titles: {
+      step: 'encoder panel active (device_role = Transmitter)',
+      pass: 'encoder panel active (role=Transmitter)',
+      skipRole: 'encoder journey (device is not a Transmitter)',
+      noDevice: 'capability (no device)',
     },
-  },
-  {
+  }),
+  buildVarsStep(encoderSpec, {
     id: 'ENC-VARS',
     title: 'encoder variables (REST) == device (oracle)',
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip('ENC-VARS', 'variables (no device)', 1, { note: 'NVX_PASS unset' })
-      const role = await readVar(ctx, 'device_role')
-      if (role !== 'Transmitter') return skip('ENC-VARS', 'encoder vars (device is not a Transmitter)', 1, { note: `device_role=${role}` })
-      const s = await ctx.oracle.readStream0()
-      const checks: Record<string, [string, string]> = {
-        // wait for the panel to have polled at least once (tx_stream_name populated), then read all
-        tx_stream_name: [await readVar(ctx, 'tx_stream_name', (v) => v !== ''), str(s.RtspSessionName)],
-        tx_multicast_address: [await readVar(ctx, 'tx_multicast_address'), str(s.MulticastAddress)],
-        tx_stream_url: [await readVar(ctx, 'tx_stream_url'), str(s.StreamLocation)],
-        tx_enabled: [await readVar(ctx, 'tx_enabled'), String(str(s.Status) === 'Stream started')],
-      }
-      const mismatches = Object.entries(checks).filter(([, [a, b]]) => a !== b)
-      return mismatches.length === 0
-        ? pass('ENC-VARS', 'companion variables == device', 1, { note: `${Object.keys(checks).length}/4 match` })
-        : fail('ENC-VARS', 'variable/device mismatch', 1, {
-            observed: Object.fromEntries(mismatches.map(([k, [a, b]]) => [k, { companion: a, device: b }])),
-          })
+    titles: {
+      step: 'encoder variables (REST) == device (oracle)',
+      pass: 'companion variables == device',
+      fail: 'variable/device mismatch',
+      skipRole: 'encoder vars (device is not a Transmitter)',
+      noDevice: 'variables (no device)',
     },
-  },
+  }),
   {
     id: 'ENC-FEEDBACKS',
     title: 'stream_enabled feedback source matches device',
@@ -263,17 +206,15 @@ const useSteps: JourneyStep[] = [
       if (role !== 'Transmitter') return skip('ENC-FEEDBACKS', 'encoder feedbacks (device is not a Transmitter)', 1, { note: `device_role=${role}` })
       // Satellite colour check deferred (spec §8); validate the variable that drives the feedback.
       const varVal = await readVar(ctx, 'tx_enabled', (v) => v !== '')
-      const s = await ctx.oracle.readStream0()
+      const subsystem = await ctx.oracle.read('/Device/StreamTransmit')
+      const s = encoderSpec.extract(subsystem)
       const deviceVal = String(str(s.Status) === 'Stream started')
       return varVal === deviceVal
         ? pass('ENC-FEEDBACKS', 'feedback source matches device', 1, { note: `tx_enabled=${varVal}` })
         : fail('ENC-FEEDBACKS', 'feedback source mismatch', 1, { expected: deviceVal, observed: varVal })
     },
   },
-  writeStep('ENC-NAME', 'set stream name → device', 'set_stream_name', (s) => str(s.RtspSessionName) === UAT_STREAM_NAME, { RtspSessionName: UAT_STREAM_NAME }),
-  writeStep('ENC-MULTICAST', 'set multicast address → device', 'set_multicast_address', (s) => str(s.MulticastAddress) === UAT_MULTICAST, { MulticastAddress: UAT_MULTICAST }),
-  writeStep('ENC-ENABLE', 'start stream → device', 'enc_enable_stream', (s) => str(s.Status) === 'Stream started', { Status: 'Stream started' }),
-  writeStep('ENC-DISABLE', 'stop stream → device', 'enc_disable_stream', (s) => str(s.Status) !== 'Stream started', { Status: 'not started' }),
+  ...encoderSpec.writes.map((wc) => buildWriteStep(encoderSpec, wc)),
 ]
 
 /** Steps testing the decoder (StreamReceive) — only active on a Receiver device. */
@@ -450,11 +391,11 @@ const authSteps: JourneyStep[] = [
       // REST category for a healthy connection is 'good' (the UI label is "OK") — verified live.
       const category = await pollStatusCategory(ctx, connId, 'good')
 
-      // Independent proof of a real session: the oracle logs in and reads Streams[0].
+      // Independent proof of a real session: the oracle logs in and reads StreamTransmit.
       let oracleOk = false
       let oracleErr: string | undefined
       try {
-        await ctx.oracle.readStream0()
+        await ctx.oracle.read('/Device/StreamTransmit')
         oracleOk = true
       } catch (err) {
         oracleErr = err instanceof Error ? err.message : String(err)
@@ -464,13 +405,13 @@ const authSteps: JourneyStep[] = [
       }
       if (category !== 'good') {
         return ambiguous('CFG-GOOD', 'connected (oracle confirms session)', 1, {
-          expected: { category: 'good', oracle: 'readStream0 succeeds' },
+          expected: { category: 'good', oracle: 'oracle.read(/Device/StreamTransmit) succeeds' },
           observed: { category, oracleOk, oracleErr },
           note: 'connexion jamais saine — non concluant (env/UI), session non testable',
         })
       }
       return fail('CFG-GOOD', 'connected (oracle confirms session)', 1, {
-        expected: { category: 'good', oracle: 'readStream0 succeeds' },
+        expected: { category: 'good', oracle: 'oracle.read(/Device/StreamTransmit) succeeds' },
         observed: { category, oracleOk, oracleErr },
       })
     },
@@ -480,56 +421,35 @@ const authSteps: JourneyStep[] = [
 const msg = (err: unknown): string => (err instanceof Error ? err.message : String(err))
 
 /** Capture the device's pre-USE state so TEARDOWN can restore it.
- *  SKIP on a Receiver: captureBaseline reads StreamTransmit which is absent on Receiver devices. */
-const baselineStep: JourneyStep = {
+ *  SKIP on a Receiver: StreamTransmit is absent on Receiver devices. */
+const baselineStep = buildBaselineStep(encoderSpec, {
   id: 'BASELINE',
   title: 'capture device baseline (Streams[0])',
-  scope: 'lab',
-  run: async (ctx): Promise<Verdict> => {
-    if (noDevice(ctx)) return skip('BASELINE', 'baseline (no device)', 1, { note: 'NVX_PASS unset' })
-    const role = await readVar(ctx, 'device_role')
-    if (role !== 'Transmitter') return skip('BASELINE', 'baseline (device is not a Transmitter)', 1, { note: `device_role=${role} — StreamTransmit absent on Receiver` })
-    try {
-      await ctx.oracle.captureBaseline()
-      return pass('BASELINE', 'baseline captured', 1, { note: 'stored for TEARDOWN restore' })
-    } catch (err) {
-      return fail('BASELINE', 'baseline capture failed', 1, { note: msg(err) })
-    }
+  skipNote: '— StreamTransmit absent on Receiver',
+  passNote: 'stored for TEARDOWN restore',
+  titles: {
+    noDevice: 'baseline (no device)',
+    skipRole: 'baseline (device is not a Transmitter)',
+    pass: 'baseline captured',
+    fail: 'baseline capture failed',
   },
-}
+})
 
 /** Restore the device to baseline and disable the test connection (best-effort, reported).
  *  Uses restore()'s return value to report honestly whether a baseline was actually applied. */
-const teardownStep: JourneyStep = {
+const teardownStep = buildTeardownStep(encoderSpec, {
   id: 'TEARDOWN',
   title: 'restore device + disable connection',
-  scope: 'lab',
-  run: async (ctx): Promise<Verdict> => {
-    if (noDevice(ctx)) return skip('TEARDOWN', 'teardown (no device)', 1, { note: 'NVX_PASS unset' })
-    const notes: string[] = []
-    let ok = true
-    try {
-      const r = await ctx.oracle.restoreTx()
-      notes.push(r.skipped ? 'no baseline (SKIP capture) — nothing restored' : 'device restored')
-    } catch (err) {
-      ok = false
-      notes.push(`restore failed: ${msg(err)}`)
-    }
-    const connId = await ctx.http.findConnectionId(ctx.config.label)
-    if (connId) {
-      try {
-        await ctx.http.disable(connId)
-        notes.push('connection disabled')
-      } catch (err) {
-        ok = false
-        notes.push(`disable failed: ${msg(err)}`)
-      }
-    }
-    return ok
-      ? pass('TEARDOWN', 'teardown complete', 1, { note: notes.join('; ') })
-      : fail('TEARDOWN', 'teardown incomplete', 1, { note: notes.join('; ') })
+  disableConnection: true,
+  restoredNote: 'device restored',
+  skippedNote: 'no baseline (SKIP capture) — nothing restored',
+  failNote: 'restore failed',
+  titles: {
+    noDevice: 'teardown (no device)',
+    pass: 'teardown complete',
+    fail: 'teardown incomplete',
   },
-}
+})
 
 // Journey order: auth gauntlet → baseline → USE (v0.2 encoder) → decoder USE → teardown.
 export const labSteps: JourneyStep[] = [...authSteps, baselineStep, ...useSteps, ...decoderUseSteps, teardownStep]

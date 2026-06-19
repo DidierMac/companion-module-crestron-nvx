@@ -6,21 +6,6 @@ type BuildBodiesFn = (subsystem: Json) => unknown[]
 
 // ── Builders privés (portent la logique de séquence restore — détenus par oracle en v1) ───
 
-/** Builder Tx : reproduit la séquence POST de l'ancien restore() pour StreamTransmit.
- *  Reçoit Device.StreamTransmit (le subsystem complet), drill dans Streams[0].
- *  Séquence : POST {RtspSessionName} si présent → POST {MulticastAddress} si présent → POST {Start|Stop}. */
-function txBuilder(subsystem: Json): unknown[] {
-  if (!('Streams' in subsystem)) throw new Error('txBuilder: Streams absent du subsystem')
-  const b = (subsystem.Streams as Array<Json>)?.[0] ?? {}
-  const bodies: unknown[] = []
-  if (typeof b.RtspSessionName === 'string')
-    bodies.push(streamsSetBody('StreamTransmit', 0, { RtspSessionName: b.RtspSessionName }))
-  if (typeof b.MulticastAddress === 'string')
-    bodies.push(streamsSetBody('StreamTransmit', 0, { MulticastAddress: b.MulticastAddress }))
-  bodies.push(streamsSetBody('StreamTransmit', 0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
-  return bodies
-}
-
 /** Builder Rx : reproduit la séquence POST de l'ancien restoreRx() pour StreamReceive.
  *  Reçoit Device.StreamReceive (le subsystem complet), drill dans Streams[0].
  *  Séquence : POST {SessionInitiation + StreamLocation|MulticastAddress} → POST {Start|Stop}. */
@@ -87,15 +72,7 @@ export class Oracle {
     }
   }
 
-  // ── Wrappers legacy (v1 — cohabitent avec steps-lab non migré) ──────────────
-
-  /** Login + GET StreamTransmit Streams[0]. */
-  async readStream0(): Promise<Json> {
-    const subsystem = await this.read('/Device/StreamTransmit')
-    const s = (subsystem.Streams as Array<Json>)?.[0]
-    if (!s) throw new Error('Streams[0] absent')
-    return s
-  }
+  // ── Wrappers legacy Rx (v1 — supprimés en 2c avec la migration décodeur) ─────
 
   /** Login + GET StreamReceive Streams[0]. */
   async readReceiveStream0(): Promise<Json> {
@@ -105,19 +82,9 @@ export class Oracle {
     return s
   }
 
-  /** = snapshot('/Device/StreamTransmit') */
-  async captureBaseline(): Promise<void> {
-    await this.snapshot('/Device/StreamTransmit')
-  }
-
   /** = snapshot('/Device/StreamReceive') */
   async captureBaselineRx(): Promise<void> {
     await this.snapshot('/Device/StreamReceive')
-  }
-
-  /** = restore('/Device/StreamTransmit', txBuilder). Renommé depuis restore(). */
-  async restoreTx(): Promise<{ skipped: boolean }> {
-    return this.restore('/Device/StreamTransmit', txBuilder)
   }
 
   /** = restore('/Device/StreamReceive', rxBuilder) */
