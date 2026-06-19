@@ -289,7 +289,6 @@ export function buildBaselineStep(
   const { id } = meta
   const t = meta.titles
   const title = meta.title
-  const segment = spec.endpoint.split('/').pop() ?? spec.endpoint
   const notePass = meta.passNote ?? 'stored for TEARDOWN restore'
   return {
     id,
@@ -300,9 +299,10 @@ export function buildBaselineStep(
         return skip(id, t?.noDevice ?? `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
       const role = await readVar(ctx, 'device_role')
       if (role !== spec.role) {
+        // note NUE par défaut ; skipNote ajoute un suffixe (ex. "— StreamTransmit absent on Receiver")
         const noteSkip = meta.skipNote
           ? `device_role=${role} ${meta.skipNote}`
-          : `device_role=${role} — ${segment} absent on ${role}`
+          : `device_role=${role}`
         return skip(id, t?.skipRole ?? `${title} (device is not a ${spec.role})`, 1, { note: noteSkip })
       }
       try {
@@ -352,36 +352,35 @@ export function buildTeardownStep(
       if (noDevice(ctx))
         return skip(id, t?.noDevice ?? `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
 
-      // Restauration via oracle.restore générique
-      // evidence.note = restore note seul (pas joint avec 'connection disabled' — cf. tests §9)
-      let note: string
+      // Reproduit steps-lab.ts L509-530 : notes[] joint, disable INCONDITIONNEL
+      const notes: string[] = []
       let ok = true
 
       try {
         const r = await ctx.oracle.restore(spec.endpoint, spec.buildBodies)
-        note = r.skipped ? skippedNote : restoredNote
+        notes.push(r.skipped ? skippedNote : restoredNote)
       } catch (err) {
         ok = false
-        note = `${failNote}: ${msg(err)}`
+        notes.push(`${failNote}: ${msg(err)}`)
       }
 
-      // Désactivation conditionnelle (seulement si restore a réussi)
-      if (ok && disableConnection) {
+      // Désactivation inconditionnelle (même si restore a échoué — sémantique legacy)
+      if (disableConnection) {
         const connId = await ctx.http.findConnectionId(ctx.config.label)
         if (connId) {
           try {
             await ctx.http.disable(connId)
-            // note inchangée — disable success est silencieux dans le rapport
+            notes.push('connection disabled')
           } catch (err) {
             ok = false
-            note = `${note}; disable failed: ${msg(err)}`
+            notes.push(`disable failed: ${msg(err)}`)
           }
         }
       }
 
       return ok
-        ? pass(id, t?.pass ?? `${title} complete`, 1, { note })
-        : fail(id, t?.fail ?? `${title} incomplete`, 1, { note })
+        ? pass(id, t?.pass ?? `${title} complete`, 1, { note: notes.join('; ') })
+        : fail(id, t?.fail ?? `${title} incomplete`, 1, { note: notes.join('; ') })
     },
   }
 }
