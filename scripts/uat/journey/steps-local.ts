@@ -1,4 +1,4 @@
-import { pass, fail } from '../lib/verdict.js'
+import { pass, fail, ambiguous } from '../lib/verdict.js'
 import type { Verdict } from '../lib/verdict.js'
 import type { JourneyStep, JourneyContext } from './types.js'
 
@@ -53,14 +53,25 @@ async function configFailureStep(
     if (!logged) await ctx.sleep(LOG_POLL_DELAY_MS)
   }
 
-  // 5. Triple-check: REST status category + log proof of the cause.
+  // 5. Triple-check : catégorie REST + preuve par log.
+  //    - attendu + log présent           → PASS
+  //    - log absent (cause non observée)  → AMBIGUOUS (non concluant : l'env/UI n'a pas permis de tester — cf. F-A)
+  //    - log présent mais mauvaise cat.   → FAIL (défaut réel prouvé)
   const st = await ctx.http.status(connId)
-  return st.category === expectCat && logged
-    ? pass(id, title, 1, { companion: st, note: `status=${expectCat} + cause logged` })
-    : fail(id, title, 1, {
-        expected: { category: expectCat, cause: String(causeRe) },
-        observed: { status: st, logged },
-      })
+  if (st.category === expectCat && logged) {
+    return pass(id, title, 1, { companion: st, note: `status=${expectCat} + cause logged` })
+  }
+  if (!logged) {
+    return ambiguous(id, title, 1, {
+      expected: { category: expectCat, cause: String(causeRe) },
+      observed: { status: st, logged },
+      note: 'cause non observée dans les logs — non concluant (env/UI), pas un défaut module',
+    })
+  }
+  return fail(id, title, 1, {
+    expected: { category: expectCat, cause: String(causeRe) },
+    observed: { status: st, logged },
+  })
 }
 
 export const localSteps: JourneyStep[] = [

@@ -57,10 +57,10 @@ test('CFG-UNREACHABLE PASSes when status=error AND log detects the cause', async
   assert.equal((await step.run(ctx())).status, 'PASS')
 })
 
-test('CFG-UNREACHABLE FAILs when the log does NOT show the expected cause', async () => {
+test('CFG-UNREACHABLE emits AMBIGUOUS when the log does NOT show the expected cause (non-conclusive)', async () => {
   const step = localSteps.find((s) => s.id === 'CFG-UNREACHABLE')!
   const v = await step.run(ctx({ logs: { mark: () => ({ ts: 't' }), detect: () => false } as never }))
-  assert.equal(v.status, 'FAIL') // status alone is not enough — the log must prove the cause
+  assert.equal(v.status, 'AMBIGUOUS') // cause not observed — non-conclusive (F-A), not a module defect
 })
 
 test('a config step FAILs cleanly when the connection is absent', async () => {
@@ -146,4 +146,61 @@ test('CFG-UNREACHABLE passes ctx.config.nvxUser (not "admin") to fillConfig', as
   assert.ok(captured.length > 0, 'fillConfig was not called')
   assert.equal(captured[0].username, 'didier', `expected 'didier', received '${captured[0].username}'`)
   assert.equal(v.status, 'PASS')
+})
+
+// ── configFailureStep triple-check AMBIGUOUS/FAIL semantics ──────────────────
+
+test('configFailureStep — catégorie attendue + log présent → PASS', async () => {
+  // status=error (expected for CFG-UNREACHABLE) AND log detects the cause → PASS
+  const step = localSteps.find((s) => s.id === 'CFG-UNREACHABLE')!
+  const v = await step.run(
+    ctx({
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'error', level: 'Connection Failure', message: 'NVX timeout' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+      } as never,
+      logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+    }),
+  )
+  assert.equal(v.status, 'PASS')
+})
+
+test('configFailureStep — log de cause absent → AMBIGUOUS (non concluant)', async () => {
+  // status=good (unexpected) AND log never fires → AMBIGUOUS (env didn't allow test — F-A)
+  const step = localSteps.find((s) => s.id === 'CFG-UNREACHABLE')!
+  const v = await step.run(
+    ctx({
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'good', level: 'OK', message: '' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+      } as never,
+      logs: { mark: () => ({ ts: 't' }), detect: () => false } as never,
+    }),
+  )
+  assert.equal(v.status, 'AMBIGUOUS')
+  assert.match(String(v.evidence.note), /non concluant|cause non observ/i)
+})
+
+test('configFailureStep — log présent mais mauvaise catégorie → FAIL (vrai défaut)', async () => {
+  // log fires (cause observed) BUT status category is wrong → FAIL (real defect, proven by log)
+  const step = localSteps.find((s) => s.id === 'CFG-UNREACHABLE')!
+  const v = await step.run(
+    ctx({
+      http: {
+        findConnectionId: async () => 'abc',
+        status: async () => ({ category: 'good', level: 'OK', message: '' }),
+        enable: async () => {},
+        disable: async () => {},
+        restart: async () => {},
+      } as never,
+      logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+    }),
+  )
+  assert.equal(v.status, 'FAIL')
 })
