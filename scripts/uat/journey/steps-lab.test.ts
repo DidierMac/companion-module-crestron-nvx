@@ -161,6 +161,144 @@ test('CFG-GOOD FAILs when the oracle cannot read a stream', async () => {
   assert.equal(v.status, 'FAIL')
 })
 
+// ── Task 2: AMBIGUOUS — CFG-WRONGPASS / CFG-GOOD when condition not observable ─
+
+test('CFG-WRONGPASS — log absent → AMBIGUOUS', async () => {
+  // nvxPass set (no SKIP), logs.detect → false (auth cause not observed in logs), http.status → good
+  const step = labSteps.find((s) => s.id === 'CFG-WRONGPASS')!
+  const v = await step.run(
+    ctx(
+      {
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'good', level: 'OK', message: '' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => '',
+          press: async () => {},
+        } as never,
+        logs: { mark: () => ({ ts: 't' }), detect: () => false } as never,
+        ui: {
+          open: async () => ({}),
+          close: async () => {},
+          moduleAvailable: async () => true,
+          openConnectionConfig: async () => {},
+          fillConfig: async () => {},
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'AMBIGUOUS')
+})
+
+test('CFG-WRONGPASS — warning + log présent → PASS', async () => {
+  const step = labSteps.find((s) => s.id === 'CFG-WRONGPASS')!
+  const v = await step.run(
+    ctx(
+      {
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'warning', level: 'Warning', message: '' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => '',
+          press: async () => {},
+        } as never,
+        logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+        ui: {
+          open: async () => ({}),
+          close: async () => {},
+          moduleAvailable: async () => true,
+          openConnectionConfig: async () => {},
+          fillConfig: async () => {},
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'PASS')
+})
+
+test('CFG-GOOD — catégorie jamais good → AMBIGUOUS (connexion non établie)', async () => {
+  // pollStatusCategory never sees 'good' (http.status → { category:'error' })
+  const step = labSteps.find((s) => s.id === 'CFG-GOOD')!
+  const v = await step.run(
+    ctx(
+      {
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'error', level: 'Error', message: '' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => '',
+          press: async () => {},
+        } as never,
+        logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
+        oracle: {
+          readStream0: async () => ({ RtspSessionName: 'X' }),
+          readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
+          captureBaseline: async () => {},
+          captureBaselineRx: async () => {},
+          restore: async () => ({ skipped: false }),
+          restoreRx: async () => ({ skipped: false }),
+          setRxScenario: async () => {},
+        } as never,
+        ui: {
+          open: async () => ({}),
+          close: async () => {},
+          moduleAvailable: async () => true,
+          openConnectionConfig: async () => {},
+          fillConfig: async () => {},
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'AMBIGUOUS')
+})
+
+test('CFG-GOOD — good mais oracle échoue → FAIL (Q2: oracle-unreachable reste FAIL)', async () => {
+  // http.status → good, oracle.readStream0 throws → FAIL (not AMBIGUOUS, per Q2)
+  const step = labSteps.find((s) => s.id === 'CFG-GOOD')!
+  const v = await step.run(
+    ctx(
+      {
+        http: {
+          findConnectionId: async () => 'abc',
+          status: async () => ({ category: 'good', level: 'OK', message: '' }),
+          enable: async () => {},
+          disable: async () => {},
+          restart: async () => {},
+          getVariable: async () => '',
+          press: async () => {},
+        } as never,
+        oracle: {
+          readStream0: async () => { throw new Error('oracle unreachable') },
+          readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
+          captureBaseline: async () => {},
+          captureBaselineRx: async () => {},
+          restore: async () => ({ skipped: false }),
+          restoreRx: async () => ({ skipped: false }),
+          setRxScenario: async () => {},
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'FAIL')
+})
+
+test('CFG-WRONGPASS — sans device (noDevice) → SKIP (garde préservée)', async () => {
+  // ctx.config.nvxPass = '' → noDevice guard must fire → SKIP
+  const step = labSteps.find((s) => s.id === 'CFG-WRONGPASS')!
+  const v = await step.run(ctx({}, ''))
+  assert.equal(v.status, 'SKIP')
+})
+
 // ── Decoder steps ─────────────────────────────────────────────────────────────
 
 test('lab steps include the decoder USE ids', () => {

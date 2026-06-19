@@ -1,4 +1,4 @@
-import { pass, fail, skip } from '../lib/verdict.js'
+import { pass, fail, skip, ambiguous } from '../lib/verdict.js'
 import type { Verdict } from '../lib/verdict.js'
 import type { JourneyStep, JourneyContext } from './types.js'
 import { HttpError } from '../tools/companion-http.js'
@@ -419,12 +419,20 @@ const authSteps: JourneyStep[] = [
       const logged = await pollLog(ctx, m, /401|403|auth|unauthor|forbidden|credential/i)
       const st = await ctx.http.status(connId)
       // AuthenticationFailure → 'warning' (confirm at the lab, like BadConfig=warning).
-      return st.category === 'warning' && logged
-        ? pass('CFG-WRONGPASS', 'wrong password → AuthenticationFailure', 1, { companion: st, note: 'auth failure + logged (1 login used)' })
-        : fail('CFG-WRONGPASS', 'wrong password → AuthenticationFailure', 1, {
-            expected: { category: 'warning', cause: 'auth 401/403' },
-            observed: { status: st, logged },
-          })
+      if (st.category === 'warning' && logged) {
+        return pass('CFG-WRONGPASS', 'wrong password → AuthenticationFailure', 1, { companion: st, note: 'auth failure + logged (1 login used)' })
+      }
+      if (!logged) {
+        return ambiguous('CFG-WRONGPASS', 'wrong password → AuthenticationFailure', 1, {
+          expected: { category: 'warning', cause: 'auth 401/403' },
+          observed: { status: st, logged },
+          note: 'cause auth non observée dans les logs — non concluant (env/UI)',
+        })
+      }
+      return fail('CFG-WRONGPASS', 'wrong password → AuthenticationFailure', 1, {
+        expected: { category: 'warning', cause: 'auth 401/403' },
+        observed: { status: st, logged },
+      })
     },
   },
   {
@@ -451,12 +459,20 @@ const authSteps: JourneyStep[] = [
       } catch (err) {
         oracleErr = err instanceof Error ? err.message : String(err)
       }
-      return category === 'good' && oracleOk
-        ? pass('CFG-GOOD', 'connected (oracle confirms session)', 1, { companion: { category }, note: 'status good + oracle read stream' })
-        : fail('CFG-GOOD', 'connected (oracle confirms session)', 1, {
-            expected: { category: 'good', oracle: 'readStream0 succeeds' },
-            observed: { category, oracleOk, oracleErr },
-          })
+      if (category === 'good' && oracleOk) {
+        return pass('CFG-GOOD', 'connected (oracle confirms session)', 1, { companion: { category }, note: 'status good + oracle read stream' })
+      }
+      if (category !== 'good') {
+        return ambiguous('CFG-GOOD', 'connected (oracle confirms session)', 1, {
+          expected: { category: 'good', oracle: 'readStream0 succeeds' },
+          observed: { category, oracleOk, oracleErr },
+          note: 'connexion jamais saine — non concluant (env/UI), session non testable',
+        })
+      }
+      return fail('CFG-GOOD', 'connected (oracle confirms session)', 1, {
+        expected: { category: 'good', oracle: 'readStream0 succeeds' },
+        observed: { category, oracleOk, oracleErr },
+      })
     },
   },
 ]
