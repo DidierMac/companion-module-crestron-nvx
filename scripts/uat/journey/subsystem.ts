@@ -25,6 +25,19 @@ type Json = Record<string, unknown>
 const POLL_ATTEMPTS = 15
 const POLL_DELAY_MS = 1000
 
+// ── Titres par issue (décision A — titres legacy préservés via param) ────────
+
+/** Overrides de titres pour préserver les titres legacy dans les journeys.
+ *  Chaque clé remplace le titre par défaut du verdict correspondant.
+ *  Non implémenté dans cette version — param ignoré (tests Red vague 2a décision A). */
+export interface IssueTitles {
+  step?: string
+  pass?: string
+  fail?: string
+  skipRole?: string
+  noDevice?: string
+}
+
 // ── Contrat d'interface (figé par l'architecte) ────────────────────────────────
 
 /**
@@ -187,7 +200,7 @@ export function buildWriteStep(spec: SubsystemSpec, writeCase: WriteCase): Journ
  */
 export function buildCapStep(
   spec: SubsystemSpec,
-  meta: { id: string; title: string },
+  meta: { id: string; title: string; titles?: IssueTitles },
 ): JourneyStep {
   const { id, title } = meta
   return {
@@ -215,7 +228,7 @@ export function buildCapStep(
  */
 export function buildVarsStep(
   spec: SubsystemSpec,
-  meta: { id: string; title: string },
+  meta: { id: string; title: string; titles?: IssueTitles },
 ): JourneyStep {
   const { id, title } = meta
   return {
@@ -261,7 +274,7 @@ export function buildVarsStep(
  */
 export function buildBaselineStep(
   spec: SubsystemSpec,
-  meta: { id: string; title: string; skipNote?: string },
+  meta: { id: string; title: string; skipNote?: string; passNote?: string; titles?: IssueTitles },
 ): JourneyStep {
   const { id, title } = meta
   return {
@@ -306,6 +319,7 @@ export function buildTeardownStep(
     restoredNote?: string
     skippedNote?: string
     failNote?: string
+    titles?: IssueTitles
   },
 ): JourneyStep {
   const { id, title, disableConnection = false } = meta

@@ -688,3 +688,318 @@ test('buildTeardownStep — disableConnection:false → http.disable PAS appelé
   assert.equal(v.status, 'PASS')
   assert.ok(!disableCalled, 'http.disable ne doit PAS être appelé si disableConnection:false')
 })
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Section 9 — Titres legacy EXACTS (décision A — vague 2a)
+//
+// Ces tests passent `titles` aux builders et vérifient JourneyStep.title
+// ainsi que Verdict.title pour chaque issue (pass/fail/skipRole/noDevice).
+// Red phase actuelle : builders lèvent "not implemented".
+// Red phase post-Green-basique : builders ignorent le param `titles` → mismatch.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── CAP Tx ───────────────────────────────────────────────────────────────────
+
+test('buildCapStep Tx — titres legacy EXACTS via param titles (Red décision A)', async () => {
+  const titles = {
+    step: 'encoder panel active (device_role = Transmitter)',
+    pass: 'encoder panel active (role=Transmitter)',
+    skipRole: 'encoder journey (device is not a Transmitter)',
+    noDevice: 'capability (no device)',
+  }
+  const step = buildCapStep(txSpec, { id: 'CAP', title: titles.step, titles })
+
+  assert.equal(step.title, titles.step, 'JourneyStep.title doit utiliser titles.step')
+
+  const vNoDevice = await step.run(makeCtx({ nvxPass: '' }))
+  assert.equal(vNoDevice.title, titles.noDevice, 'Verdict.title noDevice doit utiliser titles.noDevice')
+
+  const vSkip = await step.run(makeCtx({ role: 'Receiver' }))
+  assert.equal(vSkip.title, titles.skipRole, 'Verdict.title skipRole doit utiliser titles.skipRole')
+
+  const vPass = await step.run(makeCtx({ role: 'Transmitter' }))
+  assert.equal(vPass.title, titles.pass, 'Verdict.title PASS doit utiliser titles.pass')
+})
+
+// ── CAP Rx ───────────────────────────────────────────────────────────────────
+
+test('buildCapStep Rx — titres legacy EXACTS via param titles (Red décision A)', async () => {
+  const titles = {
+    step: 'decoder panel active (device_role = Receiver)',
+    pass: 'decoder panel active (role=Receiver)',
+    skipRole: 'decoder panel (device is not a Receiver)',
+    noDevice: 'decoder capability (no device)',
+  }
+  const step = buildCapStep(rxSpec, { id: 'DEC-CAP', title: titles.step, titles })
+
+  assert.equal(step.title, titles.step)
+
+  const vNoDevice = await step.run(makeCtx({ nvxPass: '' }))
+  assert.equal(vNoDevice.title, titles.noDevice)
+
+  const vSkip = await step.run(makeCtx({ role: 'Transmitter' }))
+  assert.equal(vSkip.title, titles.skipRole)
+
+  const vPass = await step.run(makeCtx({ role: 'Receiver' }))
+  assert.equal(vPass.title, titles.pass)
+})
+
+// ── VARS Tx ──────────────────────────────────────────────────────────────────
+
+test('buildVarsStep Tx — titres legacy EXACTS via param titles (Red décision A)', async () => {
+  const titles = {
+    step: 'encoder variables (REST) == device (oracle)',
+    pass: 'companion variables == device',
+    fail: 'variable/device mismatch',
+    skipRole: 'encoder vars (device is not a Transmitter)',
+    noDevice: 'variables (no device)',
+  }
+  const step = buildVarsStep(txVarSpec, { id: 'ENC-VARS', title: titles.step, titles })
+
+  assert.equal(step.title, titles.step)
+
+  const vNoDevice = await step.run(makeCtx({ nvxPass: '' }))
+  assert.equal(vNoDevice.title, titles.noDevice)
+
+  const vSkip = await step.run(makeCtx({ role: 'Receiver' }))
+  assert.equal(vSkip.title, titles.skipRole)
+
+  const vPass = await step.run(makeCtx({
+    role: 'Transmitter',
+    oracleRead: async () => ({ Streams: [{ Name: 'S', Addr: 'M' }] }),
+    getVariable: async (_l: string, name: string) => {
+      if (name === 'device_role') return 'Transmitter'
+      if (name === 'tx_stream_name') return 'S'
+      if (name === 'tx_multicast') return 'M'
+      return ''
+    },
+    sleep: async () => {},
+  }))
+  assert.equal(vPass.title, titles.pass)
+
+  const vFail = await step.run(makeCtx({
+    role: 'Transmitter',
+    oracleRead: async () => ({ Streams: [{ Name: 'DEVICE', Addr: 'M' }] }),
+    getVariable: async (_l: string, name: string) => {
+      if (name === 'device_role') return 'Transmitter'
+      if (name === 'tx_stream_name') return 'COMPANION'  // mismatch
+      if (name === 'tx_multicast') return 'M'
+      return ''
+    },
+  }))
+  assert.equal(vFail.title, titles.fail)
+})
+
+// ── VARS Rx ──────────────────────────────────────────────────────────────────
+
+test('buildVarsStep Rx — titres legacy EXACTS via param titles (Red décision A)', async () => {
+  const rxVarSpec: SubsystemSpec = {
+    ...rxSpec,
+    vars: [
+      { var: 'rx_url', device: (e) => str(e.Url) },
+    ],
+  }
+  const titles = {
+    step: 'decoder variables (REST) == device (oracle)',
+    pass: 'companion decoder variables == device',
+    fail: 'decoder variable/device mismatch',
+    skipRole: 'decoder variables (device is not a Receiver)',
+    noDevice: 'decoder variables (no device)',
+  }
+  const step = buildVarsStep(rxVarSpec, { id: 'DEC-VARS', title: titles.step, titles })
+
+  assert.equal(step.title, titles.step)
+
+  const vNoDevice = await step.run(makeCtx({ nvxPass: '' }))
+  assert.equal(vNoDevice.title, titles.noDevice)
+
+  const vSkip = await step.run(makeCtx({ role: 'Transmitter' }))
+  assert.equal(vSkip.title, titles.skipRole)
+
+  const vPass = await step.run(makeCtx({
+    role: 'Receiver',
+    oracleRead: async () => ({ Streams: [{ Url: 'rtsp://x' }] }),
+    getVariable: async (_l: string, name: string) => {
+      if (name === 'device_role') return 'Receiver'
+      if (name === 'rx_url') return 'rtsp://x'
+      return ''
+    },
+  }))
+  assert.equal(vPass.title, titles.pass)
+
+  const vFail = await step.run(makeCtx({
+    role: 'Receiver',
+    oracleRead: async () => ({ Streams: [{ Url: 'rtsp://device' }] }),
+    getVariable: async (_l: string, name: string) => {
+      if (name === 'device_role') return 'Receiver'
+      if (name === 'rx_url') return 'rtsp://companion'  // mismatch
+      return ''
+    },
+  }))
+  assert.equal(vFail.title, titles.fail)
+})
+
+// ── BASELINE Tx ──────────────────────────────────────────────────────────────
+
+test('buildBaselineStep Tx — titres + passNote + skipNote legacy EXACTS (Red décision A)', async () => {
+  const titles = {
+    step: 'capture device baseline (Streams[0])',
+    pass: 'baseline captured',
+    fail: 'baseline capture failed',
+    skipRole: 'baseline (device is not a Transmitter)',
+    noDevice: 'baseline (no device)',
+  }
+  const passNote = 'stored for TEARDOWN restore'
+  const skipNote = '— StreamTransmit absent on Receiver'
+  const step = buildBaselineStep(txSpec, { id: 'BASELINE', title: titles.step, passNote, titles })
+
+  assert.equal(step.title, titles.step)
+
+  const vNoDevice = await step.run(makeCtx({ nvxPass: '' }))
+  assert.equal(vNoDevice.title, titles.noDevice)
+
+  const vSkipRole = await step.run(makeCtx({ role: 'Receiver' }))
+  assert.equal(vSkipRole.title, titles.skipRole)
+  // skipNote Tx : la note doit contenir le suffixe attendu
+  assert.match(String(vSkipRole.evidence.note ?? ''), new RegExp(skipNote.replace(/[()[\]]/g, '\\$&')))
+
+  const vPass = await step.run(makeCtx({
+    role: 'Transmitter',
+    oracleSnapshot: async () => {},
+  }))
+  assert.equal(vPass.title, titles.pass)
+  assert.equal(vPass.evidence.note, passNote, 'passNote doit apparaître dans evidence.note du PASS')
+
+  const vFail = await step.run(makeCtx({
+    role: 'Transmitter',
+    oracleSnapshot: async () => { throw new Error('unreachable') },
+  }))
+  assert.equal(vFail.title, titles.fail)
+})
+
+// ── BASELINE Rx ──────────────────────────────────────────────────────────────
+
+test('buildBaselineStep Rx — titres + passNote legacy EXACTS (Red décision A)', async () => {
+  const titles = {
+    step: 'capture decoder baseline (StreamReceive Streams[0])',
+    pass: 'decoder baseline captured',
+    fail: 'decoder baseline capture failed',
+    skipRole: 'baseline-rx (device is not a Receiver)',
+    noDevice: 'baseline-rx (no device)',
+  }
+  const passNote = 'stored for TEARDOWN-RX restore'
+  const step = buildBaselineStep(rxSpec, { id: 'BASELINE-RX', title: titles.step, passNote, titles })
+
+  assert.equal(step.title, titles.step)
+
+  const vNoDevice = await step.run(makeCtx({ nvxPass: '' }))
+  assert.equal(vNoDevice.title, titles.noDevice)
+
+  const vSkipRole = await step.run(makeCtx({ role: 'Transmitter' }))
+  assert.equal(vSkipRole.title, titles.skipRole)
+
+  const vPass = await step.run(makeCtx({
+    role: 'Receiver',
+    oracleSnapshot: async () => {},
+  }))
+  assert.equal(vPass.title, titles.pass)
+  assert.equal(vPass.evidence.note, passNote, 'passNote Rx doit apparaître dans evidence.note du PASS')
+
+  const vFail = await step.run(makeCtx({
+    role: 'Receiver',
+    oracleSnapshot: async () => { throw new Error('unreachable') },
+  }))
+  assert.equal(vFail.title, titles.fail)
+})
+
+// ── TEARDOWN Tx ──────────────────────────────────────────────────────────────
+
+test('buildTeardownStep Tx — titres + notes legacy EXACTS (Red décision A)', async () => {
+  const titles = {
+    step: 'restore device + disable connection',
+    pass: 'teardown complete',
+    fail: 'teardown incomplete',
+    noDevice: 'teardown (no device)',
+  }
+  const restoredNote = 'device restored'
+  const skippedNote = 'no baseline (SKIP capture) — nothing restored'
+  const failNote = 'restore failed'
+  const step = buildTeardownStep(txSpec, {
+    id: 'TEARDOWN',
+    title: titles.step,
+    disableConnection: true,
+    restoredNote,
+    skippedNote,
+    failNote,
+    titles,
+  })
+
+  assert.equal(step.title, titles.step)
+
+  const vNoDevice = await step.run(makeCtx({ nvxPass: '' }))
+  assert.equal(vNoDevice.title, titles.noDevice)
+
+  const vPassRestored = await step.run(makeCtx({
+    oracleRestore: async () => ({ skipped: false }),
+  }))
+  assert.equal(vPassRestored.title, titles.pass)
+  assert.equal(vPassRestored.evidence.note, restoredNote, 'restoredNote doit être dans evidence.note quand skipped=false')
+
+  const vPassSkipped = await step.run(makeCtx({
+    oracleRestore: async () => ({ skipped: true }),
+  }))
+  assert.equal(vPassSkipped.title, titles.pass)
+  assert.equal(vPassSkipped.evidence.note, skippedNote, 'skippedNote doit être dans evidence.note quand skipped=true')
+
+  const vFail = await step.run(makeCtx({
+    oracleRestore: async () => { throw new Error('device unreachable') },
+  }))
+  assert.equal(vFail.title, titles.fail)
+  assert.match(String(vFail.evidence.note ?? ''), new RegExp(`^${failNote}:`), `evidence.note doit commencer par "${failNote}:"`)
+})
+
+// ── TEARDOWN Rx ──────────────────────────────────────────────────────────────
+
+test('buildTeardownStep Rx — titres + notes legacy EXACTS (Red décision A)', async () => {
+  const titles = {
+    step: 'restore decoder (StreamReceive) to baseline',
+    pass: 'teardown-rx complete',
+    fail: 'decoder restore failed',
+    noDevice: 'teardown-rx (no device)',
+  }
+  const restoredNote = 'StreamReceive baseline re-applied'
+  const skippedNote = 'no baselineRx (SKIP capture) — nothing restored'
+  const failNote = 'decoder restore failed'
+  const step = buildTeardownStep(rxSpec, {
+    id: 'TEARDOWN-RX',
+    title: titles.step,
+    disableConnection: false,
+    restoredNote,
+    skippedNote,
+    failNote,
+    titles,
+  })
+
+  assert.equal(step.title, titles.step)
+
+  const vNoDevice = await step.run(makeCtx({ nvxPass: '' }))
+  assert.equal(vNoDevice.title, titles.noDevice)
+
+  const vPassRestored = await step.run(makeCtx({
+    oracleRestore: async () => ({ skipped: false }),
+  }))
+  assert.equal(vPassRestored.title, titles.pass)
+  assert.equal(vPassRestored.evidence.note, restoredNote)
+
+  const vPassSkipped = await step.run(makeCtx({
+    oracleRestore: async () => ({ skipped: true }),
+  }))
+  assert.equal(vPassSkipped.title, titles.pass)
+  assert.equal(vPassSkipped.evidence.note, skippedNote)
+
+  const vFail = await step.run(makeCtx({
+    oracleRestore: async () => { throw new Error('rx unreachable') },
+  }))
+  assert.equal(vFail.title, titles.fail)
+  assert.match(String(vFail.evidence.note ?? ''), new RegExp(`^${failNote}:`), `evidence.note doit commencer par "${failNote}:"`)
+})
