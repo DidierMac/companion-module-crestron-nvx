@@ -149,21 +149,50 @@ UAT_LAB=1 NVX_HOST=<device-ip> NVX_PASS=<password> \
   COMPANION_CONTAINER=companion-nvx-companion-1 npm run uat:journey
 ```
 
-Report is written to `docs/uat-runs/<date>#<NN>-<module>/` — three artefacts:
+Report is written to `docs/uat-runs/<date>#<NN>-<module>/` — four artefacts:
 
 | File | Content |
 |------|---------|
 | `report.md` | Human-readable summary — observed values truncated at 200 chars |
 | `escalation.json` | Full evidence for FAIL / AMBIGUOUS / HUMAN verdicts only |
 | `details.json` | Full redacted evidence for **all** verdicts (the complete picture `report.md` summarises) |
+| `run.json` | Complete `RunResult` (all verdicts + raw evidence, unredacted) — required by `uat:adjudicate` to re-ingest adjudication |
 
-⚠️ **`details.json` is as sensitive as `escalation.json`.** Redaction is by key name only
+⚠️ **`details.json` and `run.json` are as sensitive as `escalation.json`.** Redaction is by key name only
 (`pass*`, `token`, `cookie`, `sessionid`, `authorization`, `api-key` …). A secret appearing
 as a *value* under an innocuous key (e.g. inside a `note` string) is **not masked** — treat
-`details.json` accordingly (do not commit, do not paste in public channels).
+these files accordingly (do not commit, do not paste in public channels).
 
-Verdicts: **PASS / FAIL / AMBIGUOUS / HUMAN / SKIP** (SKIP = lab step without a device —
-never a false PASS).
+Verdicts: **PASS / FAIL / AMBIGUOUS / HUMAN / SKIP**
+- **SKIP** — lab step voluntarily omitted (missing device or wrong role). Never a false PASS.
+- **AMBIGUOUS** — the test could not observe the expected condition (e.g. the trigger was absent from the logs, the connection never reached a healthy state). This is **not** a module bug — it means the test was inconclusive. Distinct from FAIL (which signals a wrong observed value) and from SKIP (which signals a deliberate omission).
+- **FAIL / HUMAN** — escalated: included in `escalation.json` and eligible for manual adjudication (see §4c below).
+
+## 4c. Manual adjudication cycle (escalation)
+
+When a run contains escalated cases (FAIL / AMBIGUOUS / HUMAN), the harness writes
+`escalation-prompt.md` in the run directory and prints the following instruction:
+
+```
+UAT escalade : N cas (FAIL/AMBIGUOUS/HUMAN). Adjudication : lancer l'agent uat-runner
+sur <run-dir>/escalation-prompt.md, puis 'npm run uat:adjudicate -- <run-dir> <llm-verdicts.json>'.
+```
+
+Operator cycle:
+
+1. Open `<run-dir>/escalation-prompt.md` in the `uat-runner` agent (it contains the full
+   evidence packet and adjudication instructions).
+2. The agent returns its verdicts as a JSON array — save it to a file (e.g. `llm-verdicts.json`).
+   Expected format: `[{ "id": "STEP-ID", "status": "PASS"|"FAIL"|"AMBIGUOUS"|"HUMAN", "reason": "..." }]`
+3. Re-ingest via:
+   ```bash
+   npm run uat:adjudicate -- <run-dir> <llm-verdicts.json>
+   ```
+   This reads `run.json` + the LLM verdicts, merges them via `mergeVerdicts`, and rewrites
+   `report.md`, `details.json`, `escalation.json`, and `run.json` in place.
+
+**No LLM call happens in-process** — `uat:adjudicate` is pure glue (file I/O + merge).
+The agent invocation is a deliberate manual gesture by the operator.
 
 ## 5. Action buttons (lab only — for the WRITE steps) — MANUAL CREATION
 
