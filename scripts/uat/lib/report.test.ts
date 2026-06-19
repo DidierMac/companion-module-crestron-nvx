@@ -1,9 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, mkdirSync, rmSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { renderMarkdown, renderEscalation, renderDetails, resolveRunDir } from './report.js'
+import { renderMarkdown, renderEscalation, renderDetails, resolveRunDir, writeRun } from './report.js'
 import { pass, fail, human } from './verdict.js'
 import type { RunResult } from './case.js'
 
@@ -88,6 +88,15 @@ test('renderMarkdown tronque un observed volumineux et renvoie vers details.json
   const md = renderMarkdown(r)
   assert.match(md, /truncated — full evidence in details\.json/)
   assert.ok(md.length < JSON.stringify(big).length + 400) // pas de dump intégral
+})
+
+test('writeRun écrit run.json contenant le RunResult complet', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'uat-run-'))
+  writeRun(dir, run) // `run` = fixture existante en tête du fichier
+  const reloaded = JSON.parse(readFileSync(path.join(dir, 'run.json'), 'utf8'))
+  assert.equal(reloaded.version, run.version)
+  assert.equal(reloaded.verdicts.length, run.verdicts.length)
+  rmSync(dir, { recursive: true, force: true })
 })
 
 test('renderDetails renvoie chaque verdict avec son évidence redactée', () => {

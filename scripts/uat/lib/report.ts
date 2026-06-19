@@ -120,10 +120,11 @@ export function resolveRunDir(baseDir: string, date: string, moduleTag: string):
   return path.join(baseDir, `${date}#${nn}-${moduleTag}`)
 }
 
-/** Write report.md + escalation.json + details.json into `dir` (created if missing). */
+/** Write report.md + escalation.json + details.json + run.json into `dir` (created if missing). */
 export function writeRun(dir: string, run: RunResult): void {
   mkdirSync(dir, { recursive: true })
   writeFileSync(path.join(dir, 'report.md'), renderMarkdown(run), 'utf8')
   writeFileSync(path.join(dir, 'escalation.json'), JSON.stringify(renderEscalation(run), null, 2), 'utf8')
   writeFileSync(path.join(dir, 'details.json'), JSON.stringify(renderDetails(run), null, 2), 'utf8')
+  writeFileSync(path.join(dir, 'run.json'), JSON.stringify(run, null, 2), 'utf8')
 }

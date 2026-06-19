@@ -13,6 +13,7 @@
 		"uat:fake": "UAT_PROFILE=fake npm run uat:journey",
 		"uat:local": "UAT_PROFILE=local npm run uat:journey",
 		"uat:fake-device": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/fake-device/server.ts",
+		"uat:adjudicate": "node --experimental-transform-types --no-warnings --loader ./scripts/ts-resolver.mjs scripts/uat/adjudicate.ts",
 		"lint": "eslint .",
 		"format": "prettier -w ."
 	},
