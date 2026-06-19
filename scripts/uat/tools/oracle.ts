@@ -18,6 +18,7 @@ function streamsSetBody(subsystem: 'StreamTransmit' | 'StreamReceive', index: nu
  *  Reçoit Device.StreamTransmit (le subsystem complet), drill dans Streams[0].
  *  Séquence : POST {RtspSessionName} si présent → POST {MulticastAddress} si présent → POST {Start|Stop}. */
 function txBuilder(subsystem: Json): unknown[] {
+  if (!('Streams' in subsystem)) throw new Error('txBuilder: Streams absent du subsystem')
   const b = (subsystem.Streams as Array<Json>)?.[0] ?? {}
   const bodies: unknown[] = []
   if (typeof b.RtspSessionName === 'string')
@@ -32,6 +33,7 @@ function txBuilder(subsystem: Json): unknown[] {
  *  Reçoit Device.StreamReceive (le subsystem complet), drill dans Streams[0].
  *  Séquence : POST {SessionInitiation + StreamLocation|MulticastAddress} → POST {Start|Stop}. */
 function rxBuilder(subsystem: Json): unknown[] {
+  if (!('Streams' in subsystem)) throw new Error('rxBuilder: Streams absent du subsystem')
   const b = (subsystem.Streams as Array<Json>)?.[0] ?? {}
   const bodies: unknown[] = []
   if (typeof b.SessionInitiation === 'string') {
