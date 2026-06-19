@@ -27,13 +27,15 @@ function ctx(over: Partial<JourneyContext> = {}, nvxPass = ''): JourneyContext {
     } as never,
     logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
     oracle: {
-      readStream0: async () => ({ RtspSessionName: 'X' }),
-      readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
-      captureBaseline: async () => {},
-      captureBaselineRx: async () => {},
-      restoreTx: async () => ({ skipped: false }),
-      restoreRx: async () => ({ skipped: false }),
+      // Méthodes génériques (encoder post-migration vague 2b)
+      read: async () => ({ Streams: [{ RtspSessionName: 'X' }] }),
+      snapshot: async () => {},
+      restore: async () => ({ skipped: false }),
       setRxScenario: async () => {},
+      // Wrappers Rx legacy (supprimés en 2c)
+      readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
+      captureBaselineRx: async () => {},
+      restoreRx: async () => ({ skipped: false }),
     } as never,
     ui: {
       open: async () => ({}),
@@ -119,11 +121,8 @@ test('TEARDOWN FAILs (reports) when restore throws', async () => {
     ctx(
       {
         oracle: {
-          readStream0: async () => ({}),
-          captureBaseline: async () => {},
-          restoreTx: async () => {
-            throw new Error('device unreachable')
-          },
+          // post-migration : TEARDOWN appelle oracle.restore(endpoint, buildBodies)
+          restore: async () => { throw new Error('device unreachable') },
         } as never,
       },
       'realpass',
@@ -145,14 +144,11 @@ test('CFG-GOOD FAILs when the oracle cannot read a stream', async () => {
     ctx(
       {
         oracle: {
-          readStream0: async () => {
-            throw new Error('no session')
-          },
+          // post-migration : CFG-GOOD appelle oracle.read('/Device/StreamTransmit')
+          read: async () => { throw new Error('no session') },
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
-          captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restoreTx: async () => {},
-          restoreRx: async () => {},
+          restoreRx: async () => ({ skipped: false }),
         } as never,
       },
       'realpass',
@@ -239,13 +235,14 @@ test('CFG-GOOD — catégorie jamais good → AMBIGUOUS (connexion non établie)
         } as never,
         logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
         oracle: {
-          readStream0: async () => ({ RtspSessionName: 'X' }),
-          readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
-          captureBaseline: async () => {},
-          captureBaselineRx: async () => {},
-          restoreTx: async () => ({ skipped: false }),
-          restoreRx: async () => ({ skipped: false }),
+          // post-migration : CFG-GOOD appelle oracle.read('/Device/StreamTransmit')
+          read: async () => ({ Streams: [{ RtspSessionName: 'X' }] }),
+          snapshot: async () => {},
+          restore: async () => ({ skipped: false }),
           setRxScenario: async () => {},
+          readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
+          captureBaselineRx: async () => {},
+          restoreRx: async () => ({ skipped: false }),
         } as never,
         ui: {
           open: async () => ({}),
@@ -262,7 +259,7 @@ test('CFG-GOOD — catégorie jamais good → AMBIGUOUS (connexion non établie)
 })
 
 test('CFG-GOOD — good mais oracle échoue → FAIL (Q2: oracle-unreachable reste FAIL)', async () => {
-  // http.status → good, oracle.readStream0 throws → FAIL (not AMBIGUOUS, per Q2)
+  // http.status → good, oracle.read throws → FAIL (not AMBIGUOUS, per Q2)
   const step = labSteps.find((s) => s.id === 'CFG-GOOD')!
   const v = await step.run(
     ctx(
@@ -277,11 +274,10 @@ test('CFG-GOOD — good mais oracle échoue → FAIL (Q2: oracle-unreachable res
           press: async () => {},
         } as never,
         oracle: {
-          readStream0: async () => { throw new Error('oracle unreachable') },
+          // post-migration : CFG-GOOD appelle oracle.read('/Device/StreamTransmit')
+          read: async () => { throw new Error('oracle unreachable') },
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
-          captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restoreTx: async () => ({ skipped: false }),
           restoreRx: async () => ({ skipped: false }),
           setRxScenario: async () => {},
         } as never,
@@ -373,14 +369,10 @@ test('TEARDOWN-RX FAILs when restoreRx throws', async () => {
     ctx(
       {
         oracle: {
-          readStream0: async () => ({ RtspSessionName: 'X' }),
+          // Rx legacy (TEARDOWN-RX appelle oracle.restoreRx() — pas encore migré en 2b)
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
-          captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restoreTx: async () => {},
-          restoreRx: async () => {
-            throw new Error('decoder unreachable')
-          },
+          restoreRx: async () => { throw new Error('decoder unreachable') },
         } as never,
       },
       'realpass',
@@ -461,12 +453,11 @@ test('CFG-GOOD passes ctx.config.nvxUser (not "admin") to fillConfig', async () 
         } as never,
         logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
         oracle: {
-          readStream0: async () => ({ RtspSessionName: 'X' }),
+          // post-migration : CFG-GOOD appelle oracle.read('/Device/StreamTransmit')
+          read: async () => ({ Streams: [{ RtspSessionName: 'X' }] }),
           readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
-          captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restoreTx: async () => {},
-          restoreRx: async () => {},
+          restoreRx: async () => ({ skipped: false }),
         } as never,
         ui: {
           open: async () => ({}),
@@ -614,11 +605,9 @@ test('TEARDOWN-RX reports "no baselineRx" honestly when restoreRx() signals no b
     ctx(
       {
         oracle: {
-          readStream0: async () => ({}),
+          // Rx legacy (TEARDOWN-RX appelle oracle.restoreRx() — pas encore migré en 2b)
           readReceiveStream0: async () => ({}),
-          captureBaseline: async () => {},
           captureBaselineRx: async () => {},
-          restoreTx: async () => ({ skipped: true }),
           restoreRx: async () => ({ skipped: true }),
         } as never,
       },
@@ -641,10 +630,8 @@ test('TEARDOWN reports "no baseline" honestly when restore() signals no baseline
     ctx(
       {
         oracle: {
-          readStream0: async () => ({}),
-          captureBaseline: async () => {},
-          restoreTx: async () => ({ skipped: true }),
-          restoreRx: async () => ({ skipped: true }),
+          // post-migration : TEARDOWN appelle oracle.restore(endpoint, buildBodies)
+          restore: async () => ({ skipped: true }),
         } as never,
       },
       'realpass',
@@ -814,13 +801,15 @@ test('verrou bout-en-bout: aucun step ne transmet username=admin quand nvxUser=d
     } as never,
     logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
     oracle: {
-      readStream0: async () => ({ RtspSessionName: 'X' }),
-      readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
-      captureBaseline: async () => {},
-      captureBaselineRx: async () => {},
-      restoreTx: async () => ({ skipped: false }),
-      restoreRx: async () => ({ skipped: false }),
+      // Méthodes génériques (encoder post-migration vague 2b)
+      read: async () => ({ Streams: [{ RtspSessionName: 'X' }] }),
+      snapshot: async () => {},
+      restore: async () => ({ skipped: false }),
       setRxScenario: async () => {},
+      // Wrappers Rx legacy (supprimés en 2c)
+      readReceiveStream0: async () => ({ Status: 'Stream Stopped', StreamLocation: '', MulticastAddress: '', SessionInitiation: 'Multicast via RTSP' }),
+      captureBaselineRx: async () => {},
+      restoreRx: async () => ({ skipped: false }),
     } as never,
     ui: {
       open: async () => ({}),

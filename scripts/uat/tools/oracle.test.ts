@@ -1,5 +1,5 @@
 /**
- * oracle.test.ts — co-évolution vague 1 — Green depuis ae417bb
+ * oracle.test.ts — co-évolution vague 2b — Tx wrappers supprimés
  *
  * Contrat de l'API oracle (implémentée) :
  *   read(endpoint)                  → Device[lastSegment] brut  (PAS Streams[0])
@@ -7,24 +7,20 @@
  *   restore(endpoint, buildBodies)  → poste buildBodies(subsystem) dans l'ordre
  *   setRxScenario(scenario)         → inchangé
  *
- * Wrappers legacy (v1 — cohabitent avec steps-lab non migré) :
- *   readStream0()      = read('/Device/StreamTransmit').Streams[0]
+ * Wrappers legacy Rx (v1 — supprimés en 2c) :
  *   readReceiveStream0()= read('/Device/StreamReceive').Streams[0]
- *   captureBaseline()  = snapshot('/Device/StreamTransmit')
- *   captureBaselineRx()= snapshot('/Device/StreamReceive')
- *   restoreTx()        = restore('/Device/StreamTransmit', txBuilder)
- *   restoreRx()        = restore('/Device/StreamReceive', rxBuilder)
+ *   captureBaselineRx() = snapshot('/Device/StreamReceive')
+ *   restoreRx()         = restore('/Device/StreamReceive', rxBuilder)
  *
  * Invariants comportementaux :
- *   Tx  — restoreTx rejoue  name → multicast → {Start|Stop}
  *   Rx  — restoreRx rejoue  {SessionInitiation + URL|Multicast} → {Start|Stop}
- *   {skipped:true} sans snapshot/captureBaseline, {skipped:false} avec
+ *   {skipped:true} sans snapshot/captureBaselineRx, {skipped:false} avec
  *   logout() dans finally après chaque méthode
  *
  * Invariant architectural :
  *   aucun import de src/panels dans oracle.ts (test d'architecture)
  *
- * Seul test Red restant : guard builders (M-2) — attend l'implémentation du guard.
+ * Aucun test Red restant dans ce fichier (guard builders M-2 retiré avec les wrappers Tx).
  */
 
 import { test } from 'node:test'
@@ -409,14 +405,8 @@ test('deux snapshots indépendants — Tx et Rx isolés par clé endpoint', asyn
 })
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Section 5 — Wrappers legacy (filet comportemental pour la cohabitation v1)
+// Section 5 — Wrappers legacy Rx (Tx supprimés en 2b, Rx supprimés en 2c)
 // ══════════════════════════════════════════════════════════════════════════════
-
-test('readStream0() retourne Streams[0] de StreamTransmit', async () => {
-  const o = new Oracle(() => makeTxClient({ RtspSessionName: 'ORIG', Status: 'Stream Stopped' }))
-  const s = await o.readStream0()
-  assert.equal(s.RtspSessionName, 'ORIG', 'readStream0 doit retourner Streams[0]')
-})
 
 test('readReceiveStream0() retourne Streams[0] de StreamReceive', async () => {
   const o = new Oracle(() => makeRxClient({ SessionInitiation: 'ByReceiver', Status: 'Stream started' }))
@@ -424,19 +414,7 @@ test('readReceiveStream0() retourne Streams[0] de StreamReceive', async () => {
   assert.equal(s.SessionInitiation, 'ByReceiver', 'readReceiveStream0 doit retourner Streams[0]')
 })
 
-// I-1 : chemins d'erreur wrappers — Streams absent ou vide
-test('readStream0() throw quand Streams est vide', async () => {
-  const client = {
-    login: async () => {},
-    logout: async () => {},
-    get: async () => ({ Device: { StreamTransmit: { Streams: [] } } }),
-    postSetPartial: async () => 0,
-    post: async () => ({}),
-  } as unknown as NvxApiClient
-  const o = new Oracle(() => client)
-  await assert.rejects(() => o.readStream0(), /Streams\[0\] absent/)
-})
-
+// I-1 : chemin d'erreur wrapper Rx — Streams absent ou vide
 test('readReceiveStream0() throw quand StreamReceive Streams est vide', async () => {
   const client = {
     login: async () => {},
@@ -447,19 +425,6 @@ test('readReceiveStream0() throw quand StreamReceive Streams est vide', async ()
   } as unknown as NvxApiClient
   const o = new Oracle(() => client)
   await assert.rejects(() => o.readReceiveStream0(), /StreamReceive Streams\[0\] absent/)
-})
-
-test('captureBaseline() + restoreTx() — rejoue le nom capturé', async () => {
-  // captureBaseline() = snapshot('/Device/StreamTransmit')
-  // restoreTx()       = restore('/Device/StreamTransmit', txBuilder)
-  const posted: unknown[] = []
-  const o = new Oracle(() => makeTxClient(
-    { RtspSessionName: 'CAP', MulticastAddress: '239.0.0.1', Status: 'Stream Stopped' },
-    posted,
-  ))
-  await o.captureBaseline()
-  await o.restoreTx()
-  assert.ok(posted.some(b => JSON.stringify(b).includes('CAP')), 'restoreTx doit rejouer le nom capturé')
 })
 
 test('captureBaselineRx() + restoreRx() — rejoue le multicast capturé', async () => {
@@ -475,48 +440,10 @@ test('captureBaselineRx() + restoreRx() — rejoue le multicast capturé', async
   assert.ok(posted.some(b => JSON.stringify(b).includes('239.0.0.4')), 'restoreRx doit rejouer le multicast capturé')
 })
 
-test('restoreTx() — {skipped:true} sans captureBaseline préalable', async () => {
-  const o = new Oracle(() => makeTxClient({}))
-  const result = await o.restoreTx()
-  assert.deepEqual(result, { skipped: true })
-})
-
 test('restoreRx() — {skipped:true} sans captureBaselineRx préalable', async () => {
   const o = new Oracle(() => makeRxClient({}))
   const result = await o.restoreRx()
   assert.deepEqual(result, { skipped: true })
-})
-
-// ══════════════════════════════════════════════════════════════════════════════
-// Section 5b — Guard builders (M-2) — Red en attente du coder
-//
-// Les builders internes (txBuilder / rxBuilder) utilisent encore `?? {}` comme
-// fallback quand Streams est absent. Le coder ajoutera un guard explicite qui
-// throw si le subsystem n'a pas de clé Streams — empêchant un restore silencieux
-// invalide (POST { Stop: true } sur un subsystem non-Streams).
-//
-// Ce test est Red jusqu'à l'ajout du guard dans oracle.ts.
-// ══════════════════════════════════════════════════════════════════════════════
-
-test('restoreTx() throw quand le snapshot ne contient pas de clé Streams [guard builder — Red]', async () => {
-  // Arrange : fake retourne un subsystem sans .Streams (ex. réponse inattendue du device).
-  const client = {
-    login: async () => {},
-    logout: async () => {},
-    get: async () => ({ Device: { StreamTransmit: { unexpectedKey: true } } }),
-    postSetPartial: async () => 0,
-    post: async () => ({}),
-  } as unknown as NvxApiClient
-  const o = new Oracle(() => client)
-  await o.captureBaseline()  // stocke { unexpectedKey: true } — snapshot réussit
-  // Act + Assert : restoreTx() doit rejeter car txBuilder reçoit un subsystem sans Streams.
-  // Actuellement : txBuilder fait `?? {}` → retourne corps silencieux → test FAIL (Red).
-  // Après guard : txBuilder throw "Streams absent" → assert.rejects passe → Green.
-  await assert.rejects(
-    () => o.restoreTx(),
-    /Streams/,
-    'restoreTx() doit rejeter quand le subsystem n\'a pas de clé Streams',
-  )
 })
 
 // ══════════════════════════════════════════════════════════════════════════════
