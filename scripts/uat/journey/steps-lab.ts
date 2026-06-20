@@ -4,6 +4,7 @@ import type { JourneyStep, JourneyContext } from './types.js'
 import { HttpError } from '../tools/companion-http.js'
 import { buildCapStep, buildVarsStep, buildBaselineStep, buildTeardownStep, buildWriteStep } from './subsystem.js'
 import { encoderSpec } from './subsystems/encoder.js'
+import { decoderSpec } from './subsystems/decoder.js'
 
 // A deliberately wrong password — never the real one, no secret handling.
 const WRONG_PASSWORD = 'uat-deliberately-wrong-pw'
@@ -79,100 +80,6 @@ async function readVar(
   return value
 }
 
-// Receiver-side test values (sourced from DiscoveredStreams in docs/hardware-validation/raw/192.168.2.9).
-const UAT_RX_URL = 'rtsp://192.168.2.10:554/live.sdp'
-const UAT_RX_MULTICAST = '239.1.1.4'
-const UAT_RX_CONNECT_NAME = 'DM-NVX-360-C442684E534B' // resolves → Multicast via RTSP / 239.1.1.4
-
-/** Press the button mapped to `actionKey`, or return false if none is mapped (SETUP missing). */
-async function pressMapped(ctx: JourneyContext, actionKey: string): Promise<boolean> {
-  const loc = ctx.config.layout?.[actionKey]
-  if (!loc) return false
-  await ctx.http.press(loc.page, loc.row, loc.col)
-  return true
-}
-
-/**
- * A WRITE step targeting StreamReceive with a prior scenario switch:
- * 1. setRxScenario(scenario) on the fake device (before pressing the button).
- * 2. press the action button.
- * 3. poll StreamReceive oracle until pred holds.
- * SKIPs cleanly when:
- * - button is not mapped (same behaviour as writeStepRx)
- * - device_role is not Receiver
- * - isFake is false/unset (the /_control/scenario route is fake-only)
- */
-function writeStepRxWithScenario(
-  id: string,
-  title: string,
-  actionKey: string,
-  scenario: string,
-  pred: (s: Record<string, unknown>) => boolean,
-  expected: unknown,
-): JourneyStep {
-  return {
-    id,
-    title,
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
-      if (!ctx.config.isFake)
-        return skip(id, `${title} (scenario fake-only)`, 1, { note: `scenario '${scenario}' requires fake device — SKIP on real NVX` })
-      const role = await readVar(ctx, 'device_role')
-      if (role !== 'Receiver') return skip(id, `${title} (device is not a Receiver)`, 1, { note: `device_role=${role}` })
-      const loc = ctx.config.layout?.[actionKey]
-      if (!loc)
-        return skip(id, `${title} (button unmapped)`, 1, { note: `button '${actionKey}' not in layout — see SETUP` })
-      // Set scenario BEFORE pressing — the fake applies it on the next Start command.
-      await ctx.oracle.setRxScenario(scenario)
-      await ctx.http.press(loc.page, loc.row, loc.col)
-      const r = await pollOracleRx(ctx, pred)
-      return r.ok
-        ? pass(id, title, 1, { deviceJson: r.snapshot, note: 'device changed as expected' })
-        : fail(id, title, 1, { expected, observed: r.snapshot })
-    },
-  }
-}
-
-/** Poll StreamReceive (oracle) until `pred(Streams[0])` holds, returning the last snapshot. */
-async function pollOracleRx(
-  ctx: JourneyContext,
-  pred: (s: Record<string, unknown>) => boolean,
-): Promise<{ ok: boolean; snapshot: Record<string, unknown> | null }> {
-  let snapshot: Record<string, unknown> | null = null
-  for (let i = 0; i < POLL_ATTEMPTS; i++) {
-    snapshot = await ctx.oracle.readReceiveStream0()
-    if (pred(snapshot)) return { ok: true, snapshot }
-    await ctx.sleep(POLL_DELAY_MS)
-  }
-  return { ok: false, snapshot }
-}
-
-/** A WRITE step targeting StreamReceive: press a button, confirm via StreamReceive oracle. */
-function writeStepRx(
-  id: string,
-  title: string,
-  actionKey: string,
-  pred: (s: Record<string, unknown>) => boolean,
-  expected: unknown,
-): JourneyStep {
-  return {
-    id,
-    title,
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip(id, `${title} (no device)`, 1, { note: 'NVX_PASS unset' })
-      const role = await readVar(ctx, 'device_role')
-      if (role !== 'Receiver') return skip(id, `${title} (device is not a Receiver)`, 1, { note: `device_role=${role}` })
-      if (!(await pressMapped(ctx, actionKey)))
-        return skip(id, `${title} (button unmapped)`, 1, { note: `button '${actionKey}' not in layout — see SETUP` })
-      const r = await pollOracleRx(ctx, pred)
-      return r.ok
-        ? pass(id, title, 1, { deviceJson: r.snapshot, note: 'device changed as expected' })
-        : fail(id, title, 1, { expected, observed: r.snapshot })
-    },
-  }
-}
 
 const useSteps: JourneyStep[] = [
   buildCapStep(encoderSpec, {
@@ -219,126 +126,52 @@ const useSteps: JourneyStep[] = [
 
 /** Steps testing the decoder (StreamReceive) — only active on a Receiver device. */
 const decoderUseSteps: JourneyStep[] = [
-  {
+  buildCapStep(decoderSpec, {
     id: 'DEC-CAP',
     title: 'decoder panel active (device_role = Receiver)',
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip('DEC-CAP', 'decoder capability (no device)', 1, { note: 'NVX_PASS unset' })
-      const role = await readVar(ctx, 'device_role', (v) => v === 'Receiver')
-      return role === 'Receiver'
-        ? pass('DEC-CAP', 'decoder panel active (role=Receiver)', 1, { note: `device_role=${role}` })
-        : skip('DEC-CAP', 'decoder panel (device is not a Receiver)', 1, { note: `device_role=${role}` })
+    titles: {
+      step: 'decoder panel active (device_role = Receiver)',
+      pass: 'decoder panel active (role=Receiver)',
+      skipRole: 'decoder panel (device is not a Receiver)',
+      noDevice: 'decoder capability (no device)',
     },
-  },
-  {
+  }),
+  buildBaselineStep(decoderSpec, {
     id: 'BASELINE-RX',
     title: 'capture decoder baseline (StreamReceive Streams[0])',
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip('BASELINE-RX', 'baseline-rx (no device)', 1, { note: 'NVX_PASS unset' })
-      // Only capture if on a Receiver (gracefully skip on Transmitter).
-      const role = await readVar(ctx, 'device_role')
-      if (role !== 'Receiver') return skip('BASELINE-RX', 'baseline-rx (device is not a Receiver)', 1, { note: `device_role=${role}` })
-      try {
-        await ctx.oracle.captureBaselineRx()
-        return pass('BASELINE-RX', 'decoder baseline captured', 1, { note: 'stored for TEARDOWN-RX restore' })
-      } catch (err) {
-        return fail('BASELINE-RX', 'decoder baseline capture failed', 1, { note: msg(err) })
-      }
+    // NO skipNote → note NUE = `device_role=${role}` (pas de suffixe endpoint)
+    passNote: 'stored for TEARDOWN-RX restore',
+    titles: {
+      noDevice: 'baseline-rx (no device)',
+      skipRole: 'baseline-rx (device is not a Receiver)',
+      pass: 'decoder baseline captured',
+      fail: 'decoder baseline capture failed',
     },
-  },
-  {
+  }),
+  buildVarsStep(decoderSpec, {
     id: 'DEC-VARS',
     title: 'decoder variables (REST) == device (oracle)',
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip('DEC-VARS', 'decoder variables (no device)', 1, { note: 'NVX_PASS unset' })
-      const role = await readVar(ctx, 'device_role')
-      if (role !== 'Receiver') return skip('DEC-VARS', 'decoder variables (device is not a Receiver)', 1, { note: `device_role=${role}` })
-      const s = await ctx.oracle.readReceiveStream0()
-      const checks: Record<string, [string, string]> = {
-        // Wait for the decoder panel to have polled at least once (rx_status populated), then read all.
-        rx_status: [await readVar(ctx, 'rx_status', (v) => v !== ''), str(s.Status)],
-        rx_source_url: [await readVar(ctx, 'rx_source_url'), str(s.StreamLocation)],
-        rx_multicast_address: [await readVar(ctx, 'rx_multicast_address'), str(s.MulticastAddress)],
-        rx_session_initiation: [await readVar(ctx, 'rx_session_initiation'), str(s.SessionInitiation)],
-      }
-      const mismatches = Object.entries(checks).filter(([, [a, b]]) => a !== b)
-      return mismatches.length === 0
-        ? pass('DEC-VARS', 'companion decoder variables == device', 1, { note: `${Object.keys(checks).length}/4 match` })
-        : fail('DEC-VARS', 'decoder variable/device mismatch', 1, {
-            observed: Object.fromEntries(mismatches.map(([k, [a, b]]) => [k, { companion: a, device: b }])),
-          })
+    titles: {
+      noDevice: 'decoder variables (no device)',
+      skipRole: 'decoder variables (device is not a Receiver)',
+      pass: 'companion decoder variables == device',
+      fail: 'decoder variable/device mismatch',
     },
-  },
-  writeStepRx(
-    'DEC-SOURCE-URL',
-    'set source URL (ByReceiver) → device',
-    'set_source_url',
-    (s) => str(s.SessionInitiation) === 'ByReceiver' && str(s.StreamLocation) === UAT_RX_URL,
-    { SessionInitiation: 'ByReceiver', StreamLocation: UAT_RX_URL },
-  ),
-  writeStepRx(
-    'DEC-SOURCE-MCAST',
-    'set source multicast → device',
-    'set_source_multicast',
-    (s) => str(s.SessionInitiation) === 'Multicast via RTSP' && str(s.MulticastAddress) === UAT_RX_MULTICAST,
-    { SessionInitiation: 'Multicast via RTSP', MulticastAddress: UAT_RX_MULTICAST },
-  ),
-  // NOTE: connect-by-name resolves to the same multicast as DEC-SOURCE-MCAST → shared terminal state by design (assertion can't distinguish the two paths at device level).
-  writeStepRx(
-    'DEC-CONNECT',
-    'connect to discovered stream by name → device',
-    'connect_to_stream',
-    (s) => str(s.SessionInitiation) === 'Multicast via RTSP' && str(s.MulticastAddress) === UAT_RX_MULTICAST,
-    { SessionInitiation: 'Multicast via RTSP', MulticastAddress: UAT_RX_MULTICAST, note: `resolved from name '${UAT_RX_CONNECT_NAME}'` },
-  ),
-  writeStepRxWithScenario(
-    'DEC-NEGOTIATING',
-    'start reception (negotiating scenario) → CodecReady false, resolution populated',
-    'dec_enable_stream',
-    'negotiating',
-    (s) => Number(s.HorizontalResolution) > 0 && s.CodecReady === false,
-    { HorizontalResolution: '>0', CodecReady: false },
-  ),
-  writeStepRxWithScenario(
-    'DEC-DECODING',
-    'start reception (decoding scenario) → CodecReady true',
-    'dec_enable_stream',
-    'decoding',
-    (s) => s.CodecReady === true,
-    { CodecReady: true },
-  ),
-  writeStepRx(
-    'DEC-ENABLE',
-    'start reception → device',
-    'dec_enable_stream',
-    (s) => s.CodecReady === true || Number(s.NumVideoPacketsRcvd) > 0,
-    { CodecReady: true, NumVideoPacketsRcvd: '>0' },
-  ),
-  writeStepRx(
-    'DEC-DISABLE',
-    'stop reception → device',
-    'dec_disable_stream',
-    (s) => s.CodecReady === false,
-    { CodecReady: false },
-  ),
-  {
+  }),
+  ...decoderSpec.writes.map((wc) => buildWriteStep(decoderSpec, wc)),
+  buildTeardownStep(decoderSpec, {
     id: 'TEARDOWN-RX',
     title: 'restore decoder (StreamReceive) to baseline',
-    scope: 'lab',
-    run: async (ctx): Promise<Verdict> => {
-      if (noDevice(ctx)) return skip('TEARDOWN-RX', 'teardown-rx (no device)', 1, { note: 'NVX_PASS unset' })
-      try {
-        const r = await ctx.oracle.restoreRx()
-        const note = r.skipped ? 'no baselineRx (SKIP capture) — nothing restored' : 'StreamReceive baseline re-applied'
-        return pass('TEARDOWN-RX', 'teardown-rx complete', 1, { note })
-      } catch (err) {
-        return fail('TEARDOWN-RX', 'decoder restore failed', 1, { note: `decoder restore failed: ${msg(err)}` })
-      }
+    disableConnection: false,
+    restoredNote: 'StreamReceive baseline re-applied',
+    skippedNote: 'no baselineRx (SKIP capture) — nothing restored',
+    failNote: 'decoder restore failed',
+    titles: {
+      noDevice: 'teardown-rx (no device)',
+      pass: 'teardown-rx complete',
+      fail: 'decoder restore failed',
     },
-  },
+  }),
 ]
 
 const authSteps: JourneyStep[] = [
@@ -417,8 +250,6 @@ const authSteps: JourneyStep[] = [
     },
   },
 ]
-
-const msg = (err: unknown): string => (err instanceof Error ? err.message : String(err))
 
 /** Capture the device's pre-USE state so TEARDOWN can restore it.
  *  SKIP on a Receiver: StreamTransmit is absent on Receiver devices. */

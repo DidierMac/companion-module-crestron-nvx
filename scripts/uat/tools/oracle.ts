@@ -1,27 +1,7 @@
 import type { NvxApiClient } from '../../../src/api.js'
-import { streamsSetBody } from '../journey/subsystems/streams-body.js'
 
 type Json = Record<string, unknown>
 type BuildBodiesFn = (subsystem: Json) => unknown[]
-
-// ── Builders privés (portent la logique de séquence restore — détenus par oracle en v1) ───
-
-/** Builder Rx : reproduit la séquence POST de l'ancien restoreRx() pour StreamReceive.
- *  Reçoit Device.StreamReceive (le subsystem complet), drill dans Streams[0].
- *  Séquence : POST {SessionInitiation + StreamLocation|MulticastAddress} → POST {Start|Stop}. */
-function rxBuilder(subsystem: Json): unknown[] {
-  if (!('Streams' in subsystem)) throw new Error('rxBuilder: Streams absent du subsystem')
-  const b = (subsystem.Streams as Array<Json>)?.[0] ?? {}
-  const bodies: unknown[] = []
-  if (typeof b.SessionInitiation === 'string') {
-    if (b.SessionInitiation === 'ByReceiver' && typeof b.StreamLocation === 'string')
-      bodies.push(streamsSetBody('StreamReceive', 0, { SessionInitiation: 'ByReceiver', StreamLocation: b.StreamLocation }))
-    else if (typeof b.MulticastAddress === 'string')
-      bodies.push(streamsSetBody('StreamReceive', 0, { SessionInitiation: b.SessionInitiation, MulticastAddress: b.MulticastAddress }))
-  }
-  bodies.push(streamsSetBody('StreamReceive', 0, b.Status === 'Stream started' ? { Start: true } : { Stop: true }))
-  return bodies
-}
 
 /** Device ground-truth: lit les sous-systèmes NVX, capture des baselines, les restaure.
  *  Oracle vérifié par les journeys — indépendant de Companion. */
@@ -33,7 +13,8 @@ export class Oracle {
 
   // ── Noyau générique ────────────────────────────────────────────────────────
 
-  /** Login + GET endpoint, retourne Device[dernier-segment] BRUT (PAS Streams[0]).
+  /** Login + GET endpoint, retourne Device[dernier-segment] BRUT (sans extraction).
+   *  L'extraction de la portion pertinente (ex. Streams[idx]) est du ressort du SubsystemSpec.
    *  Sentinel-safe : throw si Device[segment] est absent. logout() dans finally. */
   async read(endpoint: string): Promise<Json> {
     const segment = endpoint.split('/').pop() ?? endpoint
@@ -70,26 +51,6 @@ export class Oracle {
     } finally {
       await c.logout().catch(() => {})
     }
-  }
-
-  // ── Wrappers legacy Rx (v1 — supprimés en 2c avec la migration décodeur) ─────
-
-  /** Login + GET StreamReceive Streams[0]. */
-  async readReceiveStream0(): Promise<Json> {
-    const subsystem = await this.read('/Device/StreamReceive')
-    const s = (subsystem.Streams as Array<Json>)?.[0]
-    if (!s) throw new Error('StreamReceive Streams[0] absent')
-    return s
-  }
-
-  /** = snapshot('/Device/StreamReceive') */
-  async captureBaselineRx(): Promise<void> {
-    await this.snapshot('/Device/StreamReceive')
-  }
-
-  /** = restore('/Device/StreamReceive', rxBuilder) */
-  async restoreRx(): Promise<{ skipped: boolean }> {
-    return this.restore('/Device/StreamReceive', rxBuilder)
   }
 
   // ── Contrôle fake ─────────────────────────────────────────────────────────
