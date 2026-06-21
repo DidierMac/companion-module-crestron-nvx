@@ -3,7 +3,8 @@
  *
  * Relocalisé depuis scripts/uat/tools/oracle.ts (vague 2a) pour permettre
  * aux specs encoder.ts / decoder.ts de l'importer directement, sans dépendre
- * de l'oracle. Importé par oracle.ts à la place de sa définition locale.
+ * de l'oracle. Importé par encoder.ts et decoder.ts pour construire les bodies
+ * de restore (buildBodies) et de POST dans les journeys.
  *
  * NE PAS importer depuis src/panels — ce fichier est la source unique en UAT.
  */

@@ -350,7 +350,7 @@ test('TEARDOWN-RX PASSes with a device', async () => {
   assert.equal((await step.run(ctx({}, 'realpass'))).status, 'PASS')
 })
 
-test('TEARDOWN-RX FAILs when restoreRx throws', async () => {
+test('TEARDOWN-RX FAILs when oracle.restore throws', async () => {
   const step = labSteps.find((s) => s.id === 'TEARDOWN-RX')!
   const v = await step.run(
     ctx(
@@ -580,9 +580,9 @@ test('BASELINE SKIPs (not FAILs) when device_role is Receiver', async () => {
   assert.equal(v.status, 'SKIP', 'BASELINE must SKIP on a Receiver (reads StreamTransmit)')
 })
 
-test('TEARDOWN-RX reports "no baselineRx" honestly when restoreRx() signals no baseline was captured', async () => {
+test('TEARDOWN-RX reports "no baselineRx" honestly when oracle.restore() signals no baseline was captured', async () => {
   const teardownRx = labSteps.find((s) => s.id === 'TEARDOWN-RX')!
-  // Oracle.restoreRx() signals no baseline by returning { skipped: true } instead of throwing.
+  // oracle.restore() signals no baseline by returning { skipped: true } instead of throwing.
   const v = await teardownRx.run(
     ctx(
       {

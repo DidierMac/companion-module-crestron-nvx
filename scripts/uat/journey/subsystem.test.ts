@@ -177,13 +177,6 @@ function makeCtx(opts: CtxOpts = {}): JourneyContext {
       snapshot: opts.oracleSnapshot ?? (async () => {}),
       restore: opts.oracleRestore ?? (async () => ({ skipped: false })),
       setRxScenario: opts.oracleSetRxScenario ?? (async () => {}),
-      // Legacy wrappers requis par le type Oracle (non utilisés par le runner générique)
-      readStream0: async () => ({}),
-      readReceiveStream0: async () => ({}),
-      captureBaseline: async () => {},
-      captureBaselineRx: async () => {},
-      restoreTx: async () => ({ skipped: false }),
-      restoreRx: async () => ({ skipped: false }),
     } as never,
     ui: {
       open: async () => ({}),

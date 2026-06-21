@@ -113,7 +113,7 @@ const useSteps: JourneyStep[] = [
       if (role !== 'Transmitter') return skip('ENC-FEEDBACKS', 'encoder feedbacks (device is not a Transmitter)', 1, { note: `device_role=${role}` })
       // Satellite colour check deferred (spec §8); validate the variable that drives the feedback.
       const varVal = await readVar(ctx, 'tx_enabled', (v) => v !== '')
-      const subsystem = await ctx.oracle.read('/Device/StreamTransmit')
+      const subsystem = await ctx.oracle.read(encoderSpec.endpoint)
       const s = encoderSpec.extract(subsystem)
       const deviceVal = String(str(s.Status) === 'Stream started')
       return varVal === deviceVal
