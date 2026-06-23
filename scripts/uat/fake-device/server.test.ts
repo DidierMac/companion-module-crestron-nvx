@@ -19,6 +19,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { EventEmitter } from 'node:events'
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as server from './server.js'
@@ -75,9 +77,18 @@ function makeRes(): { res: object; done: Promise<ResResult> } {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Crée une instance fraîche — état isolé par test. */
+// RAW Transmitter (.10, fakeRole=Transmitter) — instance par défaut
+/** Crée une instance Transmitter fraîche — état isolé par test. */
 function device() {
   return createFakeDevice({ rawDir: RAW_DIR, password: PASSWORD })
+}
+
+// RAW Receiver (.9, fakeRole=Receiver) — pour les tests de garde Rx
+const RX_RAW_DIR = path.resolve(__dirname, '../../../docs/hardware-validation/raw/192.168.2.9')
+
+/** Crée une instance Receiver fraîche (rawDir .9, DeviceMode=Receiver). */
+function rxDevice() {
+  return createFakeDevice({ rawDir: RX_RAW_DIR, password: PASSWORD })
 }
 
 async function httpGet(h: Handler, url: string, cookies = ''): Promise<ResResult> {
@@ -236,25 +247,99 @@ test('POST /Device JSON malformé → 200 silencieux (erreur parse ignorée)', a
 })
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Section 5 — POST StreamReceive (comportement bi-rôle ACTUEL — figé ici, durci en 3c)
-// Le raw .10 est un TX mais a un Device_StreamReceive.json → streamReceive non-null.
-// Le fake applique SetPartial StreamReceive même sur ce TX (bi-rôle actuel).
+// Section 5 — Garde mono-rôle (3c — remplace le bi-rôle 3a)
+//
+// deriveFakeRole() lit DeviceSpecific.DeviceMode → 'Transmitter'|'Receiver'.
+// SUBSYSTEMS rolebound : GET ET POST → 404 si rôle opposé (corps "${name} absent on ${fakeRole}").
+// Subsystems role-agnostiques (DeviceInfo, DeviceSpecific…) : JAMAIS gardés → 200.
+// Fail-fast : DeviceMode absent/invalide → throw à la construction.
+//
+// device()   = Tx (.10, DeviceMode=Transmitter) — StreamReceive gardé
+// rxDevice() = Rx (.9,  DeviceMode=Receiver)   — StreamTransmit gardé
 // ══════════════════════════════════════════════════════════════════════════════
 
-test('POST /Device StreamReceive {Stop:true} → Streams[0].Status "Stream Stopped"', async () => {
+// ── Garde Tx (fakeRole=Transmitter) : StreamReceive → 404 ────────────────────
+
+test('GET /Device/StreamReceive sur Tx → 404 (StreamReceive absent on Transmitter)', async () => {
   const { handler } = device()
-  await httpPost(handler, '/Device', JSON.stringify({ Device: { StreamReceive: { Streams: [{ Stop: true }] } } }))
-  const s = await getReceiveStream0(handler)
-  assert.equal(s.Status, 'Stream Stopped')
+  const r = await httpGet(handler, '/Device/StreamReceive', 'AUTHID=ok')
+  assert.equal(r.statusCode, 404)
+  assert.ok(r.body.includes('absent on Transmitter'),
+    `body doit contenir "absent on Transmitter", got: "${r.body}"`)
 })
 
-test('POST /Device StreamReceive {Start:true} scénario défaut → Status "Stream started" + CodecReady true', async () => {
-  // scénario défaut = 'decoding' (currentRxScenario initial) → CodecReady:true
+test('POST /Device StreamReceive sur Tx → 404 (garde mono-rôle en GET et POST)', async () => {
   const { handler } = device()
-  await httpPost(handler, '/Device', JSON.stringify({ Device: { StreamReceive: { Streams: [{ Start: true }] } } }))
-  const s = await getReceiveStream0(handler)
-  assert.equal(s.Status, 'Stream started', 'Start doit produire Status Stream started')
-  assert.equal(s.CodecReady, true, 'scénario décoding par défaut → CodecReady true')
+  const r = await httpPost(handler, '/Device',
+    JSON.stringify({ Device: { StreamReceive: { Streams: [{ Stop: true }] } } }))
+  assert.equal(r.statusCode, 404)
+  assert.ok(r.body.includes('absent on Transmitter'),
+    `body doit contenir "absent on Transmitter", got: "${r.body}"`)
+})
+
+// ── Garde Rx (fakeRole=Receiver) : StreamTransmit → 404 ──────────────────────
+
+test('GET /Device/StreamTransmit sur Rx → 404 (StreamTransmit absent on Receiver)', async () => {
+  const { handler } = rxDevice()
+  const r = await httpGet(handler, '/Device/StreamTransmit', 'AUTHID=ok')
+  assert.equal(r.statusCode, 404)
+  assert.ok(r.body.includes('absent on Receiver'),
+    `body doit contenir "absent on Receiver", got: "${r.body}"`)
+})
+
+test('POST /Device StreamTransmit sur Rx → 404 (garde mono-rôle en GET et POST)', async () => {
+  const { handler } = rxDevice()
+  const r = await httpPost(handler, '/Device',
+    JSON.stringify({ Device: { StreamTransmit: { Streams: [{ Start: true }] } } }))
+  assert.equal(r.statusCode, 404)
+  assert.ok(r.body.includes('absent on Receiver'),
+    `body doit contenir "absent on Receiver", got: "${r.body}"`)
+})
+
+// ── 404 garde DISTINCT de 404 unknown subsystem ───────────────────────────────
+
+test('404 garde (absent on X) DISTINCT du 404 "unknown subsystem" — corps différents', async () => {
+  const { handler } = device()  // Tx : StreamReceive est le subsystem gardé
+  const guardR = await httpGet(handler, '/Device/StreamReceive', 'AUTHID=ok')   // 404 garde
+  const unknownR = await httpGet(handler, '/Device/UnknownXXXYYY', 'AUTHID=ok') // 404 inconnu
+  assert.equal(guardR.statusCode, 404)
+  assert.equal(unknownR.statusCode, 404)
+  assert.ok(guardR.body.includes('absent on'),
+    `corps garde doit contenir "absent on", got: "${guardR.body}"`)
+  assert.ok(unknownR.body.includes('unknown subsystem'),
+    `corps inconnu doit contenir "unknown subsystem", got: "${unknownR.body}"`)
+  assert.notEqual(guardR.body, unknownR.body, 'les deux 404 doivent avoir des corps distincts')
+})
+
+// ── Role-agnostique : DeviceInfo → 200 quel que soit le rôle ─────────────────
+
+test('GET /Device/DeviceInfo → 200 sur Tx ET sur Rx (jamais gardé — role-agnostique)', async () => {
+  const { handler: txH } = device()
+  const { handler: rxH } = rxDevice()
+  const rTx = await httpGet(txH, '/Device/DeviceInfo', 'AUTHID=ok')
+  const rRx = await httpGet(rxH, '/Device/DeviceInfo', 'AUTHID=ok')
+  assert.equal(rTx.statusCode, 200, 'DeviceInfo sur Tx doit être 200')
+  assert.equal(rRx.statusCode, 200, 'DeviceInfo sur Rx doit être 200')
+})
+
+// ── Fail-fast : DeviceMode absent/invalide → throw à la construction ──────────
+
+test('createFakeDevice → throw si DeviceSpecific.DeviceMode absent (fail-fast)', () => {
+  // Fixture temporaire : StreamTransmit OK mais DeviceSpecific sans DeviceMode
+  const dir = mkdtempSync(path.join(tmpdir(), 'fake-test-'))
+  try {
+    writeFileSync(path.join(dir, 'Device_StreamTransmit.json'),
+      JSON.stringify({ Device: { StreamTransmit: { Streams: [{}] } } }))
+    writeFileSync(path.join(dir, 'Device_DeviceSpecific.json'),
+      JSON.stringify({ Device: { DeviceSpecific: {} } }))  // DeviceMode absent
+    assert.throws(
+      () => createFakeDevice({ rawDir: dir }),
+      (err: Error) => /DeviceMode|absent|invalide/i.test(err.message),
+      'createFakeDevice doit throw si DeviceMode est absent du RAW',
+    )
+  } finally {
+    rmSync(dir, { recursive: true })
+  }
 })
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -281,7 +366,11 @@ test('POST /_control/scenario scénario inconnu → 400 + {ok:false}', async () 
 test('POST /_control/scenario {role:"rx",scenario:"negotiating"} applique immédiatement à StreamReceive', async () => {
   // Comportement actuel : Object.assign(receiveStream0(), scenarioToReceiveState(scenario))
   // sans attendre un Start — nécessaire quand le stream est déjà démarré.
-  const { handler } = device()
+  //
+  // NOTE (3c) : on utilise rxDevice() et non device() — après la garde mono-rôle,
+  // GET /Device/StreamReceive sur un Tx → 404 (StreamReceive absent on Transmitter).
+  // Ce test accède à StreamReceive via getReceiveStream0() → doit être un Receiver.
+  const { handler } = rxDevice()
   // D'abord Start pour avoir CodecReady:true (decoding par défaut)
   await httpPost(handler, '/Device', JSON.stringify({ Device: { StreamReceive: { Streams: [{ Start: true }] } } }))
   // Changer de scénario → appliqué immédiatement
