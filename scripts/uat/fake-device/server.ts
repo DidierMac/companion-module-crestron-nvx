@@ -131,14 +131,32 @@ export function createFakeDevice(
     }
   }
 
-  function serveSubsystem(sub: string): Json | null {
-    if (sub === 'StreamTransmit') return streamTransmit
-    if (sub === 'StreamReceive' && streamReceive) return streamReceive
-    try {
-      return loadSub(sub)
-    } catch {
-      return null
-    }
+  // ── Subsystem routing table ──────────────────────────────────────────────────
+
+  interface SubsystemEntry {
+    /** Retourne l'objet subsystem servi (ou null si absent — ex. RX sur config TX pure). */
+    state: () => Json | null
+    /** Applique un SetPartial sur l'état mutable de l'instance. */
+    apply: (body: Json) => void
+    /** Rôle auquel ce subsystem appartient — consommé en 3c pour la garde mono-rôle. */
+    role: 'Transmitter' | 'Receiver'
+  }
+
+  const SUBSYSTEMS: Record<string, SubsystemEntry> = {
+    StreamTransmit: {
+      state: () => streamTransmit,
+      apply: applySetPartial,
+      role: 'Transmitter',
+    },
+    StreamReceive: {
+      state: () => streamReceive,
+      apply: (b) => {
+        if (!streamReceive) return
+        const t = receiveStream0()
+        if (t) applyReceiveSetPartial(b, t, currentRxScenario)
+      },
+      role: 'Receiver',
+    },
   }
 
   // ── HTTP handler (closes over instance state above) ──────────────────────────
@@ -202,9 +220,9 @@ export function createFakeDevice(
         try {
           const parsed = JSON.parse(body) as Json
           const dev = parsed.Device as Json | undefined
-          if (dev?.StreamReceive && streamReceive) {
-            const t = receiveStream0()
-            if (t) applyReceiveSetPartial(parsed, t, currentRxScenario)
+          const name = Object.keys(SUBSYSTEMS).find(k => k in (dev ?? {}))
+          if (name) {
+            SUBSYSTEMS[name].apply(parsed)
           } else {
             applySetPartial(parsed)
           }
@@ -222,7 +240,11 @@ export function createFakeDevice(
           return res.end('no session')
         }
         const name = sub.slice('/Device/'.length)
-        const json = serveSubsystem(name)
+        // Table pour les subsystems mutables ; loadSub en fallback pour les read-only (DeviceInfo…).
+        let json: Json | null = SUBSYSTEMS[name]?.state() ?? null
+        if (!json) {
+          try { json = loadSub(name) } catch { json = null }
+        }
         if (!json) {
           res.writeHead(404)
           return res.end('unknown subsystem')
