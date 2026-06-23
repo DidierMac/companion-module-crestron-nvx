@@ -228,7 +228,7 @@ const authSteps: JourneyStep[] = [
       let oracleOk = false
       let oracleErr: string | undefined
       try {
-        await ctx.oracle.read('/Device/StreamTransmit')
+        await ctx.oracle.read('/Device/DeviceInfo')
         oracleOk = true
       } catch (err) {
         oracleErr = err instanceof Error ? err.message : String(err)
