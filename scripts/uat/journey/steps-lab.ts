@@ -224,7 +224,7 @@ const authSteps: JourneyStep[] = [
       // REST category for a healthy connection is 'good' (the UI label is "OK") — verified live.
       const category = await pollStatusCategory(ctx, connId, 'good')
 
-      // Independent proof of a real session: the oracle logs in and reads StreamTransmit.
+      // Independent proof of a real session: the oracle logs in and reads DeviceInfo (role-neutral).
       let oracleOk = false
       let oracleErr: string | undefined
       try {
@@ -238,13 +238,13 @@ const authSteps: JourneyStep[] = [
       }
       if (category !== 'good') {
         return ambiguous('CFG-GOOD', 'connected (oracle confirms session)', 1, {
-          expected: { category: 'good', oracle: 'oracle.read(/Device/StreamTransmit) succeeds' },
+          expected: { category: 'good', oracle: 'oracle.read(/Device/DeviceInfo) succeeds' },
           observed: { category, oracleOk, oracleErr },
           note: 'connexion jamais saine — non concluant (env/UI), session non testable',
         })
       }
       return fail('CFG-GOOD', 'connected (oracle confirms session)', 1, {
-        expected: { category: 'good', oracle: 'oracle.read(/Device/StreamTransmit) succeeds' },
+        expected: { category: 'good', oracle: 'oracle.read(/Device/DeviceInfo) succeeds' },
         observed: { category, oracleOk, oracleErr },
       })
     },
