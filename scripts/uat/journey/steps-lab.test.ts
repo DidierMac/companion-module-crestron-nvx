@@ -140,7 +140,7 @@ test('CFG-GOOD FAILs when the oracle cannot read a stream', async () => {
     ctx(
       {
         oracle: {
-          // post-migration : CFG-GOOD appelle oracle.read('/Device/StreamTransmit')
+          // post-migration 3d : CFG-GOOD appelle oracle.read('/Device/DeviceInfo') (role-agnostique)
           read: async () => { throw new Error('no session') },
         } as never,
       },
@@ -228,7 +228,7 @@ test('CFG-GOOD — catégorie jamais good → AMBIGUOUS (connexion non établie)
         } as never,
         logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
         oracle: {
-          // post-migration : CFG-GOOD appelle oracle.read('/Device/StreamTransmit')
+          // post-migration 3d : CFG-GOOD appelle oracle.read('/Device/DeviceInfo') (role-agnostique)
           read: async () => ({ Streams: [{ RtspSessionName: 'X' }] }),
           snapshot: async () => {},
           restore: async () => ({ skipped: false }),
@@ -264,7 +264,7 @@ test('CFG-GOOD — good mais oracle échoue → FAIL (Q2: oracle-unreachable res
           press: async () => {},
         } as never,
         oracle: {
-          // post-migration : CFG-GOOD appelle oracle.read('/Device/StreamTransmit')
+          // post-migration 3d : CFG-GOOD appelle oracle.read('/Device/DeviceInfo') (role-agnostique)
           read: async () => { throw new Error('oracle unreachable') },
           setRxScenario: async () => {},
         } as never,
@@ -273,6 +273,37 @@ test('CFG-GOOD — good mais oracle échoue → FAIL (Q2: oracle-unreachable res
     ),
   )
   assert.equal(v.status, 'FAIL')
+})
+
+test('CFG-GOOD — oracle.read reçoit /Device/DeviceInfo (preuve session role-agnostique, vague 3d)', async () => {
+  // Verrouille le choix role-neutre : CFG-GOOD doit lire DeviceInfo, jamais StreamTransmit.
+  // DeviceInfo est servi quel que soit le rôle (Tx ET Rx) — la preuve de session marche
+  // sur un décodeur sans déclencher la garde mono-rôle (StreamTransmit → 404 sur Rx).
+  //
+  // Red tant que steps-lab.ts appelle encore oracle.read('/Device/StreamTransmit') (vague 3c→3d).
+  // Green quand le coder remplace par oracle.read('/Device/DeviceInfo').
+  const step = labSteps.find((s) => s.id === 'CFG-GOOD')!
+  const capturedEndpoints: string[] = []
+  const v = await step.run(
+    ctx(
+      {
+        oracle: {
+          read: async (endpoint: string) => {
+            capturedEndpoints.push(endpoint)
+            return {}  // DeviceInfo : objet non-null → ne throw pas → preuve de session OK
+          },
+        } as never,
+      },
+      'realpass',
+    ),
+  )
+  assert.equal(v.status, 'PASS', 'CFG-GOOD doit PASS quand oracle.read réussit')
+  assert.equal(capturedEndpoints.length, 1, 'oracle.read doit être appelé exactement une fois')
+  assert.equal(
+    capturedEndpoints[0],
+    '/Device/DeviceInfo',
+    `CFG-GOOD doit lire /Device/DeviceInfo (role-agnostique), got: '${capturedEndpoints[0]}'`,
+  )
 })
 
 test('CFG-WRONGPASS — sans device (noDevice) → SKIP (garde préservée)', async () => {
@@ -438,7 +469,7 @@ test('CFG-GOOD passes ctx.config.nvxUser (not "admin") to fillConfig', async () 
         } as never,
         logs: { mark: () => ({ ts: 't' }), detect: () => true } as never,
         oracle: {
-          // post-migration : CFG-GOOD appelle oracle.read('/Device/StreamTransmit')
+          // post-migration 3d : CFG-GOOD appelle oracle.read('/Device/DeviceInfo') (role-agnostique)
           read: async () => ({ Streams: [{ RtspSessionName: 'X' }] }),
         } as never,
         ui: {
