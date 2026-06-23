@@ -131,6 +131,20 @@ export function createFakeDevice(
     }
   }
 
+  // ── Mono-role derivation (fail-fast at construction) ────────────────────────
+
+  /** Lit DeviceSpecific.DeviceMode dans le RAW et retourne le rôle de cette instance.
+   *  Throw immédiatement si DeviceMode est absent ou invalide — le fake NVX est strictement
+   *  mono-rôle (Transmitter OU Receiver), jamais bi-rôle. */
+  function deriveFakeRole(): 'Transmitter' | 'Receiver' {
+    const ds = loadSub('DeviceSpecific')
+    const mode = ((ds.Device as Json | undefined)?.DeviceSpecific as Json | undefined)?.DeviceMode
+    if (mode === 'Transmitter' || mode === 'Receiver') return mode
+    throw new Error('fake: DeviceSpecific.DeviceMode absent/invalide — rôle indéterminable')
+  }
+
+  const fakeRole = deriveFakeRole()
+
   // ── Subsystem routing table ──────────────────────────────────────────────────
 
   interface SubsystemEntry {
@@ -221,6 +235,11 @@ export function createFakeDevice(
           const parsed = JSON.parse(body) as Json
           const dev = parsed.Device as Json | undefined
           const name = Object.keys(SUBSYSTEMS).find(k => k in (dev ?? {}))
+          if (name && SUBSYSTEMS[name].role !== fakeRole) {
+            // Garde mono-rôle : POST vers le subsystem du rôle opposé → 404.
+            res.writeHead(404)
+            return res.end(`${name} absent on ${fakeRole}`)
+          }
           if (name) {
             SUBSYSTEMS[name].apply(parsed)
           } else {
@@ -240,6 +259,11 @@ export function createFakeDevice(
           return res.end('no session')
         }
         const name = sub.slice('/Device/'.length)
+        // Garde mono-rôle : un subsystem rolebound absent du rôle courant → 404 distinct.
+        if (name in SUBSYSTEMS && SUBSYSTEMS[name].role !== fakeRole) {
+          res.writeHead(404)
+          return res.end(`${name} absent on ${fakeRole}`)
+        }
         // Table pour les subsystems mutables ; loadSub en fallback pour les read-only (DeviceInfo…).
         let json: Json | null = SUBSYSTEMS[name]?.state() ?? null
         if (!json) {
