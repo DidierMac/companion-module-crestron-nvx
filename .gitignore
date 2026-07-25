@@ -11,6 +11,7 @@ dist/
 .playwright-mcp/
 /*.png
 docs/uat-runs/assets/
+backups/
 
 # UAT fake device — self-signed test cert (generated)
 scripts/uat/fake-device/certs/
